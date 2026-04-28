@@ -1,65 +1,45 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="px-6 h-16 flex items-center border-b bg-white dark:bg-slate-900 shrink-0">
+        <div className="flex items-center gap-2 font-bold text-xl text-blue-600 dark:text-blue-400">
+          OrçaFácil
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Link href="/login">
+            <Button variant="ghost">Entrar</Button>
+          </Link>
+          <Link href="/register">
+            <Button>Criar Conta</Button>
+          </Link>
+        </nav>
+      </header>
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6">
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
+          Orçamentos rápidos e <span className="text-blue-600 dark:text-blue-400">profissionais</span>
+        </h1>
+        <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl">
+          Crie, gerencie e envie orçamentos para seus clientes em poucos cliques. O sistema ideal para MEIs e pequenos negócios.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link href="/register">
+            <Button size="lg" className="w-full sm:w-auto text-base">
+              Começar agora gratuitamente
+            </Button>
+          </Link>
+          <Link href="/login">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto text-base">
+              Acessar minha conta
+            </Button>
+          </Link>
         </div>
       </main>
+      <footer className="py-6 flex flex-col sm:flex-row items-center justify-center border-t bg-white dark:bg-slate-900 text-sm text-slate-500">
+        © {new Date().getFullYear()} OrçaFácil. Todos os direitos reservados.
+      </footer>
     </div>
   );
 }

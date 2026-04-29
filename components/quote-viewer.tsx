@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { format } from 'date-fns'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Printer, Send, Pencil, ChevronLeft } from 'lucide-react'
+import { Printer, Send, Pencil, ChevronLeft, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -92,6 +92,11 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                     <Pencil className="h-4 w-4" /> Editar
                   </Button>
                 </Link>
+                <Link href={`/app/quotes/new?clone=${quote.id}`}>
+                  <Button variant="outline" size="sm" className="gap-2 border-slate-200 text-slate-600 font-semibold">
+                    <Copy className="h-4 w-4" /> Clonar
+                  </Button>
+                </Link>
                 <Button onClick={handleCopyLink} variant="outline" size="sm" className="gap-2 border-blue-200 text-blue-600 font-semibold hover:bg-blue-50">
                   <Send className="h-4 w-4" /> Enviar para Cliente
                 </Button>
@@ -129,7 +134,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             
             <div className="text-right sm:max-w-[300px]">
               <h2 className="text-4xl font-black text-slate-200 leading-none mb-2">ORÇAMENTO</h2>
-              <p className="text-xl font-bold text-[#2E6898] mt-1">Nº ORC-{quote.quote_number?.toString().padStart(4, '0')}</p>
+              <p className="text-xl font-bold text-[#2E6898] mt-1">ORC-{quote.quote_number?.toString().padStart(4, '0')}</p>
               <div className="mt-4 text-sm space-y-1">
                 <p className="text-slate-500"><span className="font-bold text-slate-700">Data de emissão:</span> {format(new Date(quote.created_at), 'dd/MM/yyyy')}</p>
                 {quote.valid_until && (

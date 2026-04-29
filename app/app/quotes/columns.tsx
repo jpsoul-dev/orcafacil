@@ -29,7 +29,7 @@ export const columns: ColumnDef<Quote>[] = [
         href={`/app/quotes/${row.original.id}`}
         className="font-mono text-xs font-bold text-blue-600 hover:underline"
       >
-        #{String(row.getValue('quote_number')).padStart(3, '0')}
+        ORC-{String(row.getValue('quote_number')).padStart(4, '0')}
       </Link>
     ),
   },

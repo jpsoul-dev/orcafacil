@@ -30,7 +30,15 @@ const quoteItemSchema = z.object({
 const quoteSchema = z.object({
   title: z.string().min(1, 'Título do orçamento obrigatório'),
   customer_id: z.string().min(1, 'Selecione um cliente'),
-  valid_until: z.string().optional().nullable(),
+  valid_until: z.string().refine((val) => {
+    if (!val) return true
+    const date = new Date(val + 'T00:00:00')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return date >= today
+  }, {
+    message: 'A data de validade não pode ser anterior à data atual'
+  }).optional().nullable(),
   discount_type: z.enum(['none', '%', 'R$']),
   discount_value: z.coerce.number().min(0),
   payment_method: z.string().optional(),
@@ -214,7 +222,15 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
             </div>
             <div className="space-y-2">
               <Label htmlFor="valid_until" className="text-[13px] font-semibold text-slate-700">Validade</Label>
-              <Input id="valid_until" type="date" {...form.register('valid_until')} className="h-10 border-slate-200 rounded-lg bg-white w-full" />
+              <Input 
+                id="valid_until" 
+                type="date" 
+                {...form.register('valid_until')} 
+                className={`h-10 border-slate-200 rounded-lg bg-white w-full ${form.formState.errors.valid_until ? 'border-red-500 focus-visible:ring-red-500' : ''}`} 
+              />
+              {form.formState.errors.valid_until && (
+                <p className="text-xs text-red-500">{form.formState.errors.valid_until.message}</p>
+              )}
             </div>
           </div>
 

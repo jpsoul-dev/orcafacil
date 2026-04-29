@@ -1,92 +1,73 @@
 import { createClient } from '@/lib/supabase/server'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { FileText, MoreHorizontal, ExternalLink, Plus } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuGroup } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { Button } from '@/components/ui/button'
+import { FileText, Plus } from 'lucide-react'
+import { DataTable } from '@/components/ui/data-table'
+import { columns } from './columns'
+import { QuotesFilter } from './components/quotes-filter'
 
-export default async function QuotesPage() {
+export default async function QuotesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const { status } = await searchParams
   const supabase = await createClient()
-  const { data: quotes } = await supabase
+
+  let query = supabase
     .from('quotes')
-    .select('*, customer:customers(name)')
+    .select(`
+      *,
+      customers ( name )
+    `)
     .order('created_at', { ascending: false })
+
+  if (status && status !== 'all') {
+    query = query.eq('status', status)
+  }
+
+  const { data: quotes } = await query
 
   return (
     <div className="space-y-6">
+      {/* Header da Página */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Orçamentos</h2>
-          <p className="text-muted-foreground">Crie e gerencie seus orçamentos.</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold tracking-tight">Orçamentos</h2>
+          </div>
+          <p className="text-muted-foreground text-sm mt-0.5">Crie e gerencie seus orçamentos.</p>
         </div>
         <Link href="/app/quotes/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Novo Orçamento
+          <Button className="gap-2 font-semibold shadow-sm">
+            <Plus className="h-4 w-4" /> Novo Orçamento
           </Button>
         </Link>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nº</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Data Criação</TableHead>
-              <TableHead>Validade</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {quotes && quotes.length > 0 ? (
-              quotes.map((quote) => (
-                <TableRow key={quote.id}>
-                  <TableCell className="font-medium">
-                    <span className="flex items-center">
-                      <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                      ORC-{quote.quote_number?.toString().padStart(4, '0')}
-                    </span>
-                  </TableCell>
-                  <TableCell>{quote.customer?.name || 'Cliente Avulso'}</TableCell>
-                  <TableCell>{format(new Date(quote.created_at), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell>{quote.valid_until ? format(new Date(quote.valid_until), 'dd/MM/yyyy') : '-'}</TableCell>
-                  <TableCell className="font-bold">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(quote.total)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger render={
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      } />
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuGroup>
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem render={
-                            <Link href={`/quote/${quote.public_uuid}`} target="_blank">
-                              <ExternalLink className="mr-2 h-4 w-4" /> Ver / Imprimir
-                            </Link>
-                          } />
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  Nenhum orçamento gerado.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <QuotesFilter />
+
+      {/* Tabela ou Empty State */}
+      {quotes && quotes.length > 0 ? (
+        <DataTable
+          columns={columns}
+          data={quotes}
+        />
+      ) : (
+        /* Empty State */
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card py-16 text-center shadow-sm">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
+            <FileText className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h3 className="font-semibold text-lg">Nenhum orçamento</h3>
+          <p className="text-muted-foreground text-sm mt-1 max-w-xs">
+            Você não possui orçamentos nesta visualização.
+          </p>
+          <div className="mt-5">
+            <Link href="/app/quotes/new">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" /> Criar Orçamento
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { CatalogForm } from './catalog-form'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Pencil, Box, Wrench } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuGroup } from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/ui/badge'
+import { Package } from 'lucide-react'
+import { DataTable } from '@/components/ui/data-table'
+import { columns } from './columns'
 
 export default async function CatalogPage() {
   const supabase = await createClient()
@@ -11,72 +11,43 @@ export default async function CatalogPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header da Página */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Catálogo</h2>
-          <p className="text-muted-foreground">Gerencie seus produtos e serviços.</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold tracking-tight">Catálogo</h2>
+            <Badge variant="secondary" className="font-semibold">
+              {items?.length ?? 0}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm mt-0.5">Gerencie seus produtos e serviços.</p>
         </div>
         <CatalogForm />
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Nome do Item</TableHead>
-              <TableHead>Valor Unitário</TableHead>
-              <TableHead>Unidade</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items && items.length > 0 ? (
-              items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    {item.type === 'product' ? (
-                      <span className="flex items-center text-sm text-blue-600"><Box className="mr-1 h-4 w-4" /> Produto</span>
-                    ) : (
-                      <span className="flex items-center text-sm text-orange-600"><Wrench className="mr-1 h-4 w-4" /> Serviço</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unit_price)}
-                  </TableCell>
-                  <TableCell>{item.type === 'product' ? item.unit_measure : '-'}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger render={
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      } />
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuGroup>
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <CatalogForm 
-                            initialData={item} 
-                            asMenuItem={true}
-                          />
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  Nenhum item cadastrado no catálogo.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Tabela ou Empty State */}
+      {items && items.length > 0 ? (
+        <DataTable
+          columns={columns}
+          data={items}
+          searchKey="name"
+          searchPlaceholder="Buscar item pelo nome..."
+        />
+      ) : (
+        /* Empty State */
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card py-16 text-center shadow-sm">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
+            <Package className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h3 className="font-semibold text-lg">Catálogo vazio</h3>
+          <p className="text-muted-foreground text-sm mt-1 max-w-xs">
+            Adicione produtos ou serviços para agilizar a criação de orçamentos.
+          </p>
+          <div className="mt-5">
+            <CatalogForm />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,19 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCustomer } from './actions'
+import { maskCPFCNPJ, maskPhone, maskCEP } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, Loader2, User, Phone, MapPin, Search } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogDescription, DialogClose } from '@/components/ui/dialog'
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -34,10 +34,11 @@ const customerSchema = z.object({
 
 type CustomerValues = z.infer<typeof customerSchema>
 
-export function CustomerForm({ initialData, asMenuItem }: { initialData?: any, asMenuItem?: boolean }) {
+export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData?: any, asMenuItem?: boolean, trigger?: React.ReactElement }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  
+  const [searchingCEP, setSearchingCEP] = useState(false)
+
   const form = useForm<CustomerValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
@@ -62,7 +63,6 @@ export function CustomerForm({ initialData, asMenuItem }: { initialData?: any, a
     setLoading(true)
     const result = await saveCustomer(data, initialData?.id)
     setLoading(false)
-    
     if (result.error) {
       toast.error(result.error)
     } else {
@@ -72,9 +72,11 @@ export function CustomerForm({ initialData, asMenuItem }: { initialData?: any, a
     }
   }
 
-  const checkCEP = async (e: React.FocusEvent<HTMLInputElement>) => {
-    const cep = e.target.value.replace(/\D/g, '')
+  const handleSearchCEP = async () => {
+    const currentCep = form.getValues('address_zip') || ''
+    const cep = currentCep.replace(/\D/g, '')
     if (cep.length === 8) {
+      setSearchingCEP(true)
       try {
         const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
         const data = await res.json()
@@ -83,125 +85,297 @@ export function CustomerForm({ initialData, asMenuItem }: { initialData?: any, a
           form.setValue('address_neighborhood', data.bairro)
           form.setValue('address_city', data.localidade)
           form.setValue('address_state', data.uf)
+          toast.success('Endereço encontrado!')
+        } else {
+          toast.error('CEP não encontrado')
         }
       } catch (err) {
         console.error(err)
+        toast.error('Erro ao buscar CEP')
+      } finally {
+        setSearchingCEP(false)
       }
+    } else {
+      toast.error('Digite um CEP válido')
     }
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={asMenuItem ? (
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <Pencil className="mr-2 h-4 w-4" /> Editar
-          </DropdownMenuItem>
-        ) : (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Novo Cliente
-          </Button>
-        )} />
-      <SheetContent className="overflow-y-auto sm:max-w-xl">
-        <SheetHeader className="mb-6">
-          <SheetTitle>{initialData ? 'Editar Cliente' : 'Novo Cliente'}</SheetTitle>
-          <SheetDescription>
-            Preencha os dados do cliente. O endereço é preenchido automaticamente ao digitar o CEP.
-          </SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={
+        trigger ? trigger : (
+          asMenuItem ? (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Editar</span>
+            </Button>
+          ) : (
+            <Button className="gap-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+              <Plus className="h-4 w-4" /> Novo Cliente
+            </Button>
+          )
+        )
+      } />
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="font-medium text-lg border-b pb-2">Dados Pessoais</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="name">Nome / Razão Social *</Label>
-                <Input id="name" {...form.register('name')} />
-                {form.formState.errors.name && <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="document">CPF / CNPJ</Label>
-                <Input id="document" {...form.register('document')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="birth_date">Data de Nascimento</Label>
-                <Input id="birth_date" type="date" {...form.register('birth_date')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gênero</Label>
-                <Select onValueChange={(val) => form.setValue('gender', val as any)} defaultValue={form.getValues('gender')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="masculino">Masculino</SelectItem>
-                    <SelectItem value="feminino">Feminino</SelectItem>
-                    <SelectItem value="nao_informado">Não Informado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      <DialogContent className="p-0 flex flex-col sm:max-w-2xl max-h-[90vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl">
+        {/* Header no estilo inspirado na imagem */}
+        <DialogHeader className="px-6 py-5 border-b shrink-0 bg-white z-10 relative">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-600/20">
+              <User className="h-6 w-6 text-white" />
+            </div>
+            <div className="text-left space-y-0.5">
+              <DialogTitle className="text-xl font-bold text-slate-800">
+                {initialData ? 'Editar Cliente' : 'Novo Cliente'}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-slate-500 font-medium">
+                {initialData ? 'Atualize os dados detalhados' : 'Preencha os dados detalhados para o cadastro'}
+              </DialogDescription>
             </div>
           </div>
+        </DialogHeader>
 
-          <div className="space-y-4">
-            <h3 className="font-medium text-lg border-b pb-2">Contato</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" {...form.register('email')} />
-                {form.formState.errors.email && <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>}
+        {/* Conteúdo com scroll */}
+        <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
+          <form id="customer-form" onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-8">
+            
+            {/* Seção: Dados Pessoais */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                  <User className="h-4 w-4" strokeWidth={2.5} />
+                </div>
+                <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Dados Pessoais</span>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" {...form.register('phone')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp">WhatsApp</Label>
-                <Input id="whatsapp" {...form.register('whatsapp')} />
+              
+              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="name" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    Nome / Razão Social <span className="text-red-500">*</span>
+                  </Label>
+                  <Input 
+                    id="name" 
+                    {...form.register('name')} 
+                    placeholder="Ex: João Silva ou Empresa LTDA" 
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" 
+                  />
+                  {form.formState.errors.name && (
+                    <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="document" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">CPF / CNPJ</Label>
+                  <Controller
+                    name="document"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input 
+                        id="document" 
+                        {...field} 
+                        onChange={(e) => field.onChange(maskCPFCNPJ(e.target.value))}
+                        placeholder="000.000.000-00" 
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 tabular-nums" 
+                        maxLength={18}
+                      />
+                    )}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="birth_date" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Data de Nascimento</Label>
+                  <Input 
+                    id="birth_date" 
+                    type="date" 
+                    {...form.register('birth_date')} 
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 text-slate-700" 
+                  />
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="gender" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Gênero</Label>
+                  <Select onValueChange={(val) => form.setValue('gender', val as any)} defaultValue={form.getValues('gender')}>
+                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-blue-500 text-slate-700">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="feminino">Feminino</SelectItem>
+                      <SelectItem value="nao_informado">Não Informado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <h3 className="font-medium text-lg border-b pb-2">Endereço</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="address_zip">CEP</Label>
-                <Input id="address_zip" {...form.register('address_zip')} placeholder="00000-000" onBlur={checkCEP} />
+            {/* Separador customizado (invisível apenas cria espaço ou linha sutil) */}
+            <div className="border-t border-slate-200/60" />
+
+            {/* Seção: Contato */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                  <Phone className="h-4 w-4" strokeWidth={2.5} />
+                </div>
+                <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Informações de Contato</span>
               </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="address_street">Rua / Logradouro</Label>
-                <Input id="address_street" {...form.register('address_street')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address_number">Número</Label>
-                <Input id="address_number" {...form.register('address_number')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address_complement">Complemento</Label>
-                <Input id="address_complement" {...form.register('address_complement')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address_neighborhood">Bairro</Label>
-                <Input id="address_neighborhood" {...form.register('address_neighborhood')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address_city">Cidade</Label>
-                <Input id="address_city" {...form.register('address_city')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address_state">Estado (UF)</Label>
-                <Input id="address_state" {...form.register('address_state')} maxLength={2} />
+
+              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="email" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">E-mail</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    {...form.register('email')} 
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" 
+                    placeholder="email@exemplo.com" 
+                  />
+                  {form.formState.errors.email && (
+                    <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Telefone</Label>
+                  <Controller
+                    name="phone"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input 
+                        id="phone" 
+                        {...field} 
+                        onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 tabular-nums" 
+                        placeholder="(00) 0000-0000" 
+                        maxLength={15}
+                      />
+                    )}
+                  />
+                </div>
+                <div className="space-y-1.5 relative">
+                  <Label htmlFor="whatsapp" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">WhatsApp</Label>
+                  <div className="relative">
+                    <Controller
+                      name="whatsapp"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Input 
+                          id="whatsapp" 
+                          {...field} 
+                          onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 pr-10 tabular-nums" 
+                          placeholder="(00) 00000-0000" 
+                          maxLength={15}
+                        />
+                      )}
+                    />
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500 opacity-80" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar Cliente'}
+            <div className="border-t border-slate-200/60" />
+
+            {/* Seção: Endereço */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                  <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                </div>
+                <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Endereço</span>
+              </div>
+
+              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_zip" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">CEP</Label>
+                  <div className="flex gap-2">
+                    <Controller
+                      name="address_zip"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Input 
+                          id="address_zip" 
+                          {...field} 
+                          onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                          onBlur={handleSearchCEP}
+                          placeholder="00000-000" 
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 tabular-nums flex-1" 
+                          maxLength={9}
+                        />
+                      )}
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleSearchCEP} 
+                      disabled={searchingCEP}
+                      variant="outline"
+                      className="h-11 w-11 shrink-0 rounded-xl border-slate-200 bg-white p-0 hover:bg-slate-50 hover:text-blue-600"
+                      title="Buscar Endereço"
+                    >
+                      {searchingCEP ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+                      <span className="sr-only">Buscar</span>
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label htmlFor="address_street" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Logradouro</Label>
+                  <Input id="address_street" {...form.register('address_street')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" placeholder="Rua, Avenida, etc." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_number" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Número</Label>
+                  <Input id="address_number" {...form.register('address_number')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_complement" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Complemento</Label>
+                  <Input id="address_complement" {...form.register('address_complement')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" placeholder="Apto, Sala, Bloco..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_neighborhood" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Bairro</Label>
+                  <Input id="address_neighborhood" {...form.register('address_neighborhood')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_city" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Cidade</Label>
+                  <Input id="address_city" {...form.register('address_city')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address_state" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">UF</Label>
+                  <Select onValueChange={(val) => form.setValue('address_state', val as any)} defaultValue={form.getValues('address_state')}>
+                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-blue-500 text-slate-700 uppercase">
+                      <SelectValue placeholder="UF" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        {/* Footer com botões lado a lado */}
+        <div className="shrink-0 border-t border-slate-200 bg-white p-6 rounded-b-2xl">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+            <DialogClose render={
+              <Button type="button" variant="ghost" className="w-full sm:w-auto h-11 px-6 font-semibold text-slate-600 hover:text-slate-900 rounded-xl">
+                Cancelar
+              </Button>
+            } />
+            <Button form="customer-form" type="submit" disabled={loading} className="w-full sm:w-auto sm:flex-1 max-w-[280px] h-11 font-bold text-base bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-600/20">
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  Salvando...
+                </>
+              ) : (
+                initialData ? 'Salvar Alterações' : 'Cadastrar Cliente'
+              )}
             </Button>
           </div>
-        </form>
-      </SheetContent>
-    </Sheet>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

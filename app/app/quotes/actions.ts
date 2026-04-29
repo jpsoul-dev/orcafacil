@@ -9,27 +9,51 @@ export async function saveQuote(data: any) {
 
   if (!user) return { error: 'Not authenticated' }
 
-  // Start a basic transaction-like operation
-  const { items, ...quoteData } = data
+  const { id, items, ...quoteData } = data
   
-  const insertQuote = {
+  const quotePayload = {
     ...quoteData,
     user_id: user.id,
   }
 
-  const { data: newQuote, error: quoteError } = await supabase
-    .from('quotes')
-    .insert(insertQuote)
-    .select('id, public_uuid')
-    .single()
+  let quoteId = id;
+  let publicUuid = quoteData.public_uuid;
 
-  if (quoteError || !newQuote) {
-    return { error: quoteError?.message || 'Erro ao criar orçamento' }
+  if (id) {
+    // Modo edição
+    const { data: updatedQuote, error: quoteError } = await supabase
+      .from('quotes')
+      .update(quotePayload)
+      .eq('id', id)
+      .select('id, public_uuid')
+      .single()
+
+    if (quoteError || !updatedQuote) {
+      return { error: quoteError?.message || 'Erro ao atualizar orçamento' }
+    }
+    quoteId = updatedQuote.id;
+    publicUuid = updatedQuote.public_uuid;
+
+    // Deletar itens antigos
+    await supabase.from('quote_items').delete().eq('quote_id', id)
+  } else {
+    // Modo criação
+    const { data: newQuote, error: quoteError } = await supabase
+      .from('quotes')
+      .insert(quotePayload)
+      .select('id, public_uuid')
+      .single()
+
+    if (quoteError || !newQuote) {
+      return { error: quoteError?.message || 'Erro ao criar orçamento' }
+    }
+    quoteId = newQuote.id;
+    publicUuid = newQuote.public_uuid;
   }
 
   if (items && items.length > 0) {
     const insertItems = items.map((item: any) => ({
-      quote_id: newQuote.id,
+      quote_id: quoteId,
       catalog_item_id: item.catalog_item_id || null,
       item_name: item.item_name,
       quantity: item.quantity,
@@ -42,14 +66,12 @@ export async function saveQuote(data: any) {
       .insert(insertItems)
 
     if (itemsError) {
-      // In a real prod environment we should rollback or use a postgres function RPC
-      // For MVP we just log
       console.error('Failed to insert items', itemsError)
     }
   }
 
   revalidatePath('/app/quotes')
-  return { success: true, public_uuid: newQuote.public_uuid }
+  return { success: true, public_uuid: publicUuid }
 }
 
 export async function deleteQuote(id: string) {

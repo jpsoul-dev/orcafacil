@@ -11,9 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { Plus, Pencil } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogDescription } from '@/components/ui/dialog'
+import { Plus, Pencil, Loader2, Package, Box, Wrench } from 'lucide-react'
 
 const catalogSchema = z.object({
   type: z.enum(['product', 'service']),
@@ -27,7 +26,7 @@ type CatalogValues = z.infer<typeof catalogSchema>
 export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, asMenuItem?: boolean }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  
+
   const form = useForm<CatalogValues>({
     resolver: zodResolver(catalogSchema) as any,
     defaultValues: {
@@ -44,7 +43,6 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
     setLoading(true)
     const result = await saveCatalogItem(data, initialData?.id)
     setLoading(false)
-    
     if (result.error) {
       toast.error(result.error)
     } else {
@@ -55,80 +53,128 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger render={asMenuItem ? (
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <Pencil className="mr-2 h-4 w-4" /> Editar
-          </DropdownMenuItem>
-        ) : (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Novo Item
-          </Button>
-        )} />
-      <SheetContent className="sm:max-w-md">
-        <SheetHeader className="mb-6">
-          <SheetTitle>{initialData ? 'Editar Item' : 'Novo Item'}</SheetTitle>
-          <SheetDescription>
-            Adicione um produto ou serviço ao seu catálogo.
-          </SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={asMenuItem ? (
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+          <Pencil className="h-4 w-4" />
+          <span className="sr-only">Editar</span>
+        </Button>
+      ) : (
+        <Button className="gap-2 font-semibold">
+          <Plus className="h-4 w-4" /> Novo Item
+        </Button>
+      )} />
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo do Item</Label>
-              <Select onValueChange={(val) => form.setValue('type', val as any)} defaultValue={form.getValues('type')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="product">Produto Físico</SelectItem>
-                  <SelectItem value="service">Serviço / Mão de Obra</SelectItem>
-                </SelectContent>
-              </Select>
+      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0">
+        <DialogHeader className="px-6 py-4 border-b shrink-0 bg-muted/20">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Package className="h-4 w-4 text-primary" />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome do Item *</Label>
-              <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>}
+            <div className="text-left space-y-0.5">
+              <DialogTitle className="text-base font-semibold">
+                {initialData ? 'Editar Item' : 'Novo Item'}
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                {initialData ? 'Atualize as informações do item' : 'Adicione um produto ou serviço ao catálogo'}
+              </DialogDescription>
             </div>
+          </div>
+        </DialogHeader>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+        {/* Conteúdo */}
+        <div className="flex-1 overflow-y-auto">
+          <form id="catalog-form" onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="px-6 py-5 space-y-5">
+              {/* Seletor de tipo com cards */}
               <div className="space-y-2">
-                <Label htmlFor="unit_price">Valor Base (R$)</Label>
-                <Input id="unit_price" type="number" step="0.01" {...form.register('unit_price')} />
-                {form.formState.errors.unit_price && <p className="text-sm text-red-500">{form.formState.errors.unit_price.message}</p>}
+                <Label className="font-medium text-sm">Tipo do Item</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'product', label: 'Produto', icon: Box, desc: 'Item físico' },
+                    { value: 'service', label: 'Serviço', icon: Wrench, desc: 'Mão de obra' },
+                  ].map((opt) => {
+                    const isSelected = watchType === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => form.setValue('type', opt.value as any)}
+                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${
+                          isSelected
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-border hover:border-muted-foreground/30 text-muted-foreground'
+                        }`}
+                      >
+                        <opt.icon className="h-4 w-4 shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold leading-none">{opt.label}</p>
+                          <p className="text-xs opacity-70 mt-0.5">{opt.desc}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
-              {watchType === 'product' && (
-                <div className="space-y-2">
-                  <Label htmlFor="unit_measure">Unidade de Medida</Label>
-                  <Select onValueChange={(val) => form.setValue('unit_measure', val as any)} defaultValue={form.getValues('unit_measure')}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Ex: Un, Kg" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Un">Un (Unidade)</SelectItem>
-                      <SelectItem value="Kg">Kg (Quilograma)</SelectItem>
-                      <SelectItem value="L">L (Litro)</SelectItem>
-                      <SelectItem value="M">M (Metro)</SelectItem>
-                      <SelectItem value="Cx">Cx (Caixa)</SelectItem>
-                      <SelectItem value="Hr">Hr (Hora)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="font-medium text-sm">Nome do Item *</Label>
+                <Input id="name" {...form.register('name')} className="h-10" placeholder="Ex: Manutenção Preventiva" />
+                {form.formState.errors.name && (
+                  <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+                )}
+              </div>
 
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar Item'}
-            </Button>
-          </div>
-        </form>
-      </SheetContent>
-    </Sheet>
+              <div className="grid gap-3 grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="unit_price" className="font-medium text-sm">Valor Base (R$)</Label>
+                  <Input id="unit_price" type="number" step="0.01" min="0" {...form.register('unit_price')} className="h-10" />
+                </div>
+                {watchType === 'product' && (
+                  <div className="space-y-1.5">
+                    <Label className="font-medium text-sm">Unidade</Label>
+                    <Select onValueChange={(val) => form.setValue('unit_measure', val as any)} defaultValue={form.getValues('unit_measure')}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          { v: 'Un', l: 'Un — Unidade' },
+                          { v: 'Kg', l: 'Kg — Quilograma' },
+                          { v: 'L', l: 'L — Litro' },
+                          { v: 'M', l: 'M — Metro' },
+                          { v: 'M²', l: 'M² — Metro quadrado' },
+                          { v: 'Cx', l: 'Cx — Caixa' },
+                          { v: 'Hr', l: 'Hr — Hora' },
+                        ].map(u => (
+                          <SelectItem key={u.v} value={u.v}>{u.l}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Espaço para o footer */}
+            <div className="h-20" />
+          </form>
+        </div>
+
+        {/* Footer fixo */}
+        <div className="shrink-0 border-t bg-background px-6 py-4">
+          <Button form="catalog-form" type="submit" disabled={loading} className="w-full h-10 font-semibold gap-2">
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              initialData ? 'Salvar Alterações' : 'Adicionar ao Catálogo'
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -14,7 +14,7 @@ export type Quote = {
   total: number
   valid_until: string | null
   created_at: string
-  status: 'draft' | 'completed'
+  status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired'
   customers?: { name: string } | null
 }
 
@@ -105,35 +105,30 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => {
       const status = row.original.status
       const validUntil = row.original.valid_until
-
-      // Rascunho tem prioridade
-      if (status === 'draft') {
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
-            Rascunho
-          </span>
-        )
+      const statusMap: Record<string, { label: string, color: string, dot: string }> = {
+        draft: { label: 'Rascunho', color: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+        open: { label: 'Em Aberto', color: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+        accepted: { label: 'Aceito', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+        rejected: { label: 'Rejeitado', color: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-500' },
+        expired: { label: 'Expirado', color: 'bg-slate-50 text-slate-700 border-slate-200', dot: 'bg-slate-400' },
       }
 
-      // Verificar se expirou
-      if (validUntil) {
+      const config = statusMap[status] || { label: status, color: 'bg-slate-100', dot: 'bg-slate-500' }
+
+      // Se estiver aberto mas a validade passou, mostrar como expirado (visual apenas se o banco não foi atualizado)
+      let finalConfig = config
+      if (status === 'open' && validUntil) {
         const validDate = new Date(validUntil)
         validDate.setHours(23, 59, 59, 999)
         if (new Date() > validDate) {
-          return (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
-              Expirado
-            </span>
-          )
+          finalConfig = statusMap.expired
         }
       }
 
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-          Válido
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${finalConfig.color}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${finalConfig.dot} inline-block`} />
+          {finalConfig.label}
         </span>
       )
     },

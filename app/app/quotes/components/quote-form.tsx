@@ -134,7 +134,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
     append({ catalog_item_id: null, item_name: '', quantity: 1, unit_price: 0, subtotal: 0 })
   }
 
-  async function handleSave(status: 'draft' | 'completed') {
+  async function handleSave(status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired') {
     const isValid = await form.trigger()
     if (!isValid) {
       toast.error('Por favor, selecione um cliente e adicione itens ao orçamento.')
@@ -625,10 +625,10 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
         <BaseButton
           type="button"
           disabled={loading || fields.length === 0}
-          onClick={() => handleSave('completed')}
+          onClick={() => handleSave('open')}
           className="h-10 px-6 rounded-lg bg-[#2E6898] hover:bg-[#255680] text-white font-semibold disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E6898] focus-visible:ring-offset-2"
         >
-          {loading ? 'Salvando...' : (initialData ? 'Concluir Orçamento' : 'Emitir Orçamento')}
+          {loading ? 'Salvando...' : (initialData ? 'Concluir e Emitir' : 'Emitir Orçamento')}
         </BaseButton>
       </div>
     </div>

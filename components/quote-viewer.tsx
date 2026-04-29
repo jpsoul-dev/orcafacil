@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Printer, Send, Pencil, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { updateQuoteStatus } from '@/app/app/quotes/[id]/status-actions'
+import { useState } from 'react'
 
 interface QuoteViewerProps {
   quote: any
@@ -14,7 +18,28 @@ interface QuoteViewerProps {
 }
 
 export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
+  const [currentStatus, setCurrentStatus] = useState(quote.status)
   const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+
+  const statusMap: Record<string, { label: string, color: string }> = {
+    draft: { label: 'Rascunho', color: 'bg-amber-100 text-amber-800 border-amber-200' },
+    open: { label: 'Em Aberto', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+    accepted: { label: 'Aceito', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+    rejected: { label: 'Rejeitado', color: 'bg-red-100 text-red-800 border-red-200' },
+    expired: { label: 'Expirado', color: 'bg-slate-100 text-slate-800 border-slate-200' },
+  }
+
+  const handleStatusChange = async (newStatus: string) => {
+    const previousStatus = currentStatus
+    setCurrentStatus(newStatus)
+    const result = await updateQuoteStatus(quote.id, newStatus)
+    if (result.error) {
+      toast.error('Erro ao atualizar status: ' + result.error)
+      setCurrentStatus(previousStatus)
+    } else {
+      toast.success(`Status alterado para ${statusMap[newStatus].label}`)
+    }
+  }
 
   const handlePrint = () => {
     window.print()
@@ -32,7 +57,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         
         {/* Actions Bar - hidden on print */}
         <div className="bg-slate-50 dark:bg-slate-800 px-6 py-4 flex items-center justify-between border-b print:hidden">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {isAdmin && (
               <Link href="/app/quotes">
                 <Button variant="ghost" size="sm" className="gap-2 text-slate-500">
@@ -40,21 +65,39 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                 </Button>
               </Link>
             )}
+            {!isAdmin ? (
+              <Badge className={`rounded-full px-3 py-1 font-bold ${statusMap[currentStatus]?.color || ''}`}>
+                {statusMap[currentStatus]?.label || currentStatus}
+              </Badge>
+            ) : (
+              <Select value={currentStatus} onValueChange={handleStatusChange}>
+                <SelectTrigger className={`h-8 w-[140px] rounded-full px-3 font-bold border-none shadow-none focus:ring-0 ${statusMap[currentStatus]?.color || ''}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(statusMap).map(([value, info]) => (
+                    <SelectItem key={value} value={value} className="font-medium text-slate-700">
+                      {info.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
               <>
                 <Link href={`/app/quotes/${quote.id}/edit`}>
-                  <Button variant="outline" size="sm" className="gap-2 border-slate-200">
+                  <Button variant="outline" size="sm" className="gap-2 border-slate-200 text-slate-600 font-semibold">
                     <Pencil className="h-4 w-4" /> Editar
                   </Button>
                 </Link>
-                <Button onClick={handleCopyLink} variant="outline" size="sm" className="gap-2 border-blue-200 text-blue-600 hover:bg-blue-50">
+                <Button onClick={handleCopyLink} variant="outline" size="sm" className="gap-2 border-blue-200 text-blue-600 font-semibold hover:bg-blue-50">
                   <Send className="h-4 w-4" /> Enviar para Cliente
                 </Button>
               </>
             )}
-            <Button onClick={handlePrint} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white">
+            <Button onClick={handlePrint} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold">
               <Printer className="h-4 w-4" /> Imprimir
             </Button>
           </div>

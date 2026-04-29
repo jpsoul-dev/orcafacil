@@ -163,7 +163,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
       if (status === 'draft') {
         router.push('/app/quotes')
       } else {
-        router.push(`/quote/${result.public_uuid}`)
+        router.push(`/app/quotes/${result.id}`)
       }
     }
   }

@@ -71,7 +71,7 @@ export async function saveQuote(data: any) {
   }
 
   revalidatePath('/app/quotes')
-  return { success: true, public_uuid: publicUuid }
+  return { success: true, public_uuid: publicUuid, id: quoteId }
 }
 
 export async function deleteQuote(id: string) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, ExternalLink, Pencil, Copy } from 'lucide-react'
+import { ArrowUpDown, ExternalLink, Pencil, Copy, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -25,9 +25,12 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'quote_number',
     header: '#',
     cell: ({ row }) => (
-      <div className="font-mono text-xs font-bold text-slate-500">
+      <Link 
+        href={`/app/quotes/${row.original.id}`}
+        className="font-mono text-xs font-bold text-blue-600 hover:underline"
+      >
         #{String(row.getValue('quote_number')).padStart(3, '0')}
-      </div>
+      </Link>
     ),
   },
   {
@@ -152,16 +155,24 @@ export const columns: ColumnDef<Quote>[] = [
       return (
         <div className="flex items-center justify-end gap-1">
           {!isDraft && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50" 
-              title="Copiar Link"
-              onClick={handleCopyLink}
-            >
-              <Copy className="h-4 w-4" />
-              <span className="sr-only">Copiar Link</span>
-            </Button>
+            <>
+              <Link href={`/app/quotes/${id}`}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100" title="Ver Detalhes">
+                  <Eye className="h-4 w-4" />
+                  <span className="sr-only">Ver Detalhes</span>
+                </Button>
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50" 
+                title="Copiar Link Público"
+                onClick={handleCopyLink}
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copiar Link Público</span>
+              </Button>
+            </>
           )}
           {isDraft ? (
             <Link href={`/app/quotes/${id}/edit`}>
@@ -172,9 +183,9 @@ export const columns: ColumnDef<Quote>[] = [
             </Link>
           ) : (
             <Link href={`/quote/${uuid}`} target="_blank">
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" title="Visualizar Orçamento">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary hover:bg-blue-50" title="Abrir Página Pública">
                 <ExternalLink className="h-4 w-4" />
-                <span className="sr-only">Visualizar Página</span>
+                <span className="sr-only">Abrir Página Pública</span>
               </Button>
             </Link>
           )}

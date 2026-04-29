@@ -1,9 +1,10 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, ExternalLink, Pencil } from 'lucide-react'
+import { ArrowUpDown, ExternalLink, Pencil, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 export type Quote = {
   id: string
@@ -142,8 +143,26 @@ export const columns: ColumnDef<Quote>[] = [
       const id = row.original.id
       const isDraft = row.original.status === 'draft'
 
+      const handleCopyLink = () => {
+        const url = `${window.location.origin}/quote/${uuid}`
+        navigator.clipboard.writeText(url)
+        toast.success('Link do orçamento copiado!')
+      }
+
       return (
         <div className="flex items-center justify-end gap-1">
+          {!isDraft && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50" 
+              title="Copiar Link"
+              onClick={handleCopyLink}
+            >
+              <Copy className="h-4 w-4" />
+              <span className="sr-only">Copiar Link</span>
+            </Button>
+          )}
           {isDraft ? (
             <Link href={`/app/quotes/${id}/edit`}>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50" title="Editar Rascunho">

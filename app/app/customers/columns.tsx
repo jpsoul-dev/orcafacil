@@ -1,8 +1,9 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Mail, MapPin, Phone } from 'lucide-react'
+import { ArrowUpDown, Mail, MapPin, Phone, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { CustomerForm } from './customer-form'
 
 export type Customer = {
@@ -31,7 +32,14 @@ export const columns: ColumnDef<Customer>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    cell: ({ row }) => (
+      <Link 
+        href={`/app/customers/${row.original.id}`}
+        className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+      >
+        {row.getValue('name')}
+      </Link>
+    ),
   },
   {
     accessorKey: 'document',
@@ -85,7 +93,13 @@ export const columns: ColumnDef<Customer>[] = [
       const customer = row.original
 
       return (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1">
+          <Link href={`/app/customers/${customer.id}`}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50">
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">Ver Detalhes</span>
+            </Button>
+          </Link>
           <CustomerForm initialData={customer} asMenuItem={true} />
         </div>
       )

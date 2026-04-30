@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4 print:hidden">
           <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
           <Separator orientation="vertical" className="h-4" />
           <AppBreadcrumb />

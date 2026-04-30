@@ -36,20 +36,20 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-[80%] mx-auto space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-slate-900">
           {initialData ? 'Clonar Orçamento' : 'Novo Orçamento'}
         </h2>
         <p className="text-muted-foreground text-sm mt-1">
-          {initialData 
-            ? 'Ajuste os dados do orçamento clonado abaixo.' 
+          {initialData
+            ? 'Ajuste os dados do orçamento clonado abaixo.'
             : 'Preencha os dados abaixo para gerar um orçamento.'}
         </p>
       </div>
-      <QuoteForm 
-        customers={customers || []} 
-        catalogItems={catalogItems || []} 
+      <QuoteForm
+        customers={customers || []}
+        catalogItems={catalogItems || []}
         initialData={initialData}
       />
     </div>

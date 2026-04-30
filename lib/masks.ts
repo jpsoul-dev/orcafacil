@@ -1,18 +1,43 @@
+export const maskCPF = (value: string) => {
+  value = value.replace(/\D/g, '')
+  return value
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1')
+}
+
+export const maskCNPJ = (value: string) => {
+  value = value.replace(/\D/g, '')
+  return value
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1')
+}
+
+export const maskCNPJAlphanumeric = (value: string) => {
+  // Remove tudo que não for letra ou número
+  value = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+  
+  // Estrutura: AA.AAA.AAA/AAAA-DV
+  // Onde DV são números (mas na máscara permitimos digitar)
+  
+  return value
+    .replace(/^([a-zA-Z0-9]{2})([a-zA-Z0-9])/, '$1.$2')
+    .replace(/^([a-zA-Z0-9]{2})\.([a-zA-Z0-9]{3})([a-zA-Z0-9])/, '$1.$2.$3')
+    .replace(/^([a-zA-Z0-9]{2})\.([a-zA-Z0-9]{3})\.([a-zA-Z0-9]{3})([a-zA-Z0-9])/, '$1.$2.$3/$4')
+    .replace(/^([a-zA-Z0-9]{2})\.([a-zA-Z0-9]{3})\.([a-zA-Z0-9]{3})\/([a-zA-Z0-9]{4})([a-zA-Z0-9])/, '$1.$2.$3/$4-$5')
+    .replace(/(.. . .. . .. \/ .... - ..).+$/, '$1') // Limita tamanho
+}
+
 export const maskCPFCNPJ = (value: string) => {
   value = value.replace(/\D/g, '')
   if (value.length <= 11) {
-    return value
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1')
+    return maskCPF(value)
   } else {
-    return value
-      .replace(/(\d{2})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1/$2')
-      .replace(/(\d{4})(\d)/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1')
+    return maskCNPJ(value)
   }
 }
 

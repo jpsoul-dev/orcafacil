@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCustomer } from './actions'
-import { maskCPFCNPJ, maskPhone, maskCEP } from '@/lib/masks'
+import { maskCPF, maskCNPJ, maskCNPJAlphanumeric, maskPhone, maskCEP } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, Dialog
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
+  document_type: z.enum(['cpf', 'cnpj', 'cnpj_alphanumeric']).optional(),
   document: z.string().optional(),
   gender: z.string().optional(),
   birth_date: z.string().optional(),
@@ -43,6 +44,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
     resolver: zodResolver(customerSchema),
     defaultValues: {
       name: initialData?.name || '',
+      document_type: initialData?.document_type || 'cpf',
       document: initialData?.document || '',
       gender: initialData?.gender || 'nao_informado',
       birth_date: initialData?.birth_date || '',
@@ -64,6 +66,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
     if (open) {
       form.reset({
         name: initialData?.name || '',
+        document_type: initialData?.document_type || 'cpf',
         document: initialData?.document || '',
         gender: initialData?.gender || 'nao_informado',
         birth_date: initialData?.birth_date || '',
@@ -185,44 +188,77 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="document" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">CPF / CNPJ</Label>
-                  <Controller
-                    name="document"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Input 
-                        id="document" 
-                        {...field} 
-                        onChange={(e) => field.onChange(maskCPFCNPJ(e.target.value))}
-                        placeholder="000.000.000-00" 
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums" 
-                        maxLength={18}
-                      />
-                    )}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="birth_date" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Data de Nascimento</Label>
-                  <Input 
-                    id="birth_date" 
-                    type="date" 
-                    {...form.register('birth_date')} 
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-slate-700" 
-                  />
-                </div>
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="gender" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Gênero</Label>
-                  <Select onValueChange={(val) => form.setValue('gender', val as any)} value={form.watch('gender')}>
+                  <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo Documento</Label>
+                  <Select 
+                    onValueChange={(val) => {
+                      form.setValue('document_type', val as any)
+                      form.setValue('document', '') // Limpa documento ao trocar tipo
+                    }} 
+                    value={form.watch('document_type')}
+                  >
                     <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700">
-                      <SelectValue placeholder="Selecione..." />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="masculino">Masculino</SelectItem>
-                      <SelectItem value="feminino">Feminino</SelectItem>
-                      <SelectItem value="nao_informado">Não Informado</SelectItem>
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                      <SelectItem value="cnpj_alphanumeric">CNPJ Alfanumérico</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="document" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Documento</Label>
+                  <Controller
+                    name="document"
+                    control={form.control}
+                    render={({ field }) => {
+                      const docType = form.watch('document_type')
+                      return (
+                        <Input 
+                          id="document" 
+                          {...field} 
+                          onChange={(e) => {
+                            let masked = e.target.value
+                            if (docType === 'cpf') masked = maskCPF(e.target.value)
+                            else if (docType === 'cnpj') masked = maskCNPJ(e.target.value)
+                            else if (docType === 'cnpj_alphanumeric') masked = maskCNPJAlphanumeric(e.target.value)
+                            field.onChange(masked)
+                          }}
+                          placeholder={docType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums" 
+                          maxLength={docType === 'cpf' ? 14 : 18}
+                        />
+                      )
+                    }}
+                  />
+                </div>
+                {form.watch('document_type') === 'cpf' && (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="birth_date" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Data de Nascimento</Label>
+                      <Input 
+                        id="birth_date" 
+                        type="date" 
+                        {...form.register('birth_date')} 
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-slate-700" 
+                      />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label htmlFor="gender" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Gênero</Label>
+                      <Select onValueChange={(val) => form.setValue('gender', val as any)} value={form.watch('gender')}>
+                        <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700">
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="masculino">Masculino</SelectItem>
+                          <SelectItem value="feminino">Feminino</SelectItem>
+                          <SelectItem value="nao_informado">Não Informado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -54,9 +54,6 @@ const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency',
 export function QuoteForm({ customers, catalogItems, initialData }: { customers: any[], catalogItems: any[], initialData?: any }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [subtotalFinal, setSubtotalFinal] = useState(0)
-  const [totalFinal, setTotalFinal] = useState(0)
-
   // Estados dos modais de busca
   const [openCustomerModal, setOpenCustomerModal] = useState(false)
   const [customerSearch, setCustomerSearch] = useState('')
@@ -91,26 +88,27 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
   })
 
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' })
-  const watchItems = form.watch('items')
+  const watchItems = useWatch({ control: form.control, name: 'items' }) || []
   const watchDiscountType = form.watch('discount_type')
   const watchDiscountValue = form.watch('discount_value')
   const watchCustomerId = form.watch('customer_id')
   const watchPaymentMethod = form.watch('payment_method')
 
-  useEffect(() => {
-    let currentSubtotal = 0
-    watchItems.forEach((item, index) => {
-      const lineSubtotal = (Number(item.quantity) || 0) * (Number(item.unit_price) || 0)
-      currentSubtotal += lineSubtotal
-      if (item.subtotal !== lineSubtotal) form.setValue(`items.${index}.subtotal`, lineSubtotal)
-    })
-    setSubtotalFinal(currentSubtotal)
-    let currentTotal = currentSubtotal
+  const { subtotalFinal, totalFinal } = useMemo(() => {
+    const sub = (watchItems || []).reduce((acc, item) => {
+      return acc + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0)
+    }, 0)
+
+    let tot = sub
     const dv = Number(watchDiscountValue) || 0
-    if (watchDiscountType === '%') currentTotal -= currentTotal * (dv / 100)
-    else if (watchDiscountType === 'R$') currentTotal -= dv
-    setTotalFinal(currentTotal > 0 ? currentTotal : 0)
-  }, [watchItems, watchDiscountType, watchDiscountValue, form])
+    if (watchDiscountType === '%') tot -= tot * (dv / 100)
+    else if (watchDiscountType === 'R$') tot -= dv
+
+    return {
+      subtotalFinal: sub,
+      totalFinal: Math.max(0, tot)
+    }
+  }, [watchItems, watchDiscountType, watchDiscountValue])
 
   const debouncedCustomerSearch = useDebounce(customerSearch, 300)
   const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
@@ -196,10 +194,10 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               <Label htmlFor="title" className="text-[13px] font-semibold text-slate-700">
                 Título do orçamento <span className="text-red-500">*</span>
               </Label>
-              <Input 
-                id="title" 
-                {...form.register('title')} 
-                placeholder="Ex: Orçamento de Pintura Residencial" 
+              <Input
+                id="title"
+                {...form.register('title')}
+                placeholder="Ex: Orçamento de Pintura Residencial"
                 className={`h-10 border-slate-200 rounded-lg bg-white ${form.formState.errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {form.formState.errors.title && (
@@ -208,11 +206,11 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
             </div>
             <div className="space-y-2">
               <Label htmlFor="valid_until" className="text-[13px] font-semibold text-slate-700">Validade</Label>
-              <Input 
-                id="valid_until" 
-                type="date" 
-                {...form.register('valid_until')} 
-                className={`h-10 border-slate-200 rounded-lg bg-white w-full ${form.formState.errors.valid_until ? 'border-red-500 focus-visible:ring-red-500' : ''}`} 
+              <Input
+                id="valid_until"
+                type="date"
+                {...form.register('valid_until')}
+                className={`h-10 border-slate-200 rounded-lg bg-white w-full ${form.formState.errors.valid_until ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {form.formState.errors.valid_until && (
                 <p className="text-xs text-red-500">{form.formState.errors.valid_until.message}</p>
@@ -257,7 +255,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
                         autoFocus
-                        placeholder="Buscar por nome, CPF ou WhatsApp..."
+                        placeholder="Buscar por nome"
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
                         className="w-full h-10 pl-9 pr-4 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400"
@@ -345,9 +343,6 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-2">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[15px] font-semibold text-slate-800">Itens</h3>
-          </div>
 
           {/* Empty state ou tabela de itens */}
           {fields.length === 0 ? (
@@ -357,14 +352,14 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               <p className="text-xs mt-1">Use <span className="font-semibold">Catálogo</span> para buscar um produto ou <span className="font-semibold">Novo item</span> para incluir manualmente.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto pb-4">
-              <table className="w-full text-sm text-left table-fixed border-collapse">
+            <div className="pb-4">
+              <table className="w-full text-sm text-left border-collapse">
                 <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                   <tr>
-                    <th className="pr-2 pb-3 w-auto">Item</th>
-                    <th className="px-2 pb-3 text-center w-[16%]">Qtd</th>
-                    <th className="px-2 pb-3 text-center w-[20%]">Preço (R$)</th>
-                    <th className="px-2 pb-3 text-right w-[15%]">Total</th>
+                    <th className="pr-2 pb-3">Item</th>
+                    <th className="px-2 pb-3 text-center w-[90px]">Qtd</th>
+                    <th className="px-2 pb-3 text-center w-[150px]">Preço (R$)</th>
+                    <th className="px-2 pb-3 text-right w-[130px]">Total</th>
                     <th className="w-[40px] pb-3"></th>
                   </tr>
                 </thead>
@@ -378,19 +373,25 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                             placeholder="Descrição"
                             className="h-10 text-sm border-slate-200 rounded-lg pr-9"
                           />
-                          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                         </div>
                       </td>
                       <td className="px-2 py-4 align-top">
                         <div className="flex h-10 border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
                           <Input
                             type="number"
-                            step="0.01"
-                            {...form.register(`items.${index}.quantity` as const)}
-                            className="h-full border-0 rounded-none focus-visible:ring-0 text-center tabular-nums w-full"
+                            min="1"
+                            step="1"
+                            {...form.register(`items.${index}.quantity` as const, {
+                              onChange: () => {
+                                const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
+                                const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
+                                form.setValue(`items.${index}.subtotal`, qty * price)
+                              }
+                            })}
+                            className="h-full border-0 rounded-none focus-visible:ring-0 text-center tabular-nums w-full px-1"
                           />
-                          <div className="h-full px-3 bg-slate-100 text-slate-500 flex items-center justify-center text-xs border-l border-slate-200">
-                            un
+                          <div className="h-full px-1.5 bg-slate-100 text-slate-500 flex items-center justify-center text-[9px] font-bold border-l border-slate-200 shrink-0">
+                            Un
                           </div>
                         </div>
                       </td>
@@ -399,17 +400,23 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                           <Input
                             type="number"
                             step="0.01"
-                            {...form.register(`items.${index}.unit_price` as const)}
-                            className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full"
+                            {...form.register(`items.${index}.unit_price` as const, {
+                              onChange: () => {
+                                const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
+                                const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
+                                form.setValue(`items.${index}.subtotal`, qty * price)
+                              }
+                            })}
+                            className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-1"
                           />
-                          <div className="h-full px-3 bg-slate-100 text-slate-500 flex items-center justify-center text-xs border-l border-slate-200">
+                          <div className="h-full px-1.5 bg-slate-100 text-slate-500 flex items-center justify-center text-[9px] font-bold border-l border-slate-200 shrink-0">
                             R$
                           </div>
                         </div>
                       </td>
                       <td className="px-2 py-4 align-top text-right">
-                        <div className="h-10 flex items-center justify-end text-[15px] text-slate-800 font-bold tabular-nums">
-                          {brl(watchItems[index]?.subtotal || 0)}
+                        <div className="h-10 flex items-center justify-end text-[14px] text-slate-800 font-bold tabular-nums">
+                          {brl((Number(watchItems[index]?.quantity) || 0) * (Number(watchItems[index]?.unit_price) || 0))}
                         </div>
                       </td>
                       <td className="pl-2 py-4 align-top text-right">

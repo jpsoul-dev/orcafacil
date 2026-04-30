@@ -43,7 +43,7 @@ export const columns: ColumnDef<Customer>[] = [
   },
   {
     accessorKey: 'document',
-    header: 'CPF/CNPJ',
+    header: 'Documento',
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('document') || '—'}</div>,
   },
   {

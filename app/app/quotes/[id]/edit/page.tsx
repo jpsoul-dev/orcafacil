@@ -33,7 +33,7 @@ export default async function EditQuotePage({ params }: { params: Promise<{ id: 
     .order('name')
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-slate-900">Editar Orçamento</h2>
         <p className="text-muted-foreground text-sm mt-1">Altere os dados abaixo e conclua ou salve novamente como rascunho.</p>

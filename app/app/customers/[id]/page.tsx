@@ -4,7 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CustomerQuotesClient } from './customer-quotes-client'
-import { Mail, Phone, MapPin, Calendar, FileText, User } from 'lucide-react'
+import { Mail, Phone, MapPin, Calendar, FileText, User, Pencil } from 'lucide-react'
+import { CustomerForm } from '../customer-form'
+import { Button } from '@/components/ui/button'
 
 export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -49,6 +51,16 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
             </div>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <CustomerForm
+            initialData={customer}
+            trigger={
+              <Button variant="outline" className="gap-2 border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-xl">
+                <Pencil className="h-4 w-4" /> Editar Cliente
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
@@ -73,11 +85,26 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                 <CardTitle className="text-base font-semibold">Informações de Contato</CardTitle>
               </CardHeader>
               <CardContent className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-1">
+                <div className="space-y-1 sm:col-span-1">
                   <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">WhatsApp / Telefone</span>
-                  <div className="flex items-center gap-2 text-slate-900">
-                    <Phone className="h-4 w-4 text-slate-400" />
-                    {customer.whatsapp || customer.phone || 'Não informado'}
+                  <div className="space-y-2 mt-1">
+                    {customer.whatsapp && (
+                      <div className="flex items-center gap-2 text-slate-900">
+                        <Phone className="h-4 w-4 text-slate-400" />
+                        <span className="text-sm font-medium">WhatsApp:</span>
+                        <span className="text-sm">{customer.whatsapp}</span>
+                      </div>
+                    )}
+                    {customer.phone && (
+                      <div className="flex items-center gap-2 text-slate-900">
+                        <Phone className="h-4 w-4 text-slate-400" />
+                        <span className="text-sm font-medium">Telefone:</span>
+                        <span className="text-sm">{customer.phone}</span>
+                      </div>
+                    )}
+                    {!customer.whatsapp && !customer.phone && (
+                      <div className="text-slate-400 text-sm italic">Não informado</div>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1">

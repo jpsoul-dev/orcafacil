@@ -91,8 +91,8 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
                 <Label className="font-medium text-sm">Tipo do Item</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'product', label: 'Produto', icon: Box, desc: 'Item físico' },
-                    { value: 'service', label: 'Serviço', icon: Wrench, desc: 'Mão de obra' },
+                    { value: 'product', label: 'Produto', icon: Box },
+                    { value: 'service', label: 'Serviço', icon: Wrench },
                   ].map((opt) => {
                     const isSelected = watchType === opt.value
                     return (
@@ -100,16 +100,14 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
                         key={opt.value}
                         type="button"
                         onClick={() => form.setValue('type', opt.value as any)}
-                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 text-primary'
-                            : 'border-border hover:border-muted-foreground/30 text-muted-foreground'
-                        }`}
+                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${isSelected
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border hover:border-muted-foreground/30 text-muted-foreground'
+                          }`}
                       >
                         <opt.icon className="h-4 w-4 shrink-0" />
                         <div>
                           <p className="text-sm font-semibold leading-none">{opt.label}</p>
-                          <p className="text-xs opacity-70 mt-0.5">{opt.desc}</p>
                         </div>
                       </button>
                     )
@@ -119,7 +117,7 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
 
               <div className="space-y-1.5">
                 <Label htmlFor="name" className="font-medium text-sm">Nome do Item *</Label>
-                <Input id="name" {...form.register('name')} className="h-10" placeholder="Ex: Manutenção Preventiva" />
+                <Input id="name" {...form.register('name')} className="h-10" />
                 {form.formState.errors.name && (
                   <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
                 )}
@@ -133,7 +131,7 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
                 {watchType === 'product' && (
                   <div className="space-y-1.5">
                     <Label className="font-medium text-sm">Unidade</Label>
-                    <Select onValueChange={(val) => form.setValue('unit_measure', val as any)} defaultValue={form.getValues('unit_measure')}>
+                    <Select onValueChange={(val) => form.setValue('unit_measure', val as any)} value={form.watch('unit_measure')}>
                       <SelectTrigger className="h-10">
                         <SelectValue />
                       </SelectTrigger>
@@ -141,11 +139,13 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
                         {[
                           { v: 'Un', l: 'Un — Unidade' },
                           { v: 'Kg', l: 'Kg — Quilograma' },
+                          { v: 'Mg', l: 'Mg — Miligrama' },
                           { v: 'L', l: 'L — Litro' },
+                          { v: 'Ml', l: 'Ml — Mililitro' },
                           { v: 'M', l: 'M — Metro' },
+                          { v: 'Cm', l: 'Cm — Centímetro' },
                           { v: 'M²', l: 'M² — Metro quadrado' },
                           { v: 'Cx', l: 'Cx — Caixa' },
-                          { v: 'Hr', l: 'Hr — Hora' },
                         ].map(u => (
                           <SelectItem key={u.v} value={u.v}>{u.l}</SelectItem>
                         ))}

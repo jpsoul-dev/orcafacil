@@ -5,6 +5,7 @@ import { ArrowUpDown, Box, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CatalogForm } from './catalog-form'
 import { Badge } from '@/components/ui/badge'
+import { DeleteItemDialog } from './delete-item-dialog'
 
 export type CatalogItem = {
   id: string
@@ -76,8 +77,9 @@ export const columns: ColumnDef<CatalogItem>[] = [
       const item = row.original
 
       return (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
           <CatalogForm initialData={item} asMenuItem={true} />
+          <DeleteItemDialog id={item.id} name={item.name} />
         </div>
       )
     },

@@ -4,9 +4,19 @@ import { Package } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table'
 import { columns } from './columns'
 
-export default async function CatalogPage() {
+import { CatalogFilter } from './components/catalog-filter'
+
+export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+  const { type } = await searchParams
   const supabase = await createClient()
-  const { data: items } = await supabase.from('catalog_items').select('*').order('name')
+  
+  let query = supabase.from('catalog_items').select('*').order('name')
+
+  if (type && type !== 'all') {
+    query = query.eq('type', type)
+  }
+
+  const { data: items } = await query
 
   return (
     <div className="space-y-6">
@@ -20,6 +30,8 @@ export default async function CatalogPage() {
         </div>
         <CatalogForm />
       </div>
+
+      <CatalogFilter />
 
       {/* Tabela ou Empty State */}
       {items && items.length > 0 ? (

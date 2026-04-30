@@ -56,18 +56,10 @@ export const columns: ColumnDef<CatalogItem>[] = [
   },
   {
     accessorKey: 'unit_price',
-    header: 'Preço Base',
+    header: 'Valor Unitário',
     cell: ({ row }) => {
       const price = parseFloat(row.getValue('unit_price'))
       return <div className="text-foreground">{brl(price)}</div>
-    },
-  },
-  {
-    accessorKey: 'unit_measure',
-    header: 'Unidade',
-    cell: ({ row }) => {
-      const unit = row.getValue('unit_measure') as string
-      return <div className="text-muted-foreground">{unit || '—'}</div>
     },
   },
   {

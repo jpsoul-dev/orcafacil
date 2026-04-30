@@ -1,10 +1,9 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, ExternalLink, Pencil, Copy, Eye } from 'lucide-react'
+import { ArrowUpDown, Pencil, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { toast } from 'sonner'
 
 export type Quote = {
   id: string
@@ -25,7 +24,7 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'quote_number',
     header: '#',
     cell: ({ row }) => (
-      <Link 
+      <Link
         href={`/app/quotes/${row.original.id}`}
         className="font-mono text-xs font-bold text-blue-600 hover:underline"
       >
@@ -137,50 +136,24 @@ export const columns: ColumnDef<Quote>[] = [
     id: 'actions',
     header: '',
     cell: ({ row }) => {
-      const uuid = row.original.public_uuid
       const id = row.original.id
       const isDraft = row.original.status === 'draft'
-
-      const handleCopyLink = () => {
-        const url = `${window.location.origin}/quote/${uuid}`
-        navigator.clipboard.writeText(url)
-        toast.success('Link do orçamento copiado!')
-      }
 
       return (
         <div className="flex items-center justify-end gap-1">
           {!isDraft && (
-            <>
               <Link href={`/app/quotes/${id}`}>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100" title="Ver Detalhes">
                   <Eye className="h-4 w-4" />
-                  <span className="sr-only">Ver Detalhes</span>
+                  <span className="sr-only">Ver orçameto</span>
                 </Button>
               </Link>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50" 
-                title="Copiar Link Público"
-                onClick={handleCopyLink}
-              >
-                <Copy className="h-4 w-4" />
-                <span className="sr-only">Copiar Link Público</span>
-              </Button>
-            </>
           )}
-          {isDraft ? (
+          {isDraft && (
             <Link href={`/app/quotes/${id}/edit`}>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50" title="Editar Rascunho">
                 <Pencil className="h-4 w-4" />
                 <span className="sr-only">Editar Rascunho</span>
-              </Button>
-            </Link>
-          ) : (
-            <Link href={`/quote/${uuid}`} target="_blank">
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary hover:bg-blue-50" title="Abrir Página Pública">
-                <ExternalLink className="h-4 w-4" />
-                <span className="sr-only">Abrir Página Pública</span>
               </Button>
             </Link>
           )}

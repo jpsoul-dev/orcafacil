@@ -16,9 +16,6 @@ export default async function CustomersPage() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold tracking-tight">Clientes</h2>
-            <Badge variant="secondary" className="font-semibold">
-              {customers?.length ?? 0}
-            </Badge>
           </div>
           <p className="text-muted-foreground text-sm mt-0.5">Gerencie sua carteira de clientes.</p>
         </div>

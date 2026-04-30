@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -59,6 +59,28 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
     },
   })
 
+  // Reset form when dialog opens or initialData changes
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: initialData?.name || '',
+        document: initialData?.document || '',
+        gender: initialData?.gender || 'nao_informado',
+        birth_date: initialData?.birth_date || '',
+        email: initialData?.email || '',
+        phone: initialData?.phone || '',
+        whatsapp: initialData?.whatsapp || '',
+        address_zip: initialData?.address_zip || '',
+        address_street: initialData?.address_street || '',
+        address_number: initialData?.address_number || '',
+        address_complement: initialData?.address_complement || '',
+        address_neighborhood: initialData?.address_neighborhood || '',
+        address_city: initialData?.address_city || '',
+        address_state: initialData?.address_state || '',
+      })
+    }
+  }, [open, initialData, form])
+
   async function onSubmit(data: CustomerValues) {
     setLoading(true)
     const result = await saveCustomer(data, initialData?.id)
@@ -85,7 +107,6 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
           form.setValue('address_neighborhood', data.bairro)
           form.setValue('address_city', data.localidade)
           form.setValue('address_state', data.uf)
-          toast.success('Endereço encontrado!')
         } else {
           toast.error('CEP não encontrado')
         }
@@ -157,7 +178,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     id="name" 
                     {...form.register('name')} 
                     placeholder="Ex: João Silva ou Empresa LTDA" 
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" 
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" 
                   />
                   {form.formState.errors.name && (
                     <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
@@ -174,7 +195,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                         {...field} 
                         onChange={(e) => field.onChange(maskCPFCNPJ(e.target.value))}
                         placeholder="000.000.000-00" 
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 tabular-nums" 
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums" 
                         maxLength={18}
                       />
                     )}
@@ -186,13 +207,13 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     id="birth_date" 
                     type="date" 
                     {...form.register('birth_date')} 
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 text-slate-700" 
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-slate-700" 
                   />
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="gender" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Gênero</Label>
-                  <Select onValueChange={(val) => form.setValue('gender', val as any)} defaultValue={form.getValues('gender')}>
-                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-blue-500 text-slate-700">
+                  <Select onValueChange={(val) => form.setValue('gender', val as any)} value={form.watch('gender')}>
+                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700">
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -224,7 +245,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     id="email" 
                     type="email" 
                     {...form.register('email')} 
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" 
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" 
                     placeholder="email@exemplo.com" 
                   />
                   {form.formState.errors.email && (
@@ -241,7 +262,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                         id="phone" 
                         {...field} 
                         onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 tabular-nums" 
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums" 
                         placeholder="(00) 0000-0000" 
                         maxLength={15}
                       />
@@ -259,7 +280,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                           id="whatsapp" 
                           {...field} 
                           onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 pr-10 tabular-nums" 
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 pr-10 tabular-nums" 
                           placeholder="(00) 00000-0000" 
                           maxLength={15}
                         />
@@ -298,7 +319,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                           onChange={(e) => field.onChange(maskCEP(e.target.value))}
                           onBlur={handleSearchCEP}
                           placeholder="00000-000" 
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500 tabular-nums flex-1" 
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums flex-1" 
                           maxLength={9}
                         />
                       )}
@@ -318,28 +339,30 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="address_street" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Logradouro</Label>
-                  <Input id="address_street" {...form.register('address_street')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" placeholder="Rua, Avenida, etc." />
+                  <Input id="address_street" {...form.register('address_street')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" placeholder="Rua, Avenida, etc." />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_number" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Número</Label>
-                  <Input id="address_number" {...form.register('address_number')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_complement" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Complemento</Label>
-                  <Input id="address_complement" {...form.register('address_complement')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" placeholder="Apto, Sala, Bloco..." />
+                <div className="grid grid-cols-12 gap-4 sm:col-span-2">
+                  <div className="col-span-4 space-y-1.5">
+                    <Label htmlFor="address_number" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Número</Label>
+                    <Input id="address_number" {...form.register('address_number')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" />
+                  </div>
+                  <div className="col-span-8 space-y-1.5">
+                    <Label htmlFor="address_complement" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Complemento</Label>
+                    <Input id="address_complement" {...form.register('address_complement')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" placeholder="Apto, Sala, Bloco..." />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="address_neighborhood" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Bairro</Label>
-                  <Input id="address_neighborhood" {...form.register('address_neighborhood')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" />
+                  <Input id="address_neighborhood" {...form.register('address_neighborhood')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="address_city" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Cidade</Label>
-                  <Input id="address_city" {...form.register('address_city')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-blue-500" />
+                  <Input id="address_city" {...form.register('address_city')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="address_state" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">UF</Label>
                   <Select onValueChange={(val) => form.setValue('address_state', val as any)} defaultValue={form.getValues('address_state')}>
-                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-blue-500 text-slate-700 uppercase">
+                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700 uppercase">
                       <SelectValue placeholder="UF" />
                     </SelectTrigger>
                     <SelectContent>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -10,7 +10,6 @@ import { saveCatalogItem } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogDescription } from '@/components/ui/dialog'
 import { Plus, Pencil, Loader2, Package, Box, Wrench } from 'lucide-react'
 
@@ -18,7 +17,6 @@ const catalogSchema = z.object({
   type: z.enum(['product', 'service']),
   name: z.string().min(1, 'Nome é obrigatório'),
   unit_price: z.coerce.number().min(0),
-  unit_measure: z.string().optional(),
 })
 
 type CatalogValues = z.infer<typeof catalogSchema>
@@ -33,15 +31,25 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
       type: initialData?.type || 'product',
       name: initialData?.name || '',
       unit_price: initialData?.unit_price || 0,
-      unit_measure: initialData?.unit_measure || 'Un',
     },
   })
+
+  // Reset form when dialog opens/closes or initialData changes
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        type: initialData?.type || 'product',
+        name: initialData?.name || '',
+        unit_price: initialData?.unit_price || 0,
+      })
+    }
+  }, [open, initialData, form])
 
   const watchType = form.watch('type')
 
   async function onSubmit(data: CatalogValues) {
     setLoading(true)
-    const result = await saveCatalogItem(data, initialData?.id)
+    const result = await saveCatalogItem({ ...data, unit_measure: 'Un' }, initialData?.id)
     setLoading(false)
     if (result.error) {
       toast.error(result.error)
@@ -123,36 +131,9 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
                 )}
               </div>
 
-              <div className="grid gap-3 grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="unit_price" className="font-medium text-sm">Valor Base (R$)</Label>
-                  <Input id="unit_price" type="number" step="0.01" min="0" {...form.register('unit_price')} className="h-10" />
-                </div>
-                {watchType === 'product' && (
-                  <div className="space-y-1.5">
-                    <Label className="font-medium text-sm">Unidade</Label>
-                    <Select onValueChange={(val) => form.setValue('unit_measure', val as any)} value={form.watch('unit_measure')}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          { v: 'Un', l: 'Un — Unidade' },
-                          { v: 'Kg', l: 'Kg — Quilograma' },
-                          { v: 'Mg', l: 'Mg — Miligrama' },
-                          { v: 'L', l: 'L — Litro' },
-                          { v: 'Ml', l: 'Ml — Mililitro' },
-                          { v: 'M', l: 'M — Metro' },
-                          { v: 'Cm', l: 'Cm — Centímetro' },
-                          { v: 'M²', l: 'M² — Metro quadrado' },
-                          { v: 'Cx', l: 'Cx — Caixa' },
-                        ].map(u => (
-                          <SelectItem key={u.v} value={u.v}>{u.l}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+              <div className="space-y-1.5">
+                <Label htmlFor="unit_price" className="font-medium text-sm">Valor Unitário (R$)</Label>
+                <Input id="unit_price" type="number" step="0.01" min="0.01" {...form.register('unit_price')} className="h-10" />
               </div>
             </div>
 

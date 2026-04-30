@@ -62,3 +62,13 @@ export const maskCEP = (value: string) => {
     .replace(/(\d{5})(\d)/, '$1-$2')
     .replace(/(-\d{3})\d+?$/, '$1')
 }
+
+export const maskCurrency = (value: string) => {
+  if (!value) return ''
+  const cleanValue = value.toString().replace(/\D/g, '')
+  const options = { minimumFractionDigits: 2 }
+  const result = new Intl.NumberFormat('pt-BR', options).format(
+    parseFloat(cleanValue) / 100
+  )
+  return result
+}

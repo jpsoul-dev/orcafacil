@@ -134,7 +134,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
               <span className="sr-only">Editar</span>
             </Button>
           ) : (
-            <Button className="gap-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+            <Button className="gap-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white">
               <Plus className="h-4 w-4" /> Novo Cliente
             </Button>
           )
@@ -162,7 +162,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
         {/* Conteúdo com scroll */}
         <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
           <form id="customer-form" onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-8">
-            
+
             {/* Seção: Dados Pessoais */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
@@ -171,17 +171,17 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                 </div>
                 <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Dados Pessoais</span>
               </div>
-              
+
               <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="name" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     Nome / Razão Social <span className="text-red-500">*</span>
                   </Label>
-                  <Input 
-                    id="name" 
-                    {...form.register('name')} 
-                    placeholder="Ex: João Silva ou Empresa LTDA" 
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" 
+                  <Input
+                    id="name"
+                    {...form.register('name')}
+                    placeholder="Ex: João Silva ou Empresa LTDA"
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500"
                   />
                   {form.formState.errors.name && (
                     <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
@@ -189,11 +189,11 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo Documento</Label>
-                  <Select 
+                  <Select
                     onValueChange={(val) => {
                       form.setValue('document_type', val as any)
                       form.setValue('document', '') // Limpa documento ao trocar tipo
-                    }} 
+                    }}
                     value={form.watch('document_type')}
                   >
                     <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700">
@@ -215,9 +215,9 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     render={({ field }) => {
                       const docType = form.watch('document_type')
                       return (
-                        <Input 
-                          id="document" 
-                          {...field} 
+                        <Input
+                          id="document"
+                          {...field}
                           onChange={(e) => {
                             let masked = e.target.value
                             if (docType === 'cpf') masked = maskCPF(e.target.value)
@@ -226,7 +226,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                             field.onChange(masked)
                           }}
                           placeholder={docType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums" 
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums"
                           maxLength={docType === 'cpf' ? 14 : 18}
                         />
                       )
@@ -237,11 +237,11 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                   <>
                     <div className="space-y-1.5">
                       <Label htmlFor="birth_date" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Data de Nascimento</Label>
-                      <Input 
-                        id="birth_date" 
-                        type="date" 
-                        {...form.register('birth_date')} 
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-slate-700" 
+                      <Input
+                        id="birth_date"
+                        type="date"
+                        {...form.register('birth_date')}
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-slate-700"
                       />
                     </div>
                     <div className="space-y-1.5 sm:col-span-2">
@@ -277,12 +277,12 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
               <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="email" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">E-mail</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    {...form.register('email')} 
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" 
-                    placeholder="email@exemplo.com" 
+                  <Input
+                    id="email"
+                    type="email"
+                    {...form.register('email')}
+                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500"
+                    placeholder="email@exemplo.com"
                   />
                   {form.formState.errors.email && (
                     <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
@@ -294,12 +294,12 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     name="phone"
                     control={form.control}
                     render={({ field }) => (
-                      <Input 
-                        id="phone" 
-                        {...field} 
+                      <Input
+                        id="phone"
+                        {...field}
                         onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums" 
-                        placeholder="(00) 0000-0000" 
+                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums"
+                        placeholder="(00) 0000-0000"
                         maxLength={15}
                       />
                     )}
@@ -312,18 +312,18 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                       name="whatsapp"
                       control={form.control}
                       render={({ field }) => (
-                        <Input 
-                          id="whatsapp" 
-                          {...field} 
+                        <Input
+                          id="whatsapp"
+                          {...field}
                           onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 pr-10 tabular-nums" 
-                          placeholder="(00) 00000-0000" 
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 pr-10 tabular-nums"
+                          placeholder="(00) 00000-0000"
                           maxLength={15}
                         />
                       )}
                     />
                     <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
                     </svg>
                   </div>
                 </div>
@@ -349,20 +349,20 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                       name="address_zip"
                       control={form.control}
                       render={({ field }) => (
-                        <Input 
-                          id="address_zip" 
-                          {...field} 
+                        <Input
+                          id="address_zip"
+                          {...field}
                           onChange={(e) => field.onChange(maskCEP(e.target.value))}
                           onBlur={handleSearchCEP}
-                          placeholder="00000-000" 
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums flex-1" 
+                          placeholder="00000-000"
+                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums flex-1"
                           maxLength={9}
                         />
                       )}
                     />
-                    <Button 
-                      type="button" 
-                      onClick={handleSearchCEP} 
+                    <Button
+                      type="button"
+                      onClick={handleSearchCEP}
                       disabled={searchingCEP}
                       variant="outline"
                       className="h-11 w-11 shrink-0 rounded-xl border-slate-200 bg-white p-0 hover:bg-slate-50 hover:text-blue-600"
@@ -402,7 +402,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                       <SelectValue placeholder="UF" />
                     </SelectTrigger>
                     <SelectContent>
-                      {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                      {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
                         <SelectItem key={uf} value={uf}>{uf}</SelectItem>
                       ))}
                     </SelectContent>

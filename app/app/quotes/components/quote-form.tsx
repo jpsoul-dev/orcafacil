@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useForm, useFieldArray, useWatch } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { saveQuote } from '../actions'
 import { useDebounce } from '@/hooks/use-debounce'
+import { maskCurrency } from '@/lib/masks'
 
 import { Button as BaseButton } from '@base-ui/react/button'
 import { Button } from '@/components/ui/button'
@@ -127,7 +128,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
   async function handleSave(status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired') {
     const isValid = await form.trigger()
     if (!isValid) {
-      toast.error('Por favor, selecione um cliente e adicione itens ao orçamento.')
+      toast.error('Por favor, preencha todos os campos obrigatórios corretamente.')
       return
     }
 
@@ -356,11 +357,11 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               <table className="w-full text-sm text-left border-collapse">
                 <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                   <tr>
-                    <th className="pr-2 pb-3">Item</th>
-                    <th className="px-2 pb-3 text-center w-[90px]">Qtd</th>
-                    <th className="px-2 pb-3 text-center w-[150px]">Preço (R$)</th>
-                    <th className="px-2 pb-3 text-right w-[130px]">Total</th>
-                    <th className="w-[40px] pb-3"></th>
+                    <th className="pr-2 pb-3 w-[45%]">Item</th>
+                    <th className="px-2 pb-3 text-center w-[12%]">Qtd</th>
+                    <th className="px-2 pb-3 text-center w-[20%]">Preço (R$)</th>
+                    <th className="px-2 pb-3 text-right w-[18%]">Total</th>
+                    <th className="w-[5%] pb-3 text-right"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -371,8 +372,13 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                           <Input
                             {...form.register(`items.${index}.item_name` as const)}
                             placeholder="Descrição"
-                            className="h-10 text-sm border-slate-200 rounded-lg pr-9"
+                            className={`h-10 text-sm border-slate-200 rounded-lg ${form.formState.errors.items?.[index]?.item_name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                           />
+                          {form.formState.errors.items?.[index]?.item_name && (
+                            <p className="text-[10px] text-red-500 mt-1 font-medium ml-1">
+                              {form.formState.errors.items[index]?.item_name?.message}
+                            </p>
+                          )}
                         </div>
                       </td>
                       <td className="px-2 py-4 align-top">
@@ -397,17 +403,25 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                       </td>
                       <td className="px-2 py-4 align-top">
                         <div className="flex h-10 border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            {...form.register(`items.${index}.unit_price` as const, {
-                              onChange: () => {
-                                const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
-                                const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
-                                form.setValue(`items.${index}.subtotal`, qty * price)
-                              }
-                            })}
-                            className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-1"
+                          <Controller
+                            name={`items.${index}.unit_price` as const}
+                            control={form.control}
+                            render={({ field }) => (
+                              <Input
+                                type="text"
+                                placeholder="0,00"
+                                value={field.value ? maskCurrency(Math.round(field.value * 100).toString()) : ''}
+                                onChange={(e) => {
+                                  const masked = maskCurrency(e.target.value)
+                                  const raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
+                                  field.onChange(raw)
+
+                                  const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
+                                  form.setValue(`items.${index}.subtotal`, qty * raw)
+                                }}
+                                className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-1"
+                              />
+                            )}
                           />
                           <div className="h-full px-1.5 bg-slate-100 text-slate-500 flex items-center justify-center text-[9px] font-bold border-l border-slate-200 shrink-0">
                             R$
@@ -449,7 +463,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               <DialogTrigger render={
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-indigo-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <Package className="h-4 w-4" />
                   Catálogo
@@ -535,79 +549,94 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
         <CardContent className="p-6 space-y-6 pt-2">
 
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Esquerda */}
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-[13px] font-semibold text-slate-700">Desc. geral</Label>
-                <div className="flex items-center gap-3">
-                  <Select onValueChange={(val) => form.setValue('discount_type', val as any)} value={watchDiscountType}>
-                    <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-lg bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="%">%</SelectItem>
-                      <SelectItem value="R$">R$</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...form.register('discount_value')}
-                    disabled={watchDiscountType === 'none'}
-                    className="h-10 border-slate-200 rounded-lg bg-white flex-1 text-slate-700 disabled:opacity-50"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[13px] font-semibold text-slate-700">Forma de pagamento</Label>
-                <Select onValueChange={(val) => form.setValue('payment_method', val as string)} value={watchPaymentMethod}>
-                  <SelectTrigger className="h-10 border-slate-200 rounded-lg bg-white">
-                    <SelectValue placeholder="Selecione..." />
+            <div className="space-y-2">
+              <Label className="text-[13px] font-semibold text-slate-700">Desc. geral</Label>
+              <div className="flex items-center gap-3">
+                <Select onValueChange={(val) => form.setValue('discount_type', val as any)} value={watchDiscountType}>
+                  <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-lg bg-white">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto Bancário', 'Cheque'].map(m => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
+                    <SelectItem value="%">%</SelectItem>
+                    <SelectItem value="R$">R$</SelectItem>
                   </SelectContent>
                 </Select>
+                <Controller
+                  name="discount_value"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Input
+                      type={watchDiscountType === 'R$' ? 'text' : 'number'}
+                      step="0.01"
+                      placeholder={watchDiscountType === 'R$' ? '0,00' : '0'}
+                      value={watchDiscountType === 'R$'
+                        ? (field.value ? maskCurrency(Math.round(field.value * 100).toString()) : '')
+                        : field.value || ''}
+                      onChange={(e) => {
+                        if (watchDiscountType === 'R$') {
+                          const masked = maskCurrency(e.target.value)
+                          field.onChange(parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0)
+                        } else {
+                          field.onChange(e.target.value)
+                        }
+                      }}
+                      disabled={watchDiscountType === 'none'}
+                      className="h-10 border-slate-200 rounded-lg bg-white flex-1 text-slate-700 disabled:opacity-50"
+                    />
+                  )}
+                />
               </div>
-
-              <div className="pt-2 space-y-4">
-                <div className="flex w-full items-center justify-between text-[13px] text-slate-500 font-medium">
-                  <span>Subtotal:</span>
-                  <span className="tabular-nums font-bold text-slate-800">{brl(subtotalFinal)}</span>
-                </div>
-                <div className="flex w-full items-center justify-between text-[13px] text-slate-500 font-medium">
-                  <span>Descontos:</span>
-                  <span className="tabular-nums font-bold text-slate-800">
-                    {brl(watchDiscountType === 'none' ? 0 : (watchDiscountType === 'R$' ? Number(watchDiscountValue) : subtotalFinal * (Number(watchDiscountValue) / 100)))}
-                  </span>
-                </div>
-              </div>
-
             </div>
 
-            {/* Direita */}
-            <div className="space-y-2 flex flex-col h-full">
-              <Label htmlFor="notes" className="text-[13px] font-semibold text-slate-700">Observações</Label>
-              <Textarea
-                id="notes"
-                {...form.register('notes')}
-                placeholder="Prazo de entrega, condições..."
-                className="resize-none text-sm p-4 border-slate-200 rounded-lg bg-white flex-1 min-h-[140px]"
-              />
+            <div className="space-y-2">
+              <Label className="text-[13px] font-semibold text-slate-700">Forma de pagamento</Label>
+              <Select onValueChange={(val) => form.setValue('payment_method', val as string)} value={watchPaymentMethod}>
+                <SelectTrigger className="h-10 border-slate-200 rounded-lg bg-white">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto Bancário', 'Cheque'].map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="mt-8 flex items-end justify-between border-t border-slate-100 pt-6">
-            <span className="text-xl font-bold text-slate-900">Total:</span>
-            <div className="text-right">
-              <span className="text-[12px] font-semibold text-slate-500 block mb-1">Total do Pedido</span>
-              <span className="text-3xl font-black text-[#004B71] tabular-nums tracking-tight">{brl(totalFinal)}</span>
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-end">
+            <div className="w-full max-w-[320px] space-y-3">
+              <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
+                <span>Subtotal</span>
+                <span className="tabular-nums text-slate-700">{brl(subtotalFinal)}</span>
+              </div>
+              <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
+                <span>Desconto {watchDiscountType === '%' && watchDiscountValue > 0 ? `(${watchDiscountValue}%)` : ''}</span>
+                <span className="tabular-nums text-red-600">
+                  {watchDiscountValue > 0 ? '-' : ''}{brl(watchDiscountType === 'none' ? 0 : (watchDiscountType === 'R$' ? Number(watchDiscountValue) : subtotalFinal * (Number(watchDiscountValue) / 100)))}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                <span className="text-[14px] font-bold text-slate-900 uppercase tracking-tight">Total</span>
+                <span className="text-lg font-black text-blue-900 tabular-nums tracking-tighter">{brl(totalFinal)}</span>
+              </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Observações */}
+      <Card className="rounded-[12px] border-slate-200 shadow-sm overflow-hidden bg-white">
+        <CardHeader className="p-6 pb-2">
+          <CardTitle className="text-[16px] font-bold text-slate-800">
+            Observações
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-2">
+          <Textarea
+            id="notes"
+            {...form.register('notes')}
+            className="resize-none text-sm p-4 border-slate-200 rounded-lg bg-white min-h-[100px]"
+          />
         </CardContent>
       </Card>
 
@@ -633,9 +662,9 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           type="button"
           disabled={loading || fields.length === 0}
           onClick={() => handleSave('open')}
-          className="h-10 px-6 rounded-lg bg-[#2E6898] hover:bg-[#255680] text-white font-semibold disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2E6898] focus-visible:ring-offset-2"
+          className="h-10 px-6 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         >
-          {loading ? 'Salvando...' : (initialData ? 'Concluir e Emitir' : 'Emitir Orçamento')}
+          {loading ? 'Salvando...' : (initialData ? 'Concluir' : 'Emitir Orçamento')}
         </BaseButton>
       </div>
     </div>

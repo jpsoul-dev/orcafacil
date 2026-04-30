@@ -95,7 +95,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Valor Total',
     cell: ({ row }) => {
       const total = parseFloat(row.getValue('total'))
-      return <div className="font-semibold text-primary">{brl(total)}</div>
+      return <div className="font-semibold">{brl(total)}</div>
     },
   },
   {
@@ -142,12 +142,12 @@ export const columns: ColumnDef<Quote>[] = [
       return (
         <div className="flex items-center justify-end gap-1">
           {!isDraft && (
-              <Link href={`/app/quotes/${id}`}>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100" title="Ver Detalhes">
-                  <Eye className="h-4 w-4" />
-                  <span className="sr-only">Ver orçameto</span>
-                </Button>
-              </Link>
+            <Link href={`/app/quotes/${id}`}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100" title="Ver Detalhes">
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">Ver orçameto</span>
+              </Button>
+            </Link>
           )}
           {isDraft && (
             <Link href={`/app/quotes/${id}/edit`}>

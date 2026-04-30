@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { CatalogForm } from './catalog-form'
-import { Badge } from '@/components/ui/badge'
 import { Package } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table'
 import { columns } from './columns'
@@ -16,9 +15,6 @@ export default async function CatalogPage() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold tracking-tight">Catálogo</h2>
-            <Badge variant="secondary" className="font-semibold">
-              {items?.length ?? 0}
-            </Badge>
           </div>
           <p className="text-muted-foreground text-sm mt-0.5">Gerencie seus produtos e serviços.</p>
         </div>
@@ -31,7 +27,7 @@ export default async function CatalogPage() {
           columns={columns}
           data={items}
           searchKey="name"
-          searchPlaceholder="Buscar item pelo nome..."
+          searchPlaceholder="Buscar itens..."
         />
       ) : (
         /* Empty State */
@@ -41,7 +37,7 @@ export default async function CatalogPage() {
           </div>
           <h3 className="font-semibold text-lg">Catálogo vazio</h3>
           <p className="text-muted-foreground text-sm mt-1 max-w-xs">
-            Adicione produtos ou serviços para agilizar a criação de orçamentos.
+            Adicione produtos ou serviços ao catálogo.
           </p>
           <div className="mt-5">
             <CatalogForm />

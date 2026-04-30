@@ -12,6 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import {
   Table,
@@ -41,6 +42,9 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
+  const [searchValue, setSearchValue] = React.useState('')
+  const debouncedSearchValue = useDebounce(searchValue, 300)
+
   const table = useReactTable({
     data,
     columns,
@@ -61,6 +65,16 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  React.useEffect(() => {
+    if (!searchKey) return
+
+    if (debouncedSearchValue.length >= 3) {
+      table.getColumn(searchKey)?.setFilterValue(debouncedSearchValue)
+    } else {
+      table.getColumn(searchKey)?.setFilterValue('')
+    }
+  }, [debouncedSearchValue, searchKey, table])
+
   return (
     <div className="space-y-4">
       {searchKey && (
@@ -68,10 +82,8 @@ export function DataTable<TData, TValue>({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
-            value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn(searchKey)?.setFilterValue(event.target.value)
-            }
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
             className="pl-9 h-10 w-full"
           />
         </div>
@@ -87,9 +99,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   )
                 })}

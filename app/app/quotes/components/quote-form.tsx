@@ -7,6 +7,7 @@ import * as z from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { saveQuote } from '../actions'
+import { useDebounce } from '@/hooks/use-debounce'
 
 import { Button as BaseButton } from '@base-ui/react/button'
 import { Button } from '@/components/ui/button'
@@ -59,11 +60,8 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
   // Estados dos modais de busca
   const [openCustomerModal, setOpenCustomerModal] = useState(false)
   const [customerSearch, setCustomerSearch] = useState('')
-  const [debouncedCustomerSearch, setDebouncedCustomerSearch] = useState('')
-
   const [openCatalogModal, setOpenCatalogModal] = useState(false)
   const [catalogSearch, setCatalogSearch] = useState('')
-  const [debouncedCatalogSearch, setDebouncedCatalogSearch] = useState('')
 
   const defaultValidDate = new Date()
   defaultValidDate.setDate(defaultValidDate.getDate() + 15)
@@ -114,28 +112,14 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
     setTotalFinal(currentTotal > 0 ? currentTotal : 0)
   }, [watchItems, watchDiscountType, watchDiscountValue, form])
 
-  // Debounce da busca de clientes (300ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedCustomerSearch(customerSearch)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [customerSearch])
-
-  // Debounce da busca do catálogo (300ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedCatalogSearch(catalogSearch)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [catalogSearch])
+  const debouncedCustomerSearch = useDebounce(customerSearch, 300)
+  const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
 
   const handleAddCatalogItem = (item: any) => {
     if (!item) return
     append({ catalog_item_id: item.id, item_name: item.name, quantity: 1, unit_price: item.unit_price, subtotal: item.unit_price })
     setOpenCatalogModal(false)
     setCatalogSearch('')
-    setDebouncedCatalogSearch('')
   }
 
   const handleAddManualItem = () => {
@@ -179,15 +163,17 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
   // Filtra clientes pelo nome usando o valor com debounce
   const filteredCustomers = useMemo(() => {
     const term = debouncedCustomerSearch.trim().toLowerCase()
-    if (!term) return []
+    // Regra: 3+ caracteres ou vazio para mostrar nada/limpar
+    if (term.length < 3) return []
     return customers.filter(c => c.name?.toLowerCase().includes(term))
   }, [customers, debouncedCustomerSearch])
 
   // Filtra catálogo pelo nome usando o valor com debounce
   const filteredCatalog = useMemo(() => {
     const term = debouncedCatalogSearch.trim().toLowerCase()
-    if (!term) return []
-    return catalogItems.filter(c => c.name?.toLowerCase().includes(term))
+    // Regra: 3+ caracteres ou vazio para mostrar nada/limpar
+    if (term.length < 3) return []
+    return catalogItems.filter(i => i.name?.toLowerCase().includes(term))
   }, [catalogItems, debouncedCatalogSearch])
 
   const selectedCustomerName = useMemo(() => {
@@ -243,7 +229,6 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                 setOpenCustomerModal(open)
                 if (!open) {
                   setCustomerSearch('')
-                  setDebouncedCustomerSearch('')
                 }
               }}>
                 <DialogTrigger render={
@@ -452,7 +437,6 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               setOpenCatalogModal(open)
               if (!open) {
                 setCatalogSearch('')
-                setDebouncedCatalogSearch('')
               }
             }}>
               <DialogTrigger render={

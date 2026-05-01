@@ -198,7 +198,6 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               <Input
                 id="title"
                 {...form.register('title')}
-                placeholder="Ex: Orçamento de Pintura Residencial"
                 className={`h-10 border-slate-200 rounded-lg bg-white ${form.formState.errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {form.formState.errors.title && (

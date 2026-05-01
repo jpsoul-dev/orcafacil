@@ -5,12 +5,18 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppBreadcrumb } from "@/components/app-breadcrumb"
 import { Separator } from "@/components/ui/separator"
 
+import { redirect } from "next/navigation"
+
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
   const [{ data: { user } }, { data: company }] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from('companies').select('name').single()
   ])
+  
+  if (user && !company) {
+    redirect('/onboarding')
+  }
   
   const userEmail = user?.email ?? ''
   const companyName = company?.name ?? 'Minha Empresa'

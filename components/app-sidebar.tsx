@@ -35,7 +35,7 @@ function isActive(pathname: string, url: string, exact?: boolean) {
   return pathname === url || pathname.startsWith(url + '/')
 }
 
-export function AppSidebar() {
+export function AppSidebar({ userEmail }: { userEmail: string }) {
   const pathname = usePathname()
 
   return (
@@ -113,6 +113,12 @@ export function AppSidebar() {
       {/* Footer com logout */}
       <SidebarFooter className="border-t border-sidebar-border p-2">
         <SidebarMenu>
+          <SidebarMenuItem className="mb-2 px-2 group-data-[collapsible=icon]:hidden">
+            <div className="flex flex-col gap-0.5 overflow-hidden">
+              <span className="text-[10px] text-sidebar-foreground/40 font-bold uppercase tracking-wider">Conta Logada</span>
+              <span className="text-xs text-sidebar-foreground/70 font-medium truncate">{userEmail}</span>
+            </div>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <form action={logout}>
               <SidebarMenuButton

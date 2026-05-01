@@ -7,12 +7,17 @@ import { Separator } from "@/components/ui/separator"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [{ data: { user } }, { data: company }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from('companies').select('name').single()
+  ])
+  
   const userEmail = user?.email ?? ''
+  const companyName = company?.name ?? 'Minha Empresa'
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar userEmail={userEmail} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4 print:hidden">
           <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
@@ -21,11 +26,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-medium text-foreground leading-none">{userEmail.split('@')[0]}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{userEmail}</p>
+              <p className="text-xs font-bold text-foreground leading-none">{companyName}</p>
             </div>
             <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0">
-              {userEmail.charAt(0).toUpperCase()}
+              {companyName.charAt(0).toUpperCase()}
             </div>
           </div>
         </header>

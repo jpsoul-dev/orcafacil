@@ -5,16 +5,19 @@ import { Card, CardContent } from '@/components/ui/card'
 import {
   FileText, Users, Package, Plus, ArrowRight, TrendingUp
 } from 'lucide-react'
+import { QuotesChart } from './components/quotes-chart'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ count: quotesCount }, { count: customersCount }, { count: catalogCount }] = await Promise.all([
+  const [{ count: quotesCount }, { count: customersCount }, { count: catalogCount }, { data: quotesData }] = await Promise.all([
     supabase.from('quotes').select('*', { count: 'exact', head: true }),
     supabase.from('customers').select('*', { count: 'exact', head: true }),
     supabase.from('catalog_items').select('*', { count: 'exact', head: true }),
+    supabase.from('quotes').select('created_at').order('created_at', { ascending: true })
   ])
+
 
   const firstName = user?.email?.split('@')[0] ?? 'Usuário'
 
@@ -75,9 +78,8 @@ export default async function DashboardPage() {
       <div className="relative overflow-hidden rounded-xl gradient-primary p-6 text-white shadow-md">
         <div className="relative z-10">
           <p className="text-white/70 text-sm font-medium">Bem-vindo de volta,</p>
-          <h1 className="text-2xl font-bold mt-0.5">{firstName} 👋</h1>
           <p className="text-white/75 text-sm mt-2 max-w-md">
-            Você tem <strong className="text-white">{quotesCount ?? 0} orçamentos</strong> gerados.
+            Você tem <strong className="text-white">{quotesCount ?? 0} orçamentos</strong> gerados este mês.
             {!quotesCount ? ' Crie seu primeiro orçamento agora!' : ' Continue assim!'}
           </p>
           <Link href="/app/quotes/new" className="mt-4 inline-flex items-center gap-2">
@@ -92,36 +94,9 @@ export default async function DashboardPage() {
           <TrendingUp className="h-full w-full" strokeWidth={0.5} />
         </div>
       </div>
-
-      {/* Cards de Métricas */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Visão Geral
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <Link key={stat.label} href={stat.href} className="group">
-              <Card className="card-hover border-border/60">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                      <p className="text-3xl font-bold mt-1 tracking-tight">{stat.value}</p>
-                    </div>
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${stat.bg}`}>
-                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                    </div>
-                  </div>
-                  <div className={`mt-3 flex items-center gap-1 text-xs font-medium ${stat.color} group-hover:gap-2 transition-all`}>
-                    Ver todos
-                    <ArrowRight className="h-3 w-3" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
+      
+      {/* Gráfico de Orçamentos */}
+      <QuotesChart quotes={quotesData || []} />
 
       {/* Ações Rápidas */}
       <div>

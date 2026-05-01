@@ -397,7 +397,7 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="address_state" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">UF</Label>
-                  <Select onValueChange={(val) => form.setValue('address_state', val as any)} defaultValue={form.getValues('address_state')}>
+                  <Select onValueChange={(val) => form.setValue('address_state', val as any)} value={form.watch('address_state')}>
                     <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700 uppercase">
                       <SelectValue placeholder="UF" />
                     </SelectTrigger>

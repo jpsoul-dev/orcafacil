@@ -294,10 +294,10 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                   </div>
                   {quote.discount_value > 0 && (
                     <div className="flex justify-between text-sm print:text-xs">
-                      <span className="text-slate-400 font-medium print:text-slate-500">Desconto</span>
-                      <span className="text-red-500 font-bold tabular-nums">
+                      <span className="text-slate-400 font-medium print:text-slate-500">Desconto ({quote.discount_value}%)</span>
+                      <span className="text-slate-600 font-bold tabular-nums">
                         - {quote.discount_type === 'percentage'
-                          ? `${quote.discount_value}%`
+                          ? `${brl(quote.subtotal * (quote.discount_value / 100))}`
                           : brl(quote.discount_value)}
                       </span>
                     </div>

@@ -1,26 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ReactElement } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCustomer } from './actions'
-import { maskCPF, maskCNPJ, maskCNPJAlphanumeric, maskPhone, maskCEP } from '@/lib/masks'
+import { maskCPF, maskCNPJ, maskPhone, maskCEP } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Pencil, Loader2, User, Phone, MapPin, Search, UserPlus } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogDescription, DialogClose } from '@/components/ui/dialog'
+import { Plus, Pencil, Loader2, Search, UserPlus } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogClose } from '@/components/ui/dialog'
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
-  document_type: z.enum(['cpf', 'cnpj', 'cnpj_alphanumeric']).optional(),
+  document_type: z.enum(['cpf', 'cnpj']).optional(),
   document: z.string().optional(),
-  gender: z.string().optional(),
-  birth_date: z.string().optional(),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   phone: z.string().optional(),
   whatsapp: z.string().optional(),
@@ -35,7 +33,7 @@ const customerSchema = z.object({
 
 type CustomerValues = z.infer<typeof customerSchema>
 
-export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData?: any, asMenuItem?: boolean, trigger?: React.ReactElement }) {
+export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData?: any, asMenuItem?: boolean, trigger?: ReactElement }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
@@ -46,8 +44,6 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
       name: initialData?.name || '',
       document_type: initialData?.document_type || 'cpf',
       document: initialData?.document || '',
-      gender: initialData?.gender || 'nao_informado',
-      birth_date: initialData?.birth_date || '',
       email: initialData?.email || '',
       phone: initialData?.phone || '',
       whatsapp: initialData?.whatsapp || '',
@@ -68,8 +64,6 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
         name: initialData?.name || '',
         document_type: initialData?.document_type || 'cpf',
         document: initialData?.document || '',
-        gender: initialData?.gender || 'nao_informado',
-        birth_date: initialData?.birth_date || '',
         email: initialData?.email || '',
         phone: initialData?.phone || '',
         whatsapp: initialData?.whatsapp || '',
@@ -245,30 +239,6 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                   )}
                 </div>
 
-                {/* Campos adicionais que não estão na imagem mas existem no banco */}
-                <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="gender" className="text-sm font-bold text-slate-800">Gênero</Label>
-                  <Select onValueChange={(val) => form.setValue('gender', val as any)} value={form.watch('gender')}>
-                    <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-slate-950 text-slate-700">
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="masculino">Masculino</SelectItem>
-                      <SelectItem value="feminino">Feminino</SelectItem>
-                      <SelectItem value="nao_informado">Não Informado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="birth_date" className="text-sm font-bold text-slate-800">Data de Nasc.</Label>
-                  <Input
-                    id="birth_date"
-                    type="date"
-                    {...form.register('birth_date')}
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 text-slate-700"
-                  />
-                </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label htmlFor="whatsapp" className="text-sm font-bold text-slate-800">WhatsApp</Label>

@@ -7,6 +7,8 @@ import { CustomerQuotesClient } from './customer-quotes-client'
 import { Mail, Phone, MapPin, Calendar, FileText, User, Pencil } from 'lucide-react'
 import { CustomerForm } from '../customer-form'
 import { Button } from '@/components/ui/button'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -33,21 +35,14 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-            <User className="h-8 w-8" />
-          </div>
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{customer.name}</h2>
             <div className="flex items-center gap-3 mt-1">
-              <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
-                Cliente
-              </Badge>
-              {customer.document && (
-                <span className="text-sm text-muted-foreground">{customer.document}</span>
-              )}
+              <span className="text-sm text-muted-foreground">
+                cliente desde: {format(new Date(customer.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+              </span>
             </div>
           </div>
         </div>
@@ -55,7 +50,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
           <CustomerForm
             initialData={customer}
             trigger={
-              <Button variant="outline" className="gap-2 border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 rounded-xl">
+              <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg">
                 <Pencil className="h-4 w-4" /> Editar Cliente
               </Button>
             }
@@ -69,7 +64,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
             <User className="h-4 w-4" /> Dados Gerais
           </TabsTrigger>
           <TabsTrigger value="quotes" className="gap-2">
-            <FileText className="h-4 w-4" /> Orçamentos
+            <FileText className="h-4 w-4" /> Orcamentos
             {quotes && quotes.length > 0 && (
               <Badge variant="secondary" className="ml-1 px-1.5 py-0 h-4 min-w-[1.2rem] flex items-center justify-center text-[10px]">
                 {quotes.length}
@@ -79,13 +74,13 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2 shadow-sm border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="shadow-sm border-slate-200">
               <CardHeader>
                 <CardTitle className="text-base font-semibold">Informações de Contato</CardTitle>
               </CardHeader>
-              <CardContent className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-1 sm:col-span-1">
+              <CardContent className="space-y-4">
+                <div className="space-y-1">
                   <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">WhatsApp / Telefone</span>
                   <div className="space-y-2 mt-1">
                     {customer.whatsapp && (
@@ -107,29 +102,11 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                     )}
                   </div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 pt-2 border-t border-slate-100">
                   <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">E-mail</span>
-                  <div className="flex items-center gap-2 text-slate-900">
+                  <div className="flex items-center gap-2 text-slate-900 mt-1">
                     <Mail className="h-4 w-4 text-slate-400" />
-                    {customer.email || 'Não informado'}
-                  </div>
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Endereço</span>
-                  <div className="flex items-start gap-2 text-slate-900">
-                    <MapPin className="h-4 w-4 text-slate-400 mt-0.5" />
-                    <div>
-                      {customer.address_street ? (
-                        <>
-                          {customer.address_street}, {customer.address_number}
-                          {customer.address_complement && ` - ${customer.address_complement}`}
-                          <br />
-                          {customer.address_neighborhood}, {customer.address_city}/{customer.address_state}
-                          <br />
-                          CEP: {customer.address_zip}
-                        </>
-                      ) : 'Endereço não informado'}
-                    </div>
+                    <span className="text-sm">{customer.email || 'Não informado'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -137,24 +114,29 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
             <Card className="shadow-sm border-slate-200">
               <CardHeader>
-                <CardTitle className="text-base font-semibold">Resumo</CardTitle>
+                <CardTitle className="text-base font-semibold">Dados de Endereço</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-500 flex items-center gap-2">
-                    <Calendar className="h-4 w-4" /> Cliente desde
-                  </span>
-                  <span className="text-sm font-medium">
-                    {new Date(customer.created_at).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-500 flex items-center gap-2">
-                    <FileText className="h-4 w-4" /> Total de Orçamentos
-                  </span>
-                  <span className="text-sm font-medium">
-                    {quotes?.length || 0}
-                  </span>
+              <CardContent>
+                <div className="space-y-1">
+                  <div className="flex items-start gap-2 text-slate-900">
+                    <MapPin className="h-4 w-4 text-slate-400 mt-0.5" />
+                    <div className="text-sm leading-relaxed">
+                      {customer.address_street ? (
+                        <>
+                          {customer.address_street}, {customer.address_number}
+                          {customer.address_complement && ` - ${customer.address_complement}`}
+                          <br />
+                          {customer.address_neighborhood}
+                          <br />
+                          {customer.address_city}/{customer.address_state}
+                          <br />
+                          CEP: {customer.address_zip}
+                        </>
+                      ) : (
+                        <span className="text-slate-400 italic">Endereço não informado</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -162,14 +144,12 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
         </TabsContent>
 
         <TabsContent value="quotes" className="mt-6">
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Histórico de Orçamentos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CustomerQuotesClient quotes={quotes || []} />
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900">Histórico de Orçamentos</h3>
+            </div>
+            <CustomerQuotesClient quotes={quotes || []} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

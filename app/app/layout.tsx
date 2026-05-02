@@ -13,11 +13,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     supabase.auth.getUser(),
     supabase.from('companies').select('name').single()
   ])
-  
+
   if (user && !company) {
     redirect('/onboarding')
   }
-  
+
   const userEmail = user?.email ?? ''
   const companyName = company?.name ?? 'Minha Empresa'
 
@@ -38,10 +38,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-foreground leading-none">{companyName}</p>
-            </div>
-            <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0">
-              {companyName.charAt(0).toUpperCase()}
+              <p className="text-lg font-bold text-foreground leading-none">{companyName}</p>
             </div>
           </div>
         </header>

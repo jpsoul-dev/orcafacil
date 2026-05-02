@@ -1,0 +1,81 @@
+app/app/customers/[id]/page.tsx(1,8): error TS1259: Module '"/home/souldev/projetos/orca-facil/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+app/app/customers/[id]/page.tsx(2,30): error TS2307: Cannot find module '@/lib/supabase/server' or its corresponding type declarations.
+app/app/customers/[id]/page.tsx(4,58): error TS2307: Cannot find module '@/components/ui/tabs' or its corresponding type declarations.
+app/app/customers/[id]/page.tsx(5,58): error TS2307: Cannot find module '@/components/ui/card' or its corresponding type declarations.
+app/app/customers/[id]/page.tsx(6,23): error TS2307: Cannot find module '@/components/ui/badge' or its corresponding type declarations.
+app/app/customers/[id]/page.tsx(7,38): error TS6142: Module './customer-quotes-client' was resolved to '/home/souldev/projetos/orca-facil/app/app/customers/[id]/customer-quotes-client.tsx', but '--jsx' is not set.
+app/app/customers/[id]/page.tsx(9,30): error TS6142: Module '../customer-form' was resolved to '/home/souldev/projetos/orca-facil/app/app/customers/customer-form.tsx', but '--jsx' is not set.
+app/app/customers/[id]/page.tsx(10,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+app/app/customers/[id]/page.tsx(36,5): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(38,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(39,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(40,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(41,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(43,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(44,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(45,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(46,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(50,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(55,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(56,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(59,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(60,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(67,7): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(68,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(69,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(70,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(72,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(73,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(75,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(82,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(83,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(84,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(85,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(86,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(88,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(89,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(90,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(91,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(93,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(94,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(95,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(96,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(100,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(101,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(102,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(103,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(107,23): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(111,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(112,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(113,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(114,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(118,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(119,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(120,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(121,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(122,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(124,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(127,27): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(129,27): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(139,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(140,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(141,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(143,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(144,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(145,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(146,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(148,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(152,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(153,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(154,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(156,19): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(165,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(166,11): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(167,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(168,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(170,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+app/app/customers/[id]/page.tsx(171,15): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+node_modules/next/dist/client/components/segment-cache/cache.d.ts(104,21): error TS2304: Cannot find name 'PromiseWithResolvers'.
+node_modules/next/dist/shared/lib/app-router-context.shared-runtime.d.ts(4,8): error TS1259: Module '"/home/souldev/projetos/orca-facil/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/app-router-types.d.ts(7,13): error TS1259: Module '"/home/souldev/projetos/orca-facil/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+node_modules/next/dist/shared/lib/server-inserted-html.shared-runtime.d.ts(1,8): error TS1259: Module '"/home/souldev/projetos/orca-facil/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag

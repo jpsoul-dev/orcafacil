@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { CustomerForm } from './customer-form'
-import { Badge } from '@/components/ui/badge'
 import { Users } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table'
 import { columns } from './columns'

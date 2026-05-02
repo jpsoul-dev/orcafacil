@@ -14,9 +14,9 @@ export default async function CustomersPage() {
       {/* Header da Página */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Cadastro e dados dos clientes</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Gerenciar Clientes</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Consulte informações de contato e documentos para cada cliente ativo.
+            Cadastre e consulte os dados dos seus clientes.
           </p>
         </div>
         <CustomerForm />

@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Button as BaseButton } from '@base-ui/react/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Box, Wrench, LayoutGrid } from 'lucide-react'
 
 export function CatalogFilter() {
   const router = useRouter()
@@ -16,26 +17,24 @@ export function CatalogFilter() {
     }
   }
 
-  const types = [
-    { id: 'all', label: 'Todos' },
-    { id: 'product', label: 'Produtos' },
-    { id: 'service', label: 'Serviços' },
-  ]
-
   return (
-    <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
-      {types.map((type) => (
-        <BaseButton
-          key={type.id}
-          onClick={() => handleFilter(type.id)}
-          className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${currentType === type.id
-            ? 'bg-slate-800 text-white shadow-sm'
-            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
-        >
-          {type.label}
-        </BaseButton>
-      ))}
+    <div className="flex items-center justify-between gap-4 mb-2">
+      <Tabs value={currentType} onValueChange={handleFilter} className="w-fit">
+        <TabsList className="bg-muted/50 border border-border p-1 h-11">
+          <TabsTrigger value="all" className="px-4 py-2 gap-2 h-9 data-active:bg-white data-active:shadow-sm">
+            <LayoutGrid className="h-4 w-4" />
+            Todos
+          </TabsTrigger>
+          <TabsTrigger value="product" className="px-4 py-2 gap-2 h-9 data-active:bg-white data-active:shadow-sm">
+            <Box className="h-4 w-4" />
+            Produtos
+          </TabsTrigger>
+          <TabsTrigger value="service" className="px-4 py-2 gap-2 h-9 data-active:bg-white data-active:shadow-sm">
+            <Wrench className="h-4 w-4" />
+            Serviços
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
     </div>
   )
 }

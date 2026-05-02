@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogDescription } from '@/components/ui/dialog'
-import { Plus, Pencil, Loader2, Package, Box, Wrench } from 'lucide-react'
+import { Plus, Pencil, Loader2, Package, Box, Wrench, PackagePlus } from 'lucide-react'
 
 const catalogSchema = z.object({
   type: z.enum(['product', 'service']),
@@ -21,7 +21,7 @@ const catalogSchema = z.object({
 
 type CatalogValues = z.infer<typeof catalogSchema>
 
-export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, asMenuItem?: boolean }) {
+export function CatalogForm({ initialData, asMenuItem, trigger }: { initialData?: any, asMenuItem?: boolean, trigger?: React.ReactElement }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -62,28 +62,29 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={asMenuItem ? (
+      <DialogTrigger render={trigger ? trigger : (asMenuItem ? (
         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
           <Pencil className="h-4 w-4" />
           <span className="sr-only">Editar</span>
         </Button>
       ) : (
-        <Button className="gap-2 font-semibold">
-          <Plus className="h-4 w-4" /> Novo Item
+        <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg">
+          <PackagePlus className="h-4 w-4" /> Novo item
         </Button>
-      )} />
+      ))} />
 
-      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0">
-        <DialogHeader className="px-6 py-4 border-b shrink-0 bg-muted/20">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Package className="h-4 w-4 text-primary" />
+      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl">
+        {/* Header no estilo inspirado na imagem */}
+        <DialogHeader className="px-6 py-5 border-b shrink-0 bg-white z-10 relative">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950 shadow-md shadow-slate-950/20">
+              <Package className="h-6 w-6 text-white" />
             </div>
             <div className="text-left space-y-0.5">
-              <DialogTitle className="text-base font-semibold">
+              <DialogTitle className="text-xl font-bold text-slate-800">
                 {initialData ? 'Editar Item' : 'Novo Item'}
               </DialogTitle>
-              <DialogDescription className="text-xs">
+              <DialogDescription className="text-sm text-slate-500 font-medium">
                 {initialData ? 'Atualize as informações do item' : 'Adicione um produto ou serviço ao catálogo'}
               </DialogDescription>
             </div>
@@ -91,63 +92,62 @@ export function CatalogForm({ initialData, asMenuItem }: { initialData?: any, as
         </DialogHeader>
 
         {/* Conteúdo */}
-        <div className="flex-1 overflow-y-auto">
-          <form id="catalog-form" onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="px-6 py-5 space-y-5">
-              {/* Seletor de tipo com cards */}
-              <div className="space-y-2">
-                <Label className="font-medium text-sm">Tipo do Item</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: 'product', label: 'Produto', icon: Box },
-                    { value: 'service', label: 'Serviço', icon: Wrench },
-                  ].map((opt) => {
-                    const isSelected = watchType === opt.value
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => form.setValue('type', opt.value as any)}
-                        className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${isSelected
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : 'border-border hover:border-muted-foreground/30 text-muted-foreground'
-                          }`}
-                      >
-                        <opt.icon className="h-4 w-4 shrink-0" />
-                        <div>
-                          <p className="text-sm font-semibold leading-none">{opt.label}</p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
+        <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
+          <form id="catalog-form" onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
+            {/* Seletor de tipo com cards */}
+            <div className="space-y-3">
+              <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo do Item</Label>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { value: 'product', label: 'Produto', icon: Box, color: 'text-blue-600', bg: 'bg-blue-50' },
+                  { value: 'service', label: 'Serviço', icon: Wrench, color: 'text-orange-600', bg: 'bg-orange-50' },
+                ].map((opt) => {
+                  const isSelected = watchType === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setValue('type', opt.value as any)}
+                      className={`flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all ${isSelected
+                        ? 'border-slate-950 bg-white shadow-sm'
+                        : 'border-slate-100 bg-white hover:border-slate-200 text-slate-400'
+                        }`}
+                    >
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${isSelected ? opt.bg : 'bg-slate-50'} ${isSelected ? opt.color : 'text-slate-400'}`}>
+                        <opt.icon className="h-5 w-5 shrink-0" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-bold leading-none ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>{opt.label}</p>
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
+            </div>
 
+            <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="font-medium text-sm">Nome do Item *</Label>
-                <Input id="name" {...form.register('name')} className="h-10" />
+                <Label htmlFor="name" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Nome do Item <span className="text-red-500">*</span></Label>
+                <Input id="name" {...form.register('name')} placeholder="Ex: Produto X ou Serviço Y" className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
                 {form.formState.errors.name && (
-                  <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+                  <p className="text-xs text-red-500 font-medium">{form.formState.errors.name.message}</p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="unit_price" className="font-medium text-sm">Valor Unitário (R$)</Label>
-                <Input id="unit_price" type="number" step="0.01" min="0.01" {...form.register('unit_price')} className="h-10" />
+                <Label htmlFor="unit_price" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Valor Unitário (R$)</Label>
+                <Input id="unit_price" type="number" step="0.01" min="0.01" {...form.register('unit_price')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums" />
               </div>
             </div>
-
-            {/* Espaço para o footer */}
-            <div className="h-20" />
           </form>
         </div>
 
         {/* Footer fixo */}
-        <div className="shrink-0 border-t bg-background px-6 py-4">
-          <Button form="catalog-form" type="submit" disabled={loading} className="w-full h-10 font-semibold gap-2">
+        <div className="shrink-0 border-t border-slate-200 bg-white p-6 rounded-b-2xl">
+          <Button form="catalog-form" type="submit" disabled={loading} className="w-full h-12 font-bold text-base bg-slate-950 hover:bg-slate-800 text-white rounded-xl shadow-md shadow-slate-950/20 gap-2">
             {loading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
                 Salvando...
               </>
             ) : (

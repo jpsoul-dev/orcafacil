@@ -5,6 +5,7 @@ import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import Link from 'next/link'
 
 export type Customer = {
   id: string
@@ -35,29 +36,32 @@ export const columns: ColumnDef<Customer>[] = [
     accessorKey: 'name',
     header: ({ column }) => <SortButton column={column} label="Cliente" />,
     cell: ({ row }) => (
-      <div className="font-bold text-foreground">
+      <Link 
+        href={`/app/customers/${row.original.id}`}
+        className="font-bold text-foreground hover:text-blue-600 hover:underline transition-colors"
+      >
         {row.getValue('name')}
-      </div>
+      </Link>
     ),
   },
   {
     accessorKey: 'email',
-    header: ({ column }) => <SortButton column={column} label="Email" />,
+    header: () => <div className="font-bold text-foreground">Email</div>,
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('email') || '—'}</div>,
   },
   {
     accessorKey: 'phone',
-    header: ({ column }) => <SortButton column={column} label="Telefone" />,
+    header: () => <div className="font-bold text-foreground">Telefone</div>,
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('phone') || '—'}</div>,
   },
   {
     accessorKey: 'document',
-    header: ({ column }) => <SortButton column={column} label="Documento" />,
+    header: () => <div className="font-bold text-foreground">Documento</div>,
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('document') || '—'}</div>,
   },
   {
     accessorKey: 'created_at',
-    header: ({ column }) => <SortButton column={column} label="Criado em" />,
+    header: ({ column }) => <SortButton column={column} label="Data cadastro" />,
     cell: ({ row }) => {
       const date = new Date(row.getValue('created_at'))
       return (

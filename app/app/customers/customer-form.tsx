@@ -141,155 +141,54 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
         )
       } />
 
-      <DialogContent className="p-0 flex flex-col sm:max-w-2xl max-h-[90vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl">
-        {/* Header no estilo inspirado na imagem */}
-        <DialogHeader className="px-6 py-5 border-b shrink-0 bg-white z-10 relative">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-600/20">
-              <User className="h-6 w-6 text-white" />
-            </div>
-            <div className="text-left space-y-0.5">
-              <DialogTitle className="text-xl font-bold text-slate-800">
-                {initialData ? 'Editar Cliente' : 'Novo Cliente'}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-slate-500 font-medium">
-                {initialData ? 'Atualize os dados detalhados' : 'Preencha os dados detalhados para o cadastro'}
-              </DialogDescription>
-            </div>
+      <DialogContent className="p-0 flex flex-col sm:max-w-3xl max-h-[95vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl bg-white">
+        <DialogHeader className="px-6 py-6 border-none shrink-0 bg-white z-10 relative">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-bold text-slate-800">
+              {initialData ? 'Editar cliente' : 'Novo cliente'}
+            </DialogTitle>
+            <DialogClose render={
+              <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                <Plus className="h-6 w-6 rotate-45" />
+                <span className="sr-only">Fechar</span>
+              </button>
+            } />
           </div>
         </DialogHeader>
 
         {/* Conteúdo com scroll */}
-        <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
-          <form id="customer-form" onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-8">
+        <div className="flex-1 overflow-y-auto">
+          <form id="customer-form" onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6 space-y-6">
 
-            {/* Seção: Dados Pessoais */}
+            {/* Dados gerais */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                  <User className="h-4 w-4" strokeWidth={2.5} />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-slate-100"></div>
                 </div>
-                <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Dados Pessoais</span>
+                <div className="relative flex justify-start">
+                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">Dados gerais</span>
+                </div>
               </div>
 
-              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="name" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                    Nome / Razão Social <span className="text-red-500">*</span>
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 space-y-1.5">
+                  <Label htmlFor="name" className="text-sm font-bold text-slate-800">
+                    Nome <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
                     {...form.register('name')}
-                    placeholder="Ex: João Silva ou Empresa LTDA"
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500"
+                    placeholder="Ex: Maria Silva"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
                   />
                   {form.formState.errors.name && (
                     <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
                   )}
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tipo Documento</Label>
-                  <Select
-                    onValueChange={(val) => {
-                      form.setValue('document_type', val as any)
-                      form.setValue('document', '') // Limpa documento ao trocar tipo
-                    }}
-                    value={form.watch('document_type')}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cpf">CPF</SelectItem>
-                      <SelectItem value="cnpj">CNPJ</SelectItem>
-                      <SelectItem value="cnpj_alphanumeric">CNPJ Alfanumérico</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="document" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Documento</Label>
-                  <Controller
-                    name="document"
-                    control={form.control}
-                    render={({ field }) => {
-                      const docType = form.watch('document_type')
-                      return (
-                        <Input
-                          id="document"
-                          {...field}
-                          onChange={(e) => {
-                            let masked = e.target.value
-                            if (docType === 'cpf') masked = maskCPF(e.target.value)
-                            else if (docType === 'cnpj') masked = maskCNPJ(e.target.value)
-                            else if (docType === 'cnpj_alphanumeric') masked = maskCNPJAlphanumeric(e.target.value)
-                            field.onChange(masked)
-                          }}
-                          placeholder={docType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums"
-                          maxLength={docType === 'cpf' ? 14 : 18}
-                        />
-                      )
-                    }}
-                  />
-                </div>
-                {form.watch('document_type') === 'cpf' && (
-                  <>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="birth_date" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Data de Nascimento</Label>
-                      <Input
-                        id="birth_date"
-                        type="date"
-                        {...form.register('birth_date')}
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-slate-700"
-                      />
-                    </div>
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <Label htmlFor="gender" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Gênero</Label>
-                      <Select onValueChange={(val) => form.setValue('gender', val as any)} value={form.watch('gender')}>
-                        <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700">
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="masculino">Masculino</SelectItem>
-                          <SelectItem value="feminino">Feminino</SelectItem>
-                          <SelectItem value="nao_informado">Não Informado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Separador customizado (invisível apenas cria espaço ou linha sutil) */}
-            <div className="border-t border-slate-200/60" />
-
-            {/* Seção: Contato */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                  <Phone className="h-4 w-4" strokeWidth={2.5} />
-                </div>
-                <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Informações de Contato</span>
-              </div>
-
-              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="email" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">E-mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    {...form.register('email')}
-                    className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500"
-                    placeholder="email@exemplo.com"
-                  />
-                  {form.formState.errors.email && (
-                    <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="phone" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Telefone</Label>
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="phone" className="text-sm font-bold text-slate-800">Telefone</Label>
                   <Controller
                     name="phone"
                     control={form.control}
@@ -298,53 +197,114 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                         id="phone"
                         {...field}
                         onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                        className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums"
-                        placeholder="(00) 0000-0000"
+                        className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
+                        placeholder="(11) 9 9999-9999"
                         maxLength={15}
                       />
                     )}
                   />
                 </div>
-                <div className="space-y-1.5 relative">
-                  <Label htmlFor="whatsapp" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">WhatsApp</Label>
-                  <div className="relative">
-                    <Controller
-                      name="whatsapp"
-                      control={form.control}
-                      render={({ field }) => (
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="document" className="text-sm font-bold text-slate-800">CPF/CNPJ</Label>
+                  <Controller
+                    name="document"
+                    control={form.control}
+                    render={({ field }) => {
+                      return (
                         <Input
-                          id="whatsapp"
+                          id="document"
                           {...field}
-                          onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 pr-10 tabular-nums"
-                          placeholder="(00) 00000-0000"
-                          maxLength={15}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '')
+                            let masked = e.target.value
+                            if (val.length <= 11) masked = maskCPF(e.target.value)
+                            else masked = maskCNPJ(e.target.value)
+                            field.onChange(masked)
+                          }}
+                          placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                          className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
+                          maxLength={18}
                         />
-                      )}
-                    />
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                    </svg>
-                  </div>
+                      )
+                    }}
+                  />
+                </div>
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="email" className="text-sm font-bold text-slate-800">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...form.register('email')}
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    placeholder="email@exemplo.com"
+                  />
+                  {form.formState.errors.email && (
+                    <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
+                  )}
+                </div>
+
+                {/* Campos adicionais que não estão na imagem mas existem no banco */}
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="gender" className="text-sm font-bold text-slate-800">Gênero</Label>
+                  <Select onValueChange={(val) => form.setValue('gender', val as any)} value={form.watch('gender')}>
+                    <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-slate-950 text-slate-700">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="masculino">Masculino</SelectItem>
+                      <SelectItem value="feminino">Feminino</SelectItem>
+                      <SelectItem value="nao_informado">Não Informado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="birth_date" className="text-sm font-bold text-slate-800">Data de Nasc.</Label>
+                  <Input
+                    id="birth_date"
+                    type="date"
+                    {...form.register('birth_date')}
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 text-slate-700"
+                  />
+                </div>
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="whatsapp" className="text-sm font-bold text-slate-800">WhatsApp</Label>
+                  <Controller
+                    name="whatsapp"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        id="whatsapp"
+                        {...field}
+                        onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                        className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
+                        placeholder="(11) 9 9999-9999"
+                        maxLength={15}
+                      />
+                    )}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-slate-200/60" />
-
-            {/* Seção: Endereço */}
+            {/* Dados de endereço */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                  <MapPin className="h-4 w-4" strokeWidth={2.5} />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-slate-100"></div>
                 </div>
-                <span className="text-sm font-bold tracking-wide text-slate-700 uppercase">Endereço</span>
+                <div className="relative flex justify-start">
+                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">Dados de endereço</span>
+                </div>
               </div>
 
-              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_zip" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">CEP</Label>
-                  <div className="flex gap-2">
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="address_zip" className="text-sm font-bold text-slate-800">CEP</Label>
+                  <div className="relative">
                     <Controller
                       name="address_zip"
                       control={form.control}
@@ -355,51 +315,49 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                           onChange={(e) => field.onChange(maskCEP(e.target.value))}
                           onBlur={handleSearchCEP}
                           placeholder="00000-000"
-                          className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 tabular-nums flex-1"
+                          className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums pr-8"
                           maxLength={9}
                         />
                       )}
                     />
-                    <Button
-                      type="button"
-                      onClick={handleSearchCEP}
-                      disabled={searchingCEP}
-                      variant="outline"
-                      className="h-11 w-11 shrink-0 rounded-xl border-slate-200 bg-white p-0 hover:bg-slate-50 hover:text-blue-600"
-                      title="Buscar Endereço"
-                    >
-                      {searchingCEP ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
-                      <span className="sr-only">Buscar</span>
-                    </Button>
+                    {searchingCEP ? (
+                      <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
+                    ) : (
+                      <Search onClick={handleSearchCEP} className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600" />
+                    )}
                   </div>
                 </div>
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="address_street" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Logradouro</Label>
-                  <Input id="address_street" {...form.register('address_street')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" placeholder="Rua, Avenida, etc." />
+
+                <div className="col-span-12 sm:col-span-8 space-y-1.5">
+                  <Label htmlFor="address_street" className="text-sm font-bold text-slate-800">Logradouro</Label>
+                  <Input id="address_street" {...form.register('address_street')} className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" placeholder="Rua, Av., etc." />
                 </div>
-                <div className="grid grid-cols-12 gap-4 sm:col-span-2">
-                  <div className="col-span-4 space-y-1.5">
-                    <Label htmlFor="address_number" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Número</Label>
-                    <Input id="address_number" {...form.register('address_number')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" />
-                  </div>
-                  <div className="col-span-8 space-y-1.5">
-                    <Label htmlFor="address_complement" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Complemento</Label>
-                    <Input id="address_complement" {...form.register('address_complement')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" placeholder="Apto, Sala, Bloco..." />
-                  </div>
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="address_number" className="text-sm font-bold text-slate-800">Número</Label>
+                  <Input id="address_number" {...form.register('address_number')} placeholder="123" className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_neighborhood" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Bairro</Label>
-                  <Input id="address_neighborhood" {...form.register('address_neighborhood')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" />
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="address_complement" className="text-sm font-bold text-slate-800">Complemento</Label>
+                  <Input id="address_complement" {...form.register('address_complement')} placeholder="Apto, sala, etc." className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_city" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Cidade</Label>
-                  <Input id="address_city" {...form.register('address_city')} className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500" />
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="address_neighborhood" className="text-sm font-bold text-slate-800">Bairro</Label>
+                  <Input id="address_neighborhood" {...form.register('address_neighborhood')} placeholder="Bairro" className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address_state" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">UF</Label>
+
+                <div className="col-span-12 sm:col-span-8 space-y-1.5">
+                  <Label htmlFor="address_city" className="text-sm font-bold text-slate-800">Cidade</Label>
+                  <Input id="address_city" {...form.register('address_city')} placeholder="Cidade" className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
+                </div>
+
+                <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                  <Label htmlFor="address_state" className="text-sm font-bold text-slate-800">Estado</Label>
                   <Select onValueChange={(val) => form.setValue('address_state', val as any)} value={form.watch('address_state')}>
-                    <SelectTrigger className="h-11 rounded-xl bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700 uppercase">
-                      <SelectValue placeholder="UF" />
+                    <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-slate-950 text-slate-700">
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
@@ -415,21 +373,16 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
         </div>
 
         {/* Footer com botões lado a lado */}
-        <div className="shrink-0 border-t border-slate-200 bg-white p-6 rounded-b-2xl">
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
-            <DialogClose render={
-              <Button type="button" variant="ghost" className="w-full sm:w-auto h-11 px-6 font-semibold text-slate-600 hover:text-slate-900 rounded-xl">
-                Cancelar
-              </Button>
-            } />
-            <Button form="customer-form" type="submit" disabled={loading} className="w-full sm:w-auto sm:flex-1 max-w-[280px] h-11 font-bold text-base bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-600/20">
+        <div className="shrink-0 border-none bg-white p-6 pt-0">
+          <div className="flex items-center justify-end">
+            <Button form="customer-form" type="submit" disabled={loading} className="h-10 px-10 font-bold text-sm bg-slate-950 hover:bg-slate-800 text-white rounded-lg shadow-sm">
               {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Salvando...
                 </>
               ) : (
-                initialData ? 'Salvar Alterações' : 'Cadastrar Cliente'
+                'Salvar'
               )}
             </Button>
           </div>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 
 export default function RootLayout({
@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-br"
-      className={cn("h-full", "antialiased", inter.variable)}
+      className={cn("h-full", "antialiased", "font-sans", inter.variable)}
     >
       <body>
         <TooltipProvider>{children}</TooltipProvider>

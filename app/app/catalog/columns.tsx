@@ -5,7 +5,6 @@ import { ArrowUpDown, Box, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CatalogForm } from './catalog-form'
 import { Badge } from '@/components/ui/badge'
-import { DeleteItemDialog } from './delete-item-dialog'
 
 export type CatalogItem = {
   id: string
@@ -18,26 +17,37 @@ export type CatalogItem = {
 
 const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
 
+const SortButton = ({ column, label }: { column: any, label: string }) => {
+  return (
+    <Button
+      variant="ghost"
+      className="-ml-4 hover:bg-transparent font-bold text-foreground"
+      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+    >
+      {label}
+      <ArrowUpDown className="ml-2 h-3 w-3 text-muted-foreground" />
+    </Button>
+  )
+}
+
 export const columns: ColumnDef<CatalogItem>[] = [
   {
     accessorKey: 'name',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="-ml-4 hover:bg-transparent"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Nome
-          <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    header: ({ column }) => <SortButton column={column} label="Nome" />,
+    cell: ({ row }) => (
+      <CatalogForm 
+        initialData={row.original} 
+        trigger={
+          <button className="font-bold text-foreground hover:text-blue-600 hover:underline transition-colors text-left">
+            {row.getValue('name')}
+          </button>
+        } 
+      />
+    ),
   },
   {
     accessorKey: 'type',
-    header: 'Tipo',
+    header: () => <div className="font-bold text-foreground">Tipo</div>,
     cell: ({ row }) => {
       const type = row.getValue('type') as string
       if (type === 'product') {
@@ -56,24 +66,10 @@ export const columns: ColumnDef<CatalogItem>[] = [
   },
   {
     accessorKey: 'unit_price',
-    header: 'Valor Unitário',
+    header: ({ column }) => <SortButton column={column} label="Valor Unitário" />,
     cell: ({ row }) => {
       const price = parseFloat(row.getValue('unit_price'))
-      return <div className="text-foreground">{brl(price)}</div>
-    },
-  },
-  {
-    id: 'actions',
-    header: '',
-    cell: ({ row }) => {
-      const item = row.original
-
-      return (
-        <div className="flex items-center justify-end gap-2">
-          <CatalogForm initialData={item} asMenuItem={true} />
-          <DeleteItemDialog id={item.id} name={item.name} />
-        </div>
-      )
+      return <div className="text-foreground font-medium">{brl(price)}</div>
     },
   },
 ]

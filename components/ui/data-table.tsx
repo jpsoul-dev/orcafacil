@@ -29,15 +29,8 @@ import {
   ChevronRight, 
   ChevronsLeft, 
   ChevronsRight, 
-  Search,
-  Columns as ColumnsIcon
+  Search
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
@@ -108,37 +101,6 @@ export function DataTable<TData, TValue>({
               className="pl-9 h-11 w-full bg-background"
             />
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button variant="outline" size="sm" className="ml-auto h-11 flex gap-2">
-                  <ColumnsIcon className="h-4 w-4" />
-                  Colunas
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end" className="w-[150px]">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) => column.getCanHide()
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  )
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       )}
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">

@@ -21,12 +21,12 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   return (
     <div className="space-y-6">
       {/* Header da Página */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Catálogo</h2>
-          </div>
-          <p className="text-muted-foreground text-sm mt-0.5">Gerencie seus produtos e serviços.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Gerenciar Catálogo</h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            Cadastre e gerencie seus produtos e serviços.
+          </p>
         </div>
         <CatalogForm />
       </div>
@@ -39,7 +39,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           columns={columns}
           data={items}
           searchKey="name"
-          searchPlaceholder="Buscar itens..."
+          searchPlaceholder="Buscar por nome ou valor..."
         />
       ) : (
         /* Empty State */

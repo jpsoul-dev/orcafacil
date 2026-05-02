@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Pencil, Loader2, User, Phone, MapPin, Search } from 'lucide-react'
+import { Plus, Pencil, Loader2, User, Phone, MapPin, Search, UserPlus } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogDescription, DialogClose } from '@/components/ui/dialog'
 
 const customerSchema = z.object({
@@ -134,8 +134,8 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
               <span className="sr-only">Editar</span>
             </Button>
           ) : (
-            <Button className="gap-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="h-4 w-4" /> Novo Cliente
+            <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg">
+              <UserPlus className="h-4 w-4" /> Novo cliente
             </Button>
           )
         )

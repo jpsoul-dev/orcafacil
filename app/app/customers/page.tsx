@@ -12,12 +12,12 @@ export default async function CustomersPage() {
   return (
     <div className="space-y-6">
       {/* Header da Página */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Clientes</h2>
-          </div>
-          <p className="text-muted-foreground text-sm mt-0.5">Gerencie sua carteira de clientes.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Cadastro e dados dos clientes</h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            Consulte informações de contato e documentos para cada cliente ativo.
+          </p>
         </div>
         <CustomerForm />
       </div>
@@ -28,7 +28,7 @@ export default async function CustomersPage() {
           columns={columns}
           data={customers}
           searchKey="name"
-          searchPlaceholder="Buscar cliente pelo nome..."
+          searchPlaceholder="Buscar por nome, e-mail ou telefone"
         />
       ) : (
         /* Empty State */

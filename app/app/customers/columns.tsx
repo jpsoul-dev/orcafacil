@@ -1,10 +1,10 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Mail, MapPin, Phone, Eye } from 'lucide-react'
+import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { CustomerForm } from './customer-form'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export type Customer = {
   id: string
@@ -17,90 +17,52 @@ export type Customer = {
   created_at: string
 }
 
+const SortButton = ({ column, label }: { column: any, label: string }) => {
+  return (
+    <Button
+      variant="ghost"
+      className="-ml-4 hover:bg-transparent font-bold text-foreground"
+      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+    >
+      {label}
+      <ArrowUpDown className="ml-2 h-3 w-3 text-muted-foreground" />
+    </Button>
+  )
+}
+
 export const columns: ColumnDef<Customer>[] = [
   {
     accessorKey: 'name',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="-ml-4 hover:bg-transparent"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Nome
-          <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />
-        </Button>
-      )
-    },
+    header: ({ column }) => <SortButton column={column} label="Cliente" />,
     cell: ({ row }) => (
-      <Link 
-        href={`/app/customers/${row.original.id}`}
-        className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-      >
+      <div className="font-bold text-foreground">
         {row.getValue('name')}
-      </Link>
+      </div>
     ),
   },
   {
+    accessorKey: 'email',
+    header: ({ column }) => <SortButton column={column} label="Email" />,
+    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('email') || '—'}</div>,
+  },
+  {
+    accessorKey: 'phone',
+    header: ({ column }) => <SortButton column={column} label="Telefone" />,
+    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('phone') || '—'}</div>,
+  },
+  {
     accessorKey: 'document',
-    header: 'Documento',
+    header: ({ column }) => <SortButton column={column} label="Documento" />,
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('document') || '—'}</div>,
   },
   {
-    id: 'contato',
-    header: 'Contato',
+    accessorKey: 'created_at',
+    header: ({ column }) => <SortButton column={column} label="Criado em" />,
     cell: ({ row }) => {
-      const phone = row.original.phone
-      const email = row.original.email
+      const date = new Date(row.getValue('created_at'))
       return (
-        <div className="flex flex-col gap-0.5">
-          {phone && (
-            <div className="flex items-center gap-1.5 text-sm text-foreground">
-              <Phone className="h-3 w-3 text-muted-foreground" />
-              {phone}
-            </div>
-          )}
-          {email && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Mail className="h-3 w-3" />
-              {email}
-            </div>
-          )}
-          {!phone && !email && <span className="text-muted-foreground">—</span>}
-        </div>
-      )
-    },
-  },
-  {
-    id: 'local',
-    header: 'Local',
-    cell: ({ row }) => {
-      const city = row.original.address_city
-      const state = row.original.address_state
-      if (!city && !state) return <span className="text-muted-foreground">—</span>
-      return (
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <MapPin className="h-3 w-3" />
-          {city}{city && state ? '/' : ''}{state}
-        </div>
-      )
-    },
-  },
-  {
-    id: 'actions',
-    header: '',
-    cell: ({ row }) => {
-      const customer = row.original
-
-      return (
-        <div className="flex items-center justify-end gap-1">
-          <Link href={`/app/customers/${customer.id}`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50">
-              <Eye className="h-4 w-4" />
-              <span className="sr-only">Ver Detalhes</span>
-            </Button>
-          </Link>
-          <CustomerForm initialData={customer} asMenuItem={true} />
+        <div className="text-muted-foreground">
+          {format(date, 'dd/MM/yyyy', { locale: ptBR })}
         </div>
       )
     },

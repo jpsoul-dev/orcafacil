@@ -21,9 +21,15 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const userEmail = user?.email ?? ''
   const companyName = company?.name ?? 'Minha Empresa'
 
+  const userData = {
+    name: user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário',
+    email: userEmail,
+    avatar: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || ''
+  }
+
   return (
     <SidebarProvider>
-      <AppSidebar userEmail={userEmail} />
+      <AppSidebar user={userData} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4 print:hidden">
           <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />

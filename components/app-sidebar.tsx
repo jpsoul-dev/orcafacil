@@ -18,6 +18,14 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { logout } from "@/app/auth/actions"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical } from "lucide-react"
 
 const mainItems = [
   { title: "Dashboard", url: "/app", icon: LayoutDashboard, exact: true },
@@ -35,7 +43,11 @@ function isActive(pathname: string, url: string, exact?: boolean) {
   return pathname === url || pathname.startsWith(url + '/')
 }
 
-export function AppSidebar({ userEmail }: { userEmail: string }) {
+export function AppSidebar({ 
+  user 
+}: { 
+  user: { name: string; email: string; avatar?: string } 
+}) {
   const pathname = usePathname()
 
   return (
@@ -110,25 +122,49 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer com logout */}
+      {/* Footer com usuário logado */}
       <SidebarFooter className="border-t border-sidebar-border p-2">
         <SidebarMenu>
-          <SidebarMenuItem className="mb-2 px-2 group-data-[collapsible=icon]:hidden">
-            <div className="flex flex-col gap-0.5 overflow-hidden">
-              <span className="text-[10px] text-sidebar-foreground/40 font-bold uppercase tracking-wider">Conta Logada</span>
-              <span className="text-xs text-sidebar-foreground/70 font-medium truncate">{userEmail}</span>
-            </div>
-          </SidebarMenuItem>
           <SidebarMenuItem>
-            <form action={logout}>
-              <SidebarMenuButton
-                type="submit"
-                className="h-9 w-full rounded-md text-sidebar-foreground/60 hover:text-red-400 hover:bg-red-500/10 font-medium transition-colors"
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton
+                    size="lg"
+                    className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  />
+                }
               >
-                <LogOut className="h-4 w-4 shrink-0" />
-                <span className="group-data-[collapsible=icon]:hidden">Sair da conta</span>
-              </SidebarMenuButton>
-            </form>
+                <Avatar className="h-8 w-8 rounded-lg after:rounded-lg">
+                  <AvatarImage src={user.avatar} alt={user.name} className="rounded-lg" />
+                  <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    {user.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-xs text-sidebar-foreground/50">{user.email}</span>
+                </div>
+                <MoreVertical className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                side="top"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuItem
+                  render={
+                    <form action={logout} className="w-full" />
+                  }
+                >
+                  <button type="submit" className="flex w-full items-center gap-2 text-red-500 cursor-pointer">
+                    <LogOut className="size-4" />
+                    <span>Sair da conta</span>
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

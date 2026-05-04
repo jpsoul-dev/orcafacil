@@ -21,7 +21,6 @@ import { updateQuoteStatus } from '../../actions'
 import { toast } from 'sonner'
 
 const COLUMNS = [
-  { id: 'draft', title: 'Rascunho', color: 'bg-slate-400' },
   { id: 'open', title: 'Pendente', color: 'bg-indigo-600' },
   { id: 'accepted', title: 'Aprovado', color: 'bg-emerald-600' },
   { id: 'rejected', title: 'Rejeitado', color: 'bg-red-600' },
@@ -97,7 +96,7 @@ export function KanbanBoard({ initialQuotes }: { initialQuotes: any[] }) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[600px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[600px]">
         {COLUMNS.map((col) => (
           <KanbanColumn
             key={col.id}

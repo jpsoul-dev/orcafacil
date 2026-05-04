@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import {
   FileText, Users, Package, Plus, ArrowRight, TrendingUp
 } from 'lucide-react'
@@ -11,115 +12,113 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ count: quotesCount }, { count: customersCount }, { count: catalogCount }, { data: quotesData }] = await Promise.all([
-    supabase.from('quotes').select('*', { count: 'exact', head: true }),
-    supabase.from('customers').select('*', { count: 'exact', head: true }),
-    supabase.from('catalog_items').select('*', { count: 'exact', head: true }),
+  const now = new Date()
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+  const [{ count: monthQuotesCount }, { data: quotesData }] = await Promise.all([
+    supabase.from('quotes').select('*', { count: 'exact', head: true }).gte('created_at', firstDayOfMonth),
     supabase.from('quotes').select('created_at').order('created_at', { ascending: true })
   ])
 
-
-  const firstName = user?.email?.split('@')[0] ?? 'Usuário'
-
-  const stats = [
-    {
-      label: 'Orçamentos Gerados',
-      value: quotesCount ?? 0,
-      icon: FileText,
-      href: '/app/quotes',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-    },
-    {
-      label: 'Clientes Cadastrados',
-      value: customersCount ?? 0,
-      icon: Users,
-      href: '/app/customers',
-      color: 'text-violet-600',
-      bg: 'bg-violet-50',
-    },
-    {
-      label: 'Itens no Catálogo',
-      value: catalogCount ?? 0,
-      icon: Package,
-      href: '/app/catalog',
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
-    },
-  ]
-
-  const quickActions = [
-    {
-      label: 'Novo Orçamento',
-      description: 'Gere um orçamento em minutos',
-      href: '/app/quotes/new',
-      icon: FileText,
-      primary: true,
-    },
-    {
-      label: 'Adicionar Cliente',
-      description: 'Cadastre um novo cliente',
-      href: '/app/customers',
-      icon: Users,
-      primary: false,
-    },
-    {
-      label: 'Novo Item no Catálogo',
-      description: 'Adicione produtos ou serviços',
-      href: '/app/catalog',
-      icon: Package,
-      primary: false,
-    },
-  ]
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário'
+  const firstName = userName.split(' ')[0]
+  const quotesLimit = 5
+  const currentCount = monthQuotesCount ?? 0
+  const usagePercentage = Math.min((currentCount / quotesLimit) * 100, 100)
+  const isNearLimit = currentCount >= 4
+  const isOverLimit = currentCount >= quotesLimit
 
   return (
     <div className="space-y-8">
-      {/* Banner de Boas-Vindas */}
-      <div className="relative overflow-hidden rounded-xl gradient-primary p-6 text-white shadow-md">
-        <div className="relative z-10">
-          <p className="text-white/70 text-sm font-medium">Bem-vindo de volta,</p>
-          <p className="text-white/75 text-sm mt-2 max-w-md">
-            Você tem <strong className="text-white">{quotesCount ?? 0} orçamentos</strong> gerados este mês.
-            {!quotesCount ? ' Crie seu primeiro orçamento agora!' : ' Continue assim!'}
-          </p>
-          <Link href="/app/quotes/new" className="mt-4 inline-flex items-center gap-2">
-            <Button size="sm" className="bg-white text-primary hover:bg-white/90 font-semibold h-9 shadow-sm">
-              <Plus className="h-3.5 w-3.5" />
-              Novo Orçamento
-            </Button>
+      {/* Banner de Boas-Vindas / Upgrade */}
+      <Card className="relative overflow-hidden border-none shadow-xl bg-primary text-primary-foreground">
+        {/* Camada de Gradiente Sutil */}
+        <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-50" />
+
+        <CardContent className="relative z-10 p-8 md:p-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="space-y-4 flex-1">
+              <div className="space-y-1">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Olá, {firstName}! 👋
+                </h1>
+                <p className="text-primary-foreground/80 text-lg">
+                  {isOverLimit
+                    ? "Você atingiu o limite mensal. Faça o upgrade agora!"
+                    : "Bom ver você novamente. Veja como está seu progresso."
+                  }
+                </p>
+              </div>
+
+              <div className="max-w-md pt-2">
+                <div className="flex items-center justify-between text-sm mb-2 font-medium">
+                  <span className="opacity-90">Uso de Orçamentos (Mensal)</span>
+                  <span>{currentCount} / {quotesLimit}</span>
+                </div>
+                <div className="h-3 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                  <div
+                    className={`h-full transition-all duration-700 ease-out rounded-full ${isOverLimit ? 'bg-red-400' : isNearLimit ? 'bg-yellow-400' : 'bg-white'
+                      }`}
+                    style={{ width: `${usagePercentage}%` }}
+                  />
+                </div>
+                {isNearLimit && !isOverLimit && (
+                  <p className="text-xs text-yellow-200 mt-2 font-medium animate-pulse">
+                    Atenção: Você está chegando ao limite do seu plano gratuito!
+                  </p>
+                )}
+                {isOverLimit && (
+                  <p className="text-xs text-red-200 mt-2 font-bold uppercase tracking-wider">
+                    Limite Atingido - Libere acesso ilimitado abaixo
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 shrink-0">
+              <Link href="/app/quotes/new" className={isOverLimit ? 'pointer-events-none' : ''}>
+                <Button
+                  disabled={isOverLimit}
+                  size="lg"
+                  className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold shadow-lg h-12 px-8"
+                >
+                  <Plus className="mr-2 h-5 w-5" />
+                  Novo Orçamento
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto border-white/30 bg-white/10 hover:bg-white/20 text-white font-bold h-12 px-8 backdrop-blur-sm group"
+              >
+                <TrendingUp className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                Upgrade para orçamentos ilimitados
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+
+        {/* Elemento Decorativo */}
+        <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none -mr-12 -mb-12">
+          <FileText className="h-64 w-64 rotate-12" />
+        </div>
+      </Card>
+
+      {/* Gráfico de Orçamentos */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">Desempenho de Orçamentos</h2>
+          <Link
+            href="/app/quotes"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "text-muted-foreground hover:text-primary"
+            )}
+          >
+            Ver todos <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </div>
-        {/* Decoração */}
-        <div className="absolute right-0 top-0 h-full w-48 opacity-10">
-          <TrendingUp className="h-full w-full" strokeWidth={0.5} />
-        </div>
-      </div>
-      
-      {/* Gráfico de Orçamentos */}
-      <QuotesChart quotes={quotesData || []} />
-
-      {/* Ações Rápidas */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Ações Rápidas
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {quickActions.map((action) => (
-            <Link key={action.label} href={action.href}>
-              <Card className={`card-hover cursor-pointer border-border/60 ${action.primary ? 'bg-primary text-primary-foreground border-primary' : ''}`}>
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${action.primary ? 'bg-white/20' : 'bg-muted'}`}>
-                    <action.icon className={`h-4 w-4 ${action.primary ? 'text-white' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div>
-                    <p className={`text-sm font-semibold ${action.primary ? 'text-primary-foreground' : ''}`}>{action.label}</p>
-                    <p className={`text-xs mt-0.5 ${action.primary ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{action.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <QuotesChart quotes={quotesData || []} />
       </div>
     </div>
   )

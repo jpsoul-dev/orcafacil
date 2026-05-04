@@ -19,16 +19,16 @@ import {
 } from "@/components/ui/sidebar"
 import { logout } from "@/app/auth/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from "lucide-react"
 
 const mainItems = [
-  { title: "Dashboard", url: "/app", icon: LayoutDashboard, exact: true },
+  { title: "Painel", url: "/app", icon: LayoutDashboard, exact: true },
   { title: "Orçamentos", url: "/app/quotes", icon: FileText },
   { title: "Clientes", url: "/app/customers", icon: Users },
   { title: "Catálogo", url: "/app/catalog", icon: Package },
@@ -43,10 +43,10 @@ function isActive(pathname: string, url: string, exact?: boolean) {
   return pathname === url || pathname.startsWith(url + '/')
 }
 
-export function AppSidebar({ 
-  user 
-}: { 
-  user: { name: string; email: string; avatar?: string } 
+export function AppSidebar({
+  user
+}: {
+  user: { name: string; email: string; avatar?: string }
 }) {
   const pathname = usePathname()
 

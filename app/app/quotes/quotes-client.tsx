@@ -77,13 +77,13 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
       {/* Header da Página */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Todos os orçamentos em andamento</h2>
-          <p className="text-slate-500 text-sm mt-1">Acompanhe status, validade e valores dos orçamentos em execução.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Orçamentos em andamento</h2>
+          <p className="text-slate-500 text-sm mt-1">Acompanhe a situação de seus orçamentos.</p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/app/quotes/new">
             <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg shadow-sm">
-              <Plus className="h-4 w-4" /> Novo Orçamento
+              <Plus className="h-4 w-4" /> Criar Orçamento
             </Button>
           </Link>
         </div>
@@ -147,7 +147,6 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 mb-4">
             <LayoutGrid className="h-8 w-8 text-slate-300" />
           </div>
-          <h3 className="font-bold text-xl text-slate-900">Nenhum orçamento</h3>
           <p className="text-slate-500 text-sm mt-2 max-w-xs">
             {date?.from && date?.to
               ? "Não foram encontrados orçamentos no período selecionado."
@@ -156,7 +155,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           <div className="mt-8">
             <Link href="/app/quotes/new">
               <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg px-6 py-5">
-                <Plus className="h-5 w-5" /> Criar Primeiro Orçamento
+                <Plus className="h-5 w-5" /> Criar Orçamento
               </Button>
             </Link>
           </div>

@@ -22,3 +22,24 @@ export async function updateQuoteStatus(id: string, status: string) {
   revalidatePath('/app/quotes')
   return { success: true }
 }
+
+export async function updatePublicQuoteStatus(uuid: string, status: string) {
+  const supabase = await createClient()
+
+  // Validar se o status é permitido para o cliente
+  if (!['accepted', 'rejected'].includes(status)) {
+    return { error: 'Ação não permitida' }
+  }
+
+  const { error } = await supabase
+    .from('quotes')
+    .update({ status })
+    .eq('public_uuid', uuid)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath(`/quote/${uuid}`)
+  return { success: true }
+}

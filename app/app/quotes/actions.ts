@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { generateRandomHash } from '@/lib/hashids'
 
 export async function saveQuote(data: any) {
   const supabase = await createClient()
@@ -40,7 +41,10 @@ export async function saveQuote(data: any) {
     // Modo criação
     const { data: newQuote, error: quoteError } = await supabase
       .from('quotes')
-      .insert(quotePayload)
+      .insert({
+        ...quotePayload,
+        hash_id: generateRandomHash()
+      })
       .select('id, public_uuid')
       .single()
 
@@ -79,6 +83,21 @@ export async function deleteQuote(id: string) {
   const { error } = await supabase
     .from('quotes')
     .delete()
+    .eq('id', id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/app/quotes')
+  return { success: true }
+}
+
+export async function updateQuoteStatus(id: string, status: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('quotes')
+    .update({ status })
     .eq('id', id)
 
   if (error) {

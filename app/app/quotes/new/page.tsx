@@ -30,7 +30,7 @@ export default async function NewQuotePage({ searchParams }: { searchParams: Pro
 
     if (quote) {
       // Removemos os campos de identificação para ser tratado como novo
-      const { id, quote_number, public_uuid, created_at, ...rest } = quote
+      const { id, hash_id, public_uuid, created_at, ...rest } = quote
       initialData = rest
     }
   }

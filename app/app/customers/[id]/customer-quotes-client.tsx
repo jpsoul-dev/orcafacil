@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 
 type Quote = {
   id: string
-  quote_number: number
+  hash_id: string
   title: string
   total: number
   valid_until: string | null
@@ -32,7 +32,7 @@ const columns: ColumnDef<Quote>[] = [
           {row.original.title}
         </Link>
         <span className="text-sm text-slate-400 font-mono">
-          #ORC-{String(row.original.quote_number).padStart(4, '0')}
+          #{row.original.hash_id}
         </span>
       </div>
     ),

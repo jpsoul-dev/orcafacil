@@ -40,7 +40,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
       window.removeEventListener('beforeprint', handleBeforePrint)
       window.removeEventListener('afterprint', handleAfterPrint)
     }
-  }, [quote.quote_number])
+  }, [quote.hash_id])
 
   const statusMap: Record<string, { label: string, color: string }> = {
     draft: { label: 'RASCUNHO', color: 'bg-amber-100 text-amber-700 border-amber-200' },
@@ -101,7 +101,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             )}
             <div className="flex flex-col">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-slate-800 tracking-tight">Orçamento: ORC-{quote.quote_number?.toString().padStart(4, '0')}</h1>
+                <h1 className="text-xl font-bold text-slate-800 tracking-tight">Orçamento: #{quote.hash_id}</h1>
                 {!isAdmin ? (
                   <Badge className={`rounded-full px-3 py-0.5 text-[10px] font-black border tracking-wider ${statusMap[currentStatus]?.color || ''}`}>
                     {statusMap[currentStatus]?.label || currentStatus}

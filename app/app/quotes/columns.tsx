@@ -3,12 +3,13 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
 export type Quote = {
   id: string
   public_uuid: string
-  quote_number: number
+  hash_id: string
   title: string
   total: number
   valid_until: string | null
@@ -21,14 +22,14 @@ const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency',
 
 export const columns: ColumnDef<Quote>[] = [
   {
-    accessorKey: 'quote_number',
-    header: '#',
+    accessorKey: 'hash_id',
+    header: 'Código',
     cell: ({ row }) => (
       <Link
         href={`/app/quotes/${row.original.id}`}
-        className="font-mono text-xs font-bold text-blue-600 hover:underline"
+        className="font-mono text-sm font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md hover:bg-slate-200 transition-colors"
       >
-        ORC-{String(row.getValue('quote_number')).padStart(4, '0')}
+        {row.original.hash_id}
       </Link>
     ),
   },
@@ -104,31 +105,29 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => {
       const status = row.original.status
       const validUntil = row.original.valid_until
-      const statusMap: Record<string, { label: string, color: string, dot: string }> = {
-        draft: { label: 'Rascunho', color: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
-        open: { label: 'Em Aberto', color: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
-        accepted: { label: 'Aceito', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-        rejected: { label: 'Rejeitado', color: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-500' },
-        expired: { label: 'Expirado', color: 'bg-slate-50 text-slate-700 border-slate-200', dot: 'bg-slate-400' },
+      const statusMap: Record<string, { label: string, className: string }> = {
+        draft: { label: 'Rascunho', className: 'bg-slate-900 text-white' },
+        open: { label: 'Pendente', className: 'bg-indigo-900 text-white' },
+        accepted: { label: 'Aprovado', className: 'bg-emerald-900 text-white' },
+        rejected: { label: 'Rejeitado', className: 'bg-red-900 text-white' },
+        expired: { label: 'Expirado', className: 'bg-gray-950 text-white' },
       }
 
-      const config = statusMap[status] || { label: status, color: 'bg-slate-100', dot: 'bg-slate-500' }
+      const config = statusMap[status] || { label: status, className: 'bg-slate-500 text-white' }
 
-      // Se estiver aberto mas a validade passou, mostrar como expirado (visual apenas se o banco não foi atualizado)
+      // Se estiver aberto mas a validade passou, mostrar como expirado
       let finalConfig = config
       if (status === 'open' && validUntil) {
-        const validDate = new Date(validUntil)
-        validDate.setHours(23, 59, 59, 999)
+        const validDate = new Date(validUntil + 'T23:59:59')
         if (new Date() > validDate) {
           finalConfig = statusMap.expired
         }
       }
 
       return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${finalConfig.color}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${finalConfig.dot} inline-block`} />
-          {finalConfig.label}
-        </span>
+        <Badge className={`rounded-md px-3 py-0.5 text-[10px] font-bold border-none shadow-sm ${finalConfig.className}`}>
+          {finalConfig.label.toUpperCase()}
+        </Badge>
       )
     },
   },

@@ -672,7 +672,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           onClick={() => handleSave('open')}
           className="h-11 px-8 rounded-xl font-bold bg-slate-950 hover:bg-slate-800 text-white shadow-lg shadow-slate-200"
         >
-          {loading ? 'Salvando...' : (initialData ? 'Concluir' : 'Emitir Orçamento')}
+          {loading ? 'Gerando...' : 'Gerar Orçamento'}
         </Button>
       </div>
     </div>

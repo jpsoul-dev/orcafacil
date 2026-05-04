@@ -2,7 +2,7 @@ import Hashids from 'hashids'
 
 const SALT = 'orca-facil-salt-2026'
 const MIN_LENGTH = 6
-const ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
 const hashids = new Hashids(SALT, MIN_LENGTH, ALPHABET)
 

@@ -27,6 +27,7 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => (
       <Link
         href={`/app/quotes/${row.original.id}`}
+        target="_blank"
         className="font-mono text-sm font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md hover:bg-slate-200 transition-colors"
       >
         {row.original.hash_id}
@@ -142,7 +143,7 @@ export const columns: ColumnDef<Quote>[] = [
       return (
         <div className="flex items-center justify-end gap-1">
           {!isDraft && (
-            <Link href={`/app/quotes/${id}`}>
+            <Link href={`/app/quotes/${id}`} target="_blank">
               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100" title="Ver Detalhes">
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">Ver orçameto</span>

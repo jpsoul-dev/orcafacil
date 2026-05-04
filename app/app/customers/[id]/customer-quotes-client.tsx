@@ -27,12 +27,13 @@ const columns: ColumnDef<Quote>[] = [
       <div className="flex flex-col">
         <Link
           href={`/app/quotes/${row.original.id}`}
+          target="_blank"
           className="font-bold text-slate-900 hover:underline"
         >
           {row.original.title}
         </Link>
         <span className="text-sm text-slate-400 font-mono">
-          #{row.original.hash_id}
+          {row.original.hash_id}
         </span>
       </div>
     ),

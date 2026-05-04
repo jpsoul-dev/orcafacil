@@ -17,8 +17,9 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trash2, Plus, Search, Check, ChevronDown, Package } from 'lucide-react'
+import { Trash2, Plus, Search, Check, ChevronDown, Package, UserPlus } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { CustomerForm } from '../../customers/customer-form'
 
 const quoteItemSchema = z.object({
@@ -325,11 +326,18 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                 </DialogContent>
               </Dialog>
 
-              <CustomerForm trigger={
-                <Button type="button" variant="outline" className="h-10 px-4 border-slate-200 rounded-lg bg-slate-50 text-slate-700 hover:bg-slate-100 gap-2 shrink-0">
-                  <Plus className="h-4 w-4" /> Novo
-                </Button>
-              } />
+              <TooltipProvider>
+                <Tooltip>
+                  <CustomerForm trigger={
+                    <TooltipTrigger render={
+                      <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0 border-slate-200">
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    } />
+                  } />
+                  <TooltipContent>Cadastrar novo cliente</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </CardContent>
@@ -555,7 +563,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                   <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-lg bg-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent alignItemWithTrigger={false} side="bottom" sideOffset={4} className="rounded-xl border-slate-200">
                     <SelectItem value="%">%</SelectItem>
                     <SelectItem value="R$">R$</SelectItem>
                   </SelectContent>
@@ -593,7 +601,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                 <SelectTrigger className="h-10 border-slate-200 rounded-lg bg-white">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent alignItemWithTrigger={false} side="bottom" sideOffset={4} className="rounded-xl border-slate-200">
                   {['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto Bancário', 'Cheque'].map(m => (
                     <SelectItem key={m} value={m}>{m}</SelectItem>
                   ))}
@@ -610,7 +618,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               </div>
               <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
                 <span>Desconto {watchDiscountType === '%' && watchDiscountValue > 0 ? `(${watchDiscountValue}%)` : ''}</span>
-                <span className="tabular-nums text-red-600">
+                <span className="tabular-nums text-green-600">
                   {watchDiscountValue > 0 ? '-' : ''}{brl(watchDiscountType === 'none' ? 0 : (watchDiscountType === 'R$' ? Number(watchDiscountValue) : subtotalFinal * (Number(watchDiscountValue) / 100)))}
                 </span>
               </div>
@@ -639,32 +647,33 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
         </CardContent>
       </Card>
 
-      {/* Botões Finais com Base UI */}
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <BaseButton
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+        <Button
           type="button"
           disabled={loading}
+          variant="ghost"
           onClick={() => router.back()}
-          className="h-10 px-6 rounded-lg text-slate-700 font-semibold border border-slate-200 hover:bg-slate-50 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+          className="h-11 px-8 rounded-xl font-bold text-slate-500"
         >
           Cancelar
-        </BaseButton>
-        <BaseButton
+        </Button>
+        <Button
           type="button"
           disabled={loading || fields.length === 0}
+          variant="outline"
           onClick={() => handleSave('draft')}
-          className="h-10 px-6 rounded-lg text-slate-800 bg-amber-100 hover:bg-amber-200 border border-amber-200 font-semibold disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+          className="h-11 px-8 rounded-xl font-bold border-slate-200"
         >
-          Salvar como Rascunho
-        </BaseButton>
-        <BaseButton
+          Salvar Rascunho
+        </Button>
+        <Button
           type="button"
           disabled={loading || fields.length === 0}
           onClick={() => handleSave('open')}
-          className="h-10 px-6 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          className="h-11 px-8 rounded-xl font-bold bg-slate-950 hover:bg-slate-800 text-white shadow-lg shadow-slate-200"
         >
           {loading ? 'Salvando...' : (initialData ? 'Concluir' : 'Emitir Orçamento')}
-        </BaseButton>
+        </Button>
       </div>
     </div>
   )

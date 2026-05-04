@@ -37,7 +37,7 @@ export function KanbanCard({ quote }: { quote: Quote }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Link href={`/app/quotes/${quote.id}`}>
+      <Link href={`/app/quotes/${quote.id}`} target="_blank">
         <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer border-slate-200">
           <div className="space-y-6">
             <div className="space-y-3">

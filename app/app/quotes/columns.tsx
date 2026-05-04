@@ -14,7 +14,7 @@ export type Quote = {
   total: number
   valid_until: string | null
   created_at: string
-  status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired'
+  status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired' | 'vencido'
   customers?: { name: string } | null
 }
 
@@ -111,6 +111,7 @@ export const columns: ColumnDef<Quote>[] = [
         accepted: { label: 'Aprovado', className: 'bg-emerald-900 text-white' },
         rejected: { label: 'Rejeitado', className: 'bg-red-900 text-white' },
         expired: { label: 'Expirado', className: 'bg-gray-950 text-white' },
+        vencido: { label: 'Vencido', className: 'bg-slate-900 text-white' },
       }
 
       const config = statusMap[status] || { label: status, className: 'bg-slate-500 text-white' }

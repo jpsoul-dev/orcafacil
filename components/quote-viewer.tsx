@@ -48,6 +48,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
     accepted: { label: 'ACEITO', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
     rejected: { label: 'REJEITADO', color: 'bg-red-100 text-red-700 border-red-200' },
     expired: { label: 'EXPIRADO', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+    vencido: { label: 'VENCIDO', color: 'bg-slate-100 text-slate-700 border-slate-200' },
   }
 
   const handleStatusChange = async (newStatus: string) => {

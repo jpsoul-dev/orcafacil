@@ -13,7 +13,6 @@ import { startOfMonth, endOfMonth, isWithinInterval, parseISO, endOfDay } from '
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
-
 interface QuotesClientProps {
   initialQuotes: any[]
 }

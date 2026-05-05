@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="px-6 h-16 flex items-center border-b bg-white dark:bg-slate-900 shrink-0">
-        <div className="flex items-center gap-2 font-bold text-xl text-blue-600 dark:text-blue-400">
+        <div className="flex items-center gap-2 font-bold text-xl text-blue-700 dark:text-blue-400">
           OrçaFácil
         </div>
         <nav className="ml-auto flex gap-4 sm:gap-6">

@@ -27,54 +27,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background">
       {/* Lado esquerdo — Branding */}
-      <div className="hidden lg:flex lg:w-1/2 gradient-primary flex-col justify-between p-12 text-white">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-            <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-blue-700 flex-col justify-between p-12 text-white">
+        {/* Camada de Gradiente e Grid */}
+        <div className="absolute inset-0 bg-linear-to-br from-blue-700 via-blue-800 to-blue-950 z-0" />
+        <div className="absolute inset-0 opacity-10 z-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg">
+              <Zap className="h-6 w-6 text-white" fill="white" strokeWidth={0} />
+            </div>
+            <span className="font-bold text-2xl tracking-tighter text-white">OrçaFácil</span>
           </div>
-          <span className="font-bold text-xl tracking-tight">OrçaFácil</span>
         </div>
 
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold leading-tight">
-              Orçamentos profissionais,<br />em minutos.
+        <div className="relative z-10 space-y-10">
+          <div className="space-y-4">
+            <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight text-white">
+              Bem-vindo de volta ao seu painel.
             </h1>
-            <p className="text-white/75 text-lg leading-relaxed">
-              Crie, envie e acompanhe orçamentos para seus clientes de forma simples e elegante.
+            <p className="text-blue-100 text-xl max-w-md font-medium leading-relaxed">
+              Continue simplificando suas vendas e encantando seus clientes com orçamentos impecáveis.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid gap-4">
             {[
-              { icon: FileText, text: 'Gere orçamentos com link de compartilhamento' },
-              { icon: Zap, text: 'Catálogo de produtos e serviços integrado' },
-              { icon: ArrowRight, text: 'Gestão completa de clientes' },
+              { icon: FileText, text: 'Gerencie seus orçamentos ativos' },
+              { icon: Zap, text: 'Acesse seu catálogo atualizado' },
+              { icon: ArrowRight, text: 'Acompanhe o status de fechamento' },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 text-white/90">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15">
-                  <item.icon className="h-3.5 w-3.5" />
+              <div key={i} className="flex items-center gap-4 text-blue-50/90 group">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 border border-white/10 group-hover:bg-white/20 transition-all">
+                  <item.icon className="h-5 w-5" />
                 </div>
-                <span className="text-sm">{item.text}</span>
+                <span className="text-base font-medium">{item.text}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-white/50 text-sm">© 2025 OrçaFácil · Todos os direitos reservados</p>
+        <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-8">
+          <p className="text-blue-200/50 text-sm font-medium">© 2025 OrçaFácil</p>
+          <div className="flex gap-4">
+            <div className="h-1.5 w-8 rounded-full bg-white/40" />
+            <div className="h-1.5 w-4 rounded-full bg-white/10" />
+            <div className="h-1.5 w-4 rounded-full bg-white/10" />
+          </div>
+        </div>
       </div>
 
       {/* Lado direito — Formulário */}
       <div className="flex flex-1 flex-col items-center justify-center bg-background p-6 lg:p-12">
         <div className="w-full max-w-sm space-y-8">
           {/* Logo mobile */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-              <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
+          <div className="flex items-center gap-2.5 lg:hidden mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-sm">
+              <Zap className="h-6 w-6 text-white" fill="white" strokeWidth={0} />
             </div>
-            <span className="font-bold text-lg">OrçaFácil</span>
+            <span className="font-bold text-xl tracking-tighter">OrçaFácil</span>
           </div>
 
           <div className="space-y-1.5">

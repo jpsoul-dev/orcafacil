@@ -9,7 +9,13 @@ import { LayoutGrid, List, SlidersHorizontal, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { DatePickerWithRange } from './components/date-range-picker'
 import { DateRange } from 'react-day-picker'
-import { startOfMonth, endOfMonth, isWithinInterval, parseISO, endOfDay } from 'date-fns'
+import {
+  startOfMonth,
+  endOfMonth,
+  isWithinInterval,
+  parseISO,
+  endOfDay,
+} from 'date-fns'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
@@ -49,7 +55,13 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
       // 2. Filtro por Data (apenas para Ativos, Rascunhos costumam ser atemporais ou recentes)
       if (statusTab === 'active' && date?.from && date?.to) {
         const quoteDate = parseISO(quote.created_at)
-        if (!isWithinInterval(quoteDate, { start: date.from!, end: endOfDay(date.to!) })) return false
+        if (
+          !isWithinInterval(quoteDate, {
+            start: date.from!,
+            end: endOfDay(date.to!),
+          })
+        )
+          return false
       }
 
       // 3. Filtro por Busca
@@ -77,8 +89,12 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
       {/* Header da Página */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Orçamentos em andamento</h2>
-          <p className="text-slate-500 text-sm mt-1">Acompanhe a situação de seus orçamentos.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Orçamentos em andamento
+          </h2>
+          <p className="text-slate-500 text-sm mt-1">
+            Acompanhe a situação de seus orçamentos.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/app/quotes/new">
@@ -101,13 +117,25 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {statusTab === 'active' && <DatePickerWithRange date={date} setDate={setDate} />}
-          <Tabs value={statusTab} onValueChange={(v: any) => setStatusTab(v)} className="bg-slate-100 p-1 rounded-lg">
+          {statusTab === 'active' && (
+            <DatePickerWithRange date={date} setDate={setDate} />
+          )}
+          <Tabs
+            value={statusTab}
+            onValueChange={(v: any) => setStatusTab(v)}
+            className="bg-slate-100 p-1 rounded-lg"
+          >
             <TabsList className="bg-transparent border-none p-0 h-8">
-              <TabsTrigger value="active" className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4">
+              <TabsTrigger
+                value="active"
+                className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4"
+              >
                 Ativos
               </TabsTrigger>
-              <TabsTrigger value="draft" className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4">
+              <TabsTrigger
+                value="draft"
+                className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4"
+              >
                 Rascunhos
               </TabsTrigger>
             </TabsList>
@@ -137,10 +165,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
         view === 'kanban' ? (
           <KanbanBoard initialQuotes={filteredQuotes} />
         ) : (
-          <DataTable
-            columns={columns}
-            data={filteredQuotes}
-          />
+          <DataTable columns={columns} data={filteredQuotes} />
         )
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center shadow-sm">
@@ -149,8 +174,8 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           </div>
           <p className="text-slate-500 text-sm mt-2 max-w-xs">
             {date?.from && date?.to
-              ? "Não foram encontrados orçamentos no período selecionado."
-              : "Você ainda não possui orçamentos registrados."}
+              ? 'Não foram encontrados orçamentos no período selecionado.'
+              : 'Você ainda não possui orçamentos registrados.'}
           </p>
           <div className="mt-8">
             <Link href="/app/quotes/new">

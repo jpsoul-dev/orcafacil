@@ -6,10 +6,12 @@ export default async function QuotesPage() {
 
   const { data: quotes } = await supabase
     .from('quotes')
-    .select(`
+    .select(
+      `
       *,
       customers ( name )
-    `)
+    `,
+    )
     .order('created_at', { ascending: false })
 
   return <QuotesClient initialQuotes={quotes || []} />

@@ -5,7 +5,7 @@ import { ptBR } from 'date-fns/locale'
 import { maskPhone } from '@/lib/masks'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Printer, CopyIcon, CheckCircle2, XCircle } from 'lucide-react'
+import { Printer, CopyIcon, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useState, useEffect, useMemo } from 'react'
@@ -96,6 +96,7 @@ export interface QuoteItem {
 
 export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   // Sincronizar estado local se a prop mudar (ex: re-render do pai)
   useEffect(() => {
@@ -123,28 +124,44 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   }, [quote.title, quote.created_at])
 
   const handleStatusChange = async (newStatus: QuoteStatus | null) => {
-    if (!newStatus) return
+    if (!newStatus || isUpdating) return
     const previousStatus = currentStatus
+    setIsUpdating(true)
     setCurrentStatus(newStatus)
-    const result = await updateQuoteStatus(quote.id, newStatus)
-    if (result.error) {
-      toast.error('Erro ao atualizar status: ' + result.error)
+    try {
+      const result = await updateQuoteStatus(quote.id, newStatus)
+      if (result.error) {
+        toast.error('Erro ao atualizar status: ' + result.error)
+        setCurrentStatus(previousStatus)
+      } else {
+        toast.success(`Status alterado para ${STATUS_MAP[newStatus].label}`)
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro ao atualizar o status.')
       setCurrentStatus(previousStatus)
-    } else {
-      toast.success(`Status alterado para ${STATUS_MAP[newStatus].label}`)
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   const handlePublicStatusChange = async (newStatus: QuoteStatus | null) => {
-    if (!newStatus) return
+    if (!newStatus || isUpdating) return
     const previousStatus = currentStatus
+    setIsUpdating(true)
     setCurrentStatus(newStatus)
-    const result = await updatePublicQuoteStatus(quote.public_uuid, newStatus)
-    if (result.error) {
-      toast.error('Erro ao atualizar orçamento: ' + result.error)
+    try {
+      const result = await updatePublicQuoteStatus(quote.public_uuid, newStatus)
+      if (result.error) {
+        toast.error('Erro ao atualizar orçamento: ' + result.error)
+        setCurrentStatus(previousStatus)
+      } else {
+        toast.success(newStatus === 'accepted' ? 'Orçamento aprovado' : 'Orçamento rejeitado')
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro ao processar sua solicitação.')
       setCurrentStatus(previousStatus)
-    } else {
-      toast.success(newStatus === 'accepted' ? 'Orçamento aprovado' : 'Orçamento rejeitado')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -152,10 +169,14 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
     window.print()
   }
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const url = `${window.location.origin}/quote/${quote.public_uuid}`
-    navigator.clipboard.writeText(url)
-    toast.success('Link do orçamento copiado! Envie para o seu cliente.')
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link do orçamento copiado! Envie para o seu cliente.')
+    } catch (err) {
+      toast.error('Não foi possível copiar o link automaticamente. Copie manualmente: ' + url)
+    }
   }
 
   return (
@@ -166,10 +187,14 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           <div className="flex items-center gap-4">
             {isAdmin && (
               <div className="flex items-center gap-3">
-                <Select value={currentStatus} onValueChange={handleStatusChange}>
+                <Select value={currentStatus} onValueChange={handleStatusChange} disabled={isUpdating}>
                   <SelectTrigger className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}>
                     <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`} />
+                      {isUpdating ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <div className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`} />
+                      )}
                       <SelectValue>
                         {STATUS_MAP[currentStatus]?.label}
                       </SelectValue>
@@ -215,22 +240,48 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-xl font-bold">Voltar</AlertDialogCancel>
                       <AlertDialogAction
+                        disabled={isUpdating}
                         onClick={() => handlePublicStatusChange('rejected')}
                         className="rounded-xl bg-red-600 hover:bg-red-700 font-bold"
                       >
+                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                         Confirmar Rejeição
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
 
-                <Button
-                  onClick={() => handlePublicStatusChange('accepted')}
-                  size="sm"
-                  className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                >
-                  <CheckCircle2 className="h-4 w-4" /> Aprovar
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger render={
+                    <Button
+                      disabled={isUpdating}
+                      size="sm"
+                      className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                    >
+                      {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                      Aprovar
+                    </Button>
+                  } />
+                  <AlertDialogContent className="rounded-2xl border-slate-200">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">Aprovar Orçamento?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-slate-500 font-medium">
+                        Ao aprovar, você confirma que está de acordo com os itens, valores e condições descritos neste orçamento.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl font-bold">Voltar</AlertDialogCancel>
+                      <AlertDialogAction
+                        disabled={isUpdating}
+                        onClick={() => handlePublicStatusChange('accepted')}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-white"
+                      >
+                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Confirmar Aprovação
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <Separator orientation="vertical" className="h-6 mx-2" />
               </>
             )}

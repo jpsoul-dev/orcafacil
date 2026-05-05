@@ -161,3 +161,35 @@
     @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
   }
 }
+
+@layer base {
+  @page {
+    size: auto;
+    margin: 1.5cm;
+  }
+
+  @media print {
+    body {
+      background-color: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .no-print {
+      display: none !important;
+    }
+
+    .print-content {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+    }
+
+    tr {
+      break-inside: avoid;
+    }
+  }
+}

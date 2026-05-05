@@ -42,6 +42,7 @@ export const maskCPFCNPJ = (value: string) => {
 }
 
 export const maskPhone = (value: string) => {
+  if (!value) return ''
   value = value.replace(/\D/g, '')
   if (value.length <= 10) {
     return value

@@ -31,7 +31,7 @@ const quoteItemSchema = z.object({
 })
 
 const quoteSchema = z.object({
-  title: z.string().min(1, 'Título do orçamento obrigatório'),
+  title: z.string().optional().nullable(),
   customer_id: z.string().min(1, 'Selecione um cliente'),
   valid_until: z.string().refine((val) => {
     if (!val) return true
@@ -163,16 +163,16 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
   // Filtra clientes pelo nome usando o valor com debounce
   const filteredCustomers = useMemo(() => {
     const term = debouncedCustomerSearch.trim().toLowerCase()
-    // Regra: 3+ caracteres ou vazio para mostrar nada/limpar
-    if (term.length < 3) return []
+    // Regra: 2+ caracteres ou vazio para mostrar nada/limpar
+    if (term.length < 2) return []
     return customers.filter(c => c.name?.toLowerCase().includes(term))
   }, [customers, debouncedCustomerSearch])
 
   // Filtra catálogo pelo nome usando o valor com debounce
   const filteredCatalog = useMemo(() => {
     const term = debouncedCatalogSearch.trim().toLowerCase()
-    // Regra: 3+ caracteres ou vazio para mostrar nada/limpar
-    if (term.length < 3) return []
+    if (!term) return catalogItems
+    if (term.length < 2) return catalogItems
     return catalogItems.filter(i => i.name?.toLowerCase().includes(term))
   }, [catalogItems, debouncedCatalogSearch])
 
@@ -194,16 +194,13 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
               <Label htmlFor="title" className="text-[13px] font-semibold text-slate-700">
-                Título do orçamento <span className="text-red-500">*</span>
+                Título do orçamento
               </Label>
               <Input
                 id="title"
                 {...form.register('title')}
-                className={`h-10 border-slate-200 rounded-lg bg-white ${form.formState.errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className="h-10 border-slate-200 rounded-lg bg-white"
               />
-              {form.formState.errors.title && (
-                <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="valid_until" className="text-[13px] font-semibold text-slate-700">Validade</Label>
@@ -493,12 +490,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                   </div>
                 </div>
                 <div className="max-h-[380px] overflow-y-auto border-t border-slate-100">
-                  {catalogSearch.trim() === '' ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                      <Search className="h-8 w-8 mb-2 opacity-40" />
-                      <p className="text-sm">Digite para buscar no catálogo</p>
-                    </div>
-                  ) : filteredCatalog.length === 0 ? (
+                  {filteredCatalog.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                       <p className="text-sm">Nenhum item encontrado.</p>
                       <p className="text-xs mt-1">Tente buscar por outro nome.</p>

@@ -95,7 +95,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
       toast.success(`Status alterado para ${statusMap[newStatus].label}`)
     }
   }
-  
+
   const handlePublicStatusChange = async (newStatus: string) => {
     const previousStatus = currentStatus
     setCurrentStatus(newStatus)
@@ -121,7 +121,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 print:bg-white print:pb-0 print:min-h-0">
       <style jsx global>{`
-        @page { size: auto; margin: 0mm; }
+        @page { size: auto; margin: 0; }
         @media print {
           body { margin: 0; background-color: white !important; }
           .no-print { 
@@ -132,17 +132,18 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             padding: 0 !important;
           }
           .print-only { display: block !important; }
-          .print-footer {
-            position: fixed;
-            bottom: 1.5cm;
-            left: 0;
-            right: 0;
-            text-align: center;
-          }
           .print-container {
             padding: 1.5cm;
+            padding-bottom: 2cm;
             width: 100%;
             position: relative;
+          }
+          tr {
+            break-inside: avoid;
+          }
+          .avoid-break {
+            break-inside: avoid;
+            page-break-inside: avoid;
           }
         }
       `}</style>
@@ -195,8 +196,8 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel className="rounded-xl font-bold">Voltar</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => handlePublicStatusChange('rejected')} 
+                        <AlertDialogAction
+                          onClick={() => handlePublicStatusChange('rejected')}
                           className="rounded-xl bg-red-600 hover:bg-red-700 font-bold"
                         >
                           Confirmar Rejeição
@@ -205,14 +206,14 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                     </AlertDialogContent>
                   </AlertDialog>
 
-                  <Button 
-                    onClick={() => handlePublicStatusChange('accepted')} 
-                    size="sm" 
+                  <Button
+                    onClick={() => handlePublicStatusChange('accepted')}
+                    size="sm"
                     className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                   >
                     <CheckCircle2 className="h-4 w-4" /> Aprovar Orçamento
                   </Button>
-                  
+
                   <Separator orientation="vertical" className="h-6 mx-2" />
                 </>
               )}
@@ -507,7 +508,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             </TableBody>
           </Table>
 
-          <div className="mt-12 flex justify-end">
+          <div className="mt-12 flex justify-end avoid-break">
             <div className="w-64 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500 font-medium">Subtotal</span>
@@ -527,17 +528,12 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           </div>
 
           {quote.notes && (
-            <div className="mt-16 pt-8 border-t border-slate-100">
+            <div className="mt-16 pt-8 border-t border-slate-100 avoid-break">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Observações</h4>
               <p className="text-sm text-slate-600 leading-relaxed italic">"{quote.notes}"</p>
             </div>
           )}
 
-          <div className="mt-3 p-3 border-t border-slate-50 text-center print-footer">
-            <p className="text-xs text-slate-400 font-medium tracking-widest">
-              Orçamento {quote.hash_id} emitido por <span className="font-bold">Orça Fácil</span>
-            </p>
-          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,9 @@ import { revalidatePath } from 'next/cache'
 
 export async function updateQuoteStatus(id: string, status: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) return { error: 'Not authenticated' }
 

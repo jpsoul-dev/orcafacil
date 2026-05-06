@@ -3,9 +3,9 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { KanbanBoard } from './components/kanban/kanban-board'
 import { DataTable } from '@/components/ui/data-table'
-import { columns } from './columns'
+import { columns, Quote } from './columns'
 import { Button } from '@/components/ui/button'
-import { LayoutGrid, List, SlidersHorizontal, Plus } from 'lucide-react'
+import { LayoutGrid, List, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { DatePickerWithRange } from './components/date-range-picker'
 import { DateRange } from 'react-day-picker'
@@ -19,8 +19,9 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
+
 interface QuotesClientProps {
-  initialQuotes: any[]
+  initialQuotes: Quote[]
 }
 
 export function QuotesClient({ initialQuotes }: QuotesClientProps) {
@@ -34,25 +35,15 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
   })
 
   useEffect(() => {
-    setMounted(true)
+    const timer = setTimeout(() => setMounted(true), 0)
+    return () => clearTimeout(timer)
   }, [])
 
-  // Alternar automaticamente para tabela ao selecionar rascunhos
-  useEffect(() => {
-    if (statusTab === 'draft' && view === 'kanban') {
-      setView('table')
-    }
-  }, [statusTab, view])
-
-  // Filtrar orçamentos
   const filteredQuotes = useMemo(() => {
     return initialQuotes.filter((quote) => {
-      // 1. Filtro por Status (Aba)
       const isDraft = quote.status === 'draft'
       if (statusTab === 'active' && isDraft) return false
       if (statusTab === 'draft' && !isDraft) return false
-
-      // 2. Filtro por Data (apenas para Ativos, Rascunhos costumam ser atemporais ou recentes)
       if (statusTab === 'active' && date?.from && date?.to) {
         const quoteDate = parseISO(quote.created_at)
         if (
@@ -64,7 +55,6 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           return false
       }
 
-      // 3. Filtro por Busca
       if (search) {
         const searchLower = search.toLowerCase()
         const customerName = quote.customers?.name?.toLowerCase() || ''
@@ -86,7 +76,6 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header da Página */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -122,7 +111,13 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           )}
           <Tabs
             value={statusTab}
-            onValueChange={(v: any) => setStatusTab(v)}
+            onValueChange={(v) => {
+              const newTab = v as 'active' | 'draft'
+              setStatusTab(newTab)
+              if (newTab === 'draft' && view === 'kanban') {
+                setView('table')
+              }
+            }}
             className="bg-slate-100 p-1 rounded-lg"
           >
             <TabsList className="bg-transparent border-none p-0 h-8">

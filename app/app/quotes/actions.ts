@@ -4,21 +4,49 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateRandomHash } from '@/lib/hashids'
 
-export async function saveQuote(data: any) {
+export interface QuoteItemInput {
+  catalog_item_id?: string | null
+  item_name: string
+  quantity: number
+  unit_price: number
+  subtotal: number
+  unit_measure?: string | null
+}
+
+export interface QuoteInput {
+  id?: string
+  public_uuid?: string
+  customer_id?: string | null
+  title?: string | null
+  status?: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired' | 'vencido'
+  subtotal: number
+  total: number
+  valid_until?: string | null
+  discount_type?: 'percentage' | 'fixed' | 'none'
+  discount_value?: number
+  tax_value?: number
+  shipping_value?: number
+  notes?: string | null
+  items: QuoteItemInput[]
+}
+
+export async function saveQuote(data: QuoteInput) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) return { error: 'Not authenticated' }
 
   const { id, items, ...quoteData } = data
-  
+
   const quotePayload = {
     ...quoteData,
     user_id: user.id,
   }
 
-  let quoteId = id;
-  let publicUuid = quoteData.public_uuid;
+  let quoteId = id
+  let publicUuid = quoteData.public_uuid
 
   if (id) {
     // Modo edição
@@ -32,8 +60,8 @@ export async function saveQuote(data: any) {
     if (quoteError || !updatedQuote) {
       return { error: quoteError?.message || 'Erro ao atualizar orçamento' }
     }
-    quoteId = updatedQuote.id;
-    publicUuid = updatedQuote.public_uuid;
+    quoteId = updatedQuote.id
+    publicUuid = updatedQuote.public_uuid
 
     // Deletar itens antigos
     await supabase.from('quote_items').delete().eq('quote_id', id)
@@ -43,7 +71,7 @@ export async function saveQuote(data: any) {
       .from('quotes')
       .insert({
         ...quotePayload,
-        hash_id: generateRandomHash()
+        hash_id: generateRandomHash(),
       })
       .select('id, public_uuid')
       .single()
@@ -51,18 +79,14 @@ export async function saveQuote(data: any) {
     if (quoteError || !newQuote) {
       return { error: quoteError?.message || 'Erro ao criar orçamento' }
     }
-    quoteId = newQuote.id;
-    publicUuid = newQuote.public_uuid;
+    quoteId = newQuote.id
+    publicUuid = newQuote.public_uuid
   }
 
   if (items && items.length > 0) {
-    const insertItems = items.map((item: any) => ({
+    const insertItems = items.map((item: QuoteItemInput) => ({
+      ...item,
       quote_id: quoteId,
-      catalog_item_id: item.catalog_item_id || null,
-      item_name: item.item_name,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      subtotal: item.subtotal
     }))
 
     const { error: itemsError } = await supabase
@@ -80,10 +104,7 @@ export async function saveQuote(data: any) {
 
 export async function deleteQuote(id: string) {
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('quotes')
-    .delete()
-    .eq('id', id)
+  const { error } = await supabase.from('quotes').delete().eq('id', id)
 
   if (error) {
     return { error: error.message }

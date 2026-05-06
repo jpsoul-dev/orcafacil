@@ -1,36 +1,41 @@
 import { createClient } from '@/lib/supabase/server'
 import { QuoteForm } from '../components/quote-form'
 
-export default async function NewQuotePage({ searchParams }: { searchParams: Promise<{ clone?: string }> }) {
+export default async function NewQuotePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clone?: string }>
+}) {
   const { clone: cloneId } = await searchParams
   const supabase = await createClient()
 
   // Buscar clientes do usuário logado
   const { data: customers } = await supabase
     .from('customers')
-    .select('id, name, document, whatsapp')
+    .select('*')
     .order('name')
 
   // Buscar produtos/serviços
   const { data: catalogItems } = await supabase
     .from('catalog_items')
-    .select('id, type, name, unit_price, unit_measure')
+    .select('*')
     .order('name')
 
   let initialData = null
   if (cloneId) {
     const { data: quote } = await supabase
       .from('quotes')
-      .select(`
+      .select(
+        `
         *,
         quote_items (*)
-      `)
+      `,
+      )
       .eq('id', cloneId)
       .single()
 
     if (quote) {
-      // Removemos os campos de identificação para ser tratado como novo
-      const { id, hash_id, public_uuid, created_at, ...rest } = quote
+      const { ...rest } = quote
       initialData = rest
     }
   }

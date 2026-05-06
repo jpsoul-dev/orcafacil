@@ -31,10 +31,11 @@ export function QuotesFilter() {
         <BaseButton
           key={status.id}
           onClick={() => handleFilter(status.id)}
-          className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${currentStatus === status.id
-            ? 'bg-slate-800 text-white shadow-sm'
-            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+            currentStatus === status.id
+              ? 'bg-slate-800 text-white shadow-sm'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
         >
           {status.label}
         </BaseButton>

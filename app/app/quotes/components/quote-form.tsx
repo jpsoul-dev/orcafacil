@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form'
+import { useState, useMemo } from 'react'
+import { useForm, useFieldArray, useWatch, Controller, Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -10,50 +10,113 @@ import { saveQuote } from '../actions'
 import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
 
-import { Button as BaseButton } from '@base-ui/react/button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trash2, Plus, Search, Check, ChevronDown, Package, UserPlus } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CustomerForm } from '../../customers/customer-form'
+import {
+  Trash2,
+  Plus,
+  Search,
+  Check,
+  ChevronDown,
+  Package,
+  UserPlus,
+} from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { CustomerForm, Customer } from '../../customers/customer-form'
+import { CatalogItem } from '../../catalog/columns'
+
+export interface QuoteWithItems {
+  id: string
+  title?: string | null
+  customer_id: string
+  valid_until?: string | null
+  discount_type?: 'none' | 'percentage' | 'fixed'
+  discount_value?: number
+  payment_method?: string
+  notes?: string | null
+  quote_items?: {
+    catalog_item_id: string | null
+    item_name: string
+    quantity: number
+    unit_price: number
+    subtotal: number
+  }[]
+}
 
 const quoteItemSchema = z.object({
   catalog_item_id: z.string().optional().nullable(),
   item_name: z.string().min(1, 'Nome do item obrigatório'),
   quantity: z.coerce.number().min(0.01),
   unit_price: z.coerce.number().min(0),
-  subtotal: z.number()
+  subtotal: z.number(),
 })
 
 const quoteSchema = z.object({
   title: z.string().optional().nullable(),
   customer_id: z.string().min(1, 'Selecione um cliente'),
-  valid_until: z.string().refine((val) => {
-    if (!val) return true
-    const date = new Date(val + 'T00:00:00')
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return date >= today
-  }, {
-    message: 'A data de validade não pode ser anterior à data atual'
-  }).optional().nullable(),
+  valid_until: z
+    .string()
+    .refine(
+      (val) => {
+        if (!val) return true
+        const date = new Date(val + 'T00:00:00')
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return date >= today
+      },
+      {
+        message: 'A data de validade não pode ser anterior à data atual',
+      },
+    )
+    .optional()
+    .nullable(),
   discount_type: z.enum(['none', '%', 'R$']),
   discount_value: z.coerce.number().min(0),
   payment_method: z.string().optional(),
   notes: z.string().optional().nullable(),
-  items: z.array(quoteItemSchema).min(1, 'Adicione pelo menos um item ao orçamento')
+  items: z
+    .array(quoteItemSchema)
+    .min(1, 'Adicione pelo menos um item ao orçamento'),
 })
 
 type QuoteValues = z.infer<typeof quoteSchema>
 
-const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+const brl = (val: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    val,
+  )
 
-export function QuoteForm({ customers, catalogItems, initialData }: { customers: any[], catalogItems: any[], initialData?: any }) {
+export function QuoteForm({
+  customers,
+  catalogItems,
+  initialData,
+}: {
+  customers: Customer[]
+  catalogItems: CatalogItem[]
+  initialData?: QuoteWithItems
+}) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   // Estados dos modais de busca
@@ -66,35 +129,46 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
   defaultValidDate.setDate(defaultValidDate.getDate() + 15)
 
   const defaultItems = initialData?.quote_items?.length
-    ? initialData.quote_items.map((i: any) => ({
-      catalog_item_id: i.catalog_item_id,
-      item_name: i.item_name,
-      quantity: i.quantity,
-      unit_price: i.unit_price,
-      subtotal: i.subtotal
-    }))
+    ? initialData.quote_items.map((i) => ({
+        catalog_item_id: i.catalog_item_id,
+        item_name: i.item_name,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+        subtotal: i.subtotal,
+      }))
     : []
 
   const form = useForm<QuoteValues>({
-    resolver: zodResolver(quoteSchema) as any,
+    resolver: zodResolver(quoteSchema) as Resolver<QuoteValues>,
     defaultValues: {
       title: initialData?.title || '',
       customer_id: initialData?.customer_id || '',
-      valid_until: initialData?.valid_until || defaultValidDate.toISOString().split('T')[0],
-      discount_type: initialData?.discount_type === 'percentage' ? '%' : (initialData?.discount_type === 'fixed' ? 'R$' : 'R$'),
+      valid_until:
+        initialData?.valid_until ||
+        defaultValidDate.toISOString().split('T')[0],
+      discount_type:
+        initialData?.discount_type === 'percentage'
+          ? '%'
+          : initialData?.discount_type === 'fixed'
+            ? 'R$'
+            : 'R$',
       discount_value: initialData?.discount_value || 0,
       payment_method: initialData?.payment_method || 'Pix',
       notes: initialData?.notes || '',
-      items: defaultItems
+      items: defaultItems,
     },
   })
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' })
-  const watchItems = useWatch({ control: form.control, name: 'items' }) || []
-  const watchDiscountType = form.watch('discount_type')
-  const watchDiscountValue = form.watch('discount_value')
-  const watchCustomerId = form.watch('customer_id')
-  const watchPaymentMethod = form.watch('payment_method')
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'items',
+  })
+  const watchedItems = useWatch({ control: form.control, name: 'items' })
+  const watchItems = useMemo(() => watchedItems || [], [watchedItems])
+  const watchDiscountType = useWatch({ control: form.control, name: 'discount_type' })
+  const watchDiscountValue = useWatch({ control: form.control, name: 'discount_value' })
+  const watchCustomerId = useWatch({ control: form.control, name: 'customer_id' })
+  const watchPaymentMethod = useWatch({ control: form.control, name: 'payment_method' })
 
   const { subtotalFinal, totalFinal } = useMemo(() => {
     const sub = (watchItems || []).reduce((acc, item) => {
@@ -108,35 +182,56 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
 
     return {
       subtotalFinal: sub,
-      totalFinal: Math.max(0, tot)
+      totalFinal: Math.max(0, tot),
     }
   }, [watchItems, watchDiscountType, watchDiscountValue])
 
   const debouncedCustomerSearch = useDebounce(customerSearch, 300)
   const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
 
-  const handleAddCatalogItem = (item: any) => {
+  const handleAddCatalogItem = (item: CatalogItem) => {
     if (!item) return
-    append({ catalog_item_id: item.id, item_name: item.name, quantity: 1, unit_price: item.unit_price, subtotal: item.unit_price })
+    append({
+      catalog_item_id: item.id,
+      item_name: item.name,
+      quantity: 1,
+      unit_price: item.unit_price,
+      subtotal: item.unit_price,
+    })
     setOpenCatalogModal(false)
     setCatalogSearch('')
   }
 
   const handleAddManualItem = () => {
-    append({ catalog_item_id: null, item_name: '', quantity: 1, unit_price: 0, subtotal: 0 })
+    append({
+      catalog_item_id: null,
+      item_name: '',
+      quantity: 1,
+      unit_price: 0,
+      subtotal: 0,
+    })
   }
 
-  async function handleSave(status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired') {
+  async function handleSave(
+    status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired',
+  ) {
     const isValid = await form.trigger()
     if (!isValid) {
-      toast.error('Por favor, preencha todos os campos obrigatórios corretamente.')
+      toast.error(
+        'Por favor, preencha todos os campos obrigatórios corretamente.',
+      )
       return
     }
 
     const data = form.getValues()
 
     // Mapear valores da UI para o banco de dados
-    const dbDiscountType = data.discount_type === '%' ? 'percentage' : (data.discount_type === 'R$' ? 'fixed' : 'none')
+    const dbDiscountType =
+      data.discount_type === '%'
+        ? 'percentage'
+        : data.discount_type === 'R$'
+          ? 'fixed'
+          : 'none'
 
     setLoading(true)
     const result = await saveQuote({
@@ -145,13 +240,17 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
       id: initialData?.id,
       status,
       subtotal: subtotalFinal,
-      total: totalFinal
+      total: totalFinal,
     })
     setLoading(false)
     if (result.error) {
       toast.error(result.error)
     } else {
-      toast.success(status === 'draft' ? 'Rascunho salvo com sucesso!' : 'Orçamento concluído com sucesso!')
+      toast.success(
+        status === 'draft'
+          ? 'Rascunho salvo com sucesso!'
+          : 'Orçamento concluído com sucesso!',
+      )
       if (status === 'draft') {
         router.push('/app/quotes')
       } else {
@@ -165,7 +264,7 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
     const term = debouncedCustomerSearch.trim().toLowerCase()
     // Regra: 2+ caracteres ou vazio para mostrar nada/limpar
     if (term.length < 2) return []
-    return customers.filter(c => c.name?.toLowerCase().includes(term))
+    return customers.filter((c) => c.name?.toLowerCase().includes(term))
   }, [customers, debouncedCustomerSearch])
 
   // Filtra catálogo pelo nome usando o valor com debounce
@@ -173,12 +272,12 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
     const term = debouncedCatalogSearch.trim().toLowerCase()
     if (!term) return catalogItems
     if (term.length < 2) return catalogItems
-    return catalogItems.filter(i => i.name?.toLowerCase().includes(term))
+    return catalogItems.filter((i) => i.name?.toLowerCase().includes(term))
   }, [catalogItems, debouncedCatalogSearch])
 
   const selectedCustomerName = useMemo(() => {
     if (!watchCustomerId) return null
-    return customers.find(c => c.id === watchCustomerId)?.name
+    return customers.find((c) => c.id === watchCustomerId)?.name
   }, [watchCustomerId, customers])
 
   return (
@@ -193,7 +292,10 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
         <CardContent className="p-6 space-y-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="title" className="text-[13px] font-semibold text-slate-700">
+              <Label
+                htmlFor="title"
+                className="text-[13px] font-semibold text-slate-700"
+              >
                 Título do orçamento
               </Label>
               <Input
@@ -203,7 +305,12 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="valid_until" className="text-[13px] font-semibold text-slate-700">Validade</Label>
+              <Label
+                htmlFor="valid_until"
+                className="text-[13px] font-semibold text-slate-700"
+              >
+                Validade
+              </Label>
               <Input
                 id="valid_until"
                 type="date"
@@ -211,7 +318,9 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                 className={`h-10 border-slate-200 rounded-lg bg-white w-full ${form.formState.errors.valid_until ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {form.formState.errors.valid_until && (
-                <p className="text-xs text-red-500">{form.formState.errors.valid_until.message}</p>
+                <p className="text-xs text-red-500">
+                  {form.formState.errors.valid_until.message}
+                </p>
               )}
             </div>
           </div>
@@ -221,32 +330,43 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               Cliente <span className="text-red-500">*</span>
             </Label>
             <div className="flex items-center gap-3">
-              <Dialog open={openCustomerModal} onOpenChange={(open) => {
-                setOpenCustomerModal(open)
-                if (!open) {
-                  setCustomerSearch('')
-                }
-              }}>
-                <DialogTrigger render={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    role="combobox"
-                    className={`flex-1 justify-between h-10 px-4 border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-normal ${!selectedCustomerName ? 'text-slate-500' : 'text-slate-900 font-medium'} ${form.formState.errors.customer_id ? 'border-red-500' : ''}`}
-                  >
-                    <span className="truncate">{selectedCustomerName || 'Selecionar cliente'}</span>
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Search className="h-4 w-4" />
-                      <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </Button>
-                } />
+              <Dialog
+                open={openCustomerModal}
+                onOpenChange={(open) => {
+                  setOpenCustomerModal(open)
+                  if (!open) {
+                    setCustomerSearch('')
+                  }
+                }}
+              >
+                <DialogTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      className={`flex-1 justify-between h-10 px-4 border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-normal ${!selectedCustomerName ? 'text-slate-500' : 'text-slate-900 font-medium'} ${form.formState.errors.customer_id ? 'border-red-500' : ''}`}
+                    >
+                      <span className="truncate">
+                        {selectedCustomerName || 'Selecionar cliente'}
+                      </span>
+                      <div className="flex items-center gap-2 text-slate-400">
+                        <Search className="h-4 w-4" />
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </Button>
+                  }
+                />
                 {form.formState.errors.customer_id && (
-                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.customer_id.message}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {form.formState.errors.customer_id.message}
+                  </p>
                 )}
                 <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden rounded-xl shadow-xl">
                   <DialogHeader className="px-5 pt-5 pb-0">
-                    <DialogTitle className="text-base font-semibold text-slate-900">Selecionar cliente</DialogTitle>
+                    <DialogTitle className="text-base font-semibold text-slate-900">
+                      Selecionar cliente
+                    </DialogTitle>
                   </DialogHeader>
                   <div className="p-4">
                     <div className="relative">
@@ -269,11 +389,13 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                     ) : filteredCustomers.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                         <p className="text-sm">Nenhum cliente encontrado.</p>
-                        <p className="text-xs mt-1">Tente buscar por outro nome, CPF ou WhatsApp.</p>
+                        <p className="text-xs mt-1">
+                          Tente buscar por outro nome, CPF ou WhatsApp.
+                        </p>
                       </div>
                     ) : (
                       <div>
-                        {filteredCustomers.map(c => (
+                        {filteredCustomers.map((c) => (
                           <button
                             key={c.id}
                             type="button"
@@ -282,19 +404,26 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                               setOpenCustomerModal(false)
                               setCustomerSearch('')
                             }}
-                            className={`flex w-full items-center justify-between px-5 py-3.5 text-sm transition-colors text-left border-b border-slate-50 last:border-0 ${watchCustomerId === c.id
-                              ? 'bg-blue-50'
-                              : 'hover:bg-slate-50'
-                              }`}
+                            className={`flex w-full items-center justify-between px-5 py-3.5 text-sm transition-colors text-left border-b border-slate-50 last:border-0 ${
+                              watchCustomerId === c.id
+                                ? 'bg-blue-50'
+                                : 'hover:bg-slate-50'
+                            }`}
                           >
                             <div className="min-w-0">
-                              <p className="font-semibold text-slate-900 truncate">{c.name}</p>
+                              <p className="font-semibold text-slate-900 truncate">
+                                {c.name}
+                              </p>
                               <div className="flex items-center gap-3 mt-0.5">
                                 {c.document && (
-                                  <span className="text-xs text-slate-500">{c.document}</span>
+                                  <span className="text-xs text-slate-500">
+                                    {c.document}
+                                  </span>
                                 )}
                                 {c.whatsapp && (
-                                  <span className="text-xs text-slate-500">{c.whatsapp}</span>
+                                  <span className="text-xs text-slate-500">
+                                    {c.whatsapp}
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -325,13 +454,22 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
 
               <TooltipProvider>
                 <Tooltip>
-                  <CustomerForm trigger={
-                    <TooltipTrigger render={
-                      <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0 border-slate-200">
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
-                    } />
-                  } />
+                  <CustomerForm
+                    trigger={
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10 shrink-0 border-slate-200"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    }
+                  />
                   <TooltipContent>Cadastrar novo cliente</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -348,13 +486,16 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-2">
-
           {/* Empty state ou tabela de itens */}
           {fields.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 border border-dashed border-slate-200 rounded-xl text-slate-400">
               <Package className="h-8 w-8 mb-2 opacity-40" />
               <p className="text-sm font-medium">Nenhum item adicionado</p>
-              <p className="text-xs mt-1">Use <span className="font-semibold">Catálogo</span> para buscar um produto ou <span className="font-semibold">Novo item</span> para incluir manualmente.</p>
+              <p className="text-xs mt-1">
+                Use <span className="font-semibold">Catálogo</span> para buscar
+                um produto ou <span className="font-semibold">Novo item</span>{' '}
+                para incluir manualmente.
+              </p>
             </div>
           ) : (
             <div className="pb-4">
@@ -363,7 +504,9 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                   <tr>
                     <th className="pr-2 pb-3 w-[45%]">Item</th>
                     <th className="px-2 pb-3 text-center w-[12%]">Qtd</th>
-                    <th className="px-2 pb-3 text-center w-[20%]">Preço (R$)</th>
+                    <th className="px-2 pb-3 text-center w-[20%]">
+                      Preço (R$)
+                    </th>
                     <th className="px-2 pb-3 text-right w-[18%]">Total</th>
                     <th className="w-[5%] pb-3 text-right"></th>
                   </tr>
@@ -374,13 +517,18 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                       <td className="pr-2 py-4 align-top">
                         <div className="relative">
                           <Input
-                            {...form.register(`items.${index}.item_name` as const)}
+                            {...form.register(
+                              `items.${index}.item_name` as const,
+                            )}
                             placeholder="Descrição"
                             className={`h-10 text-sm border-slate-200 rounded-lg ${form.formState.errors.items?.[index]?.item_name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                           />
                           {form.formState.errors.items?.[index]?.item_name && (
                             <p className="text-[10px] text-red-500 mt-1 font-medium ml-1">
-                              {form.formState.errors.items[index]?.item_name?.message}
+                              {
+                                form.formState.errors.items[index]?.item_name
+                                  ?.message
+                              }
                             </p>
                           )}
                         </div>
@@ -391,13 +539,27 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                             type="number"
                             min="1"
                             step="1"
-                            {...form.register(`items.${index}.quantity` as const, {
-                              onChange: () => {
-                                const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
-                                const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
-                                form.setValue(`items.${index}.subtotal`, qty * price)
-                              }
-                            })}
+                            {...form.register(
+                              `items.${index}.quantity` as const,
+                              {
+                                onChange: () => {
+                                  const qty =
+                                    Number(
+                                      form.getValues(`items.${index}.quantity`),
+                                    ) || 0
+                                  const price =
+                                    Number(
+                                      form.getValues(
+                                        `items.${index}.unit_price`,
+                                      ),
+                                    ) || 0
+                                  form.setValue(
+                                    `items.${index}.subtotal`,
+                                    qty * price,
+                                  )
+                                },
+                              },
+                            )}
                             className="h-full border-0 rounded-none focus-visible:ring-0 text-center tabular-nums w-full px-1"
                           />
                           <div className="h-full px-1.5 bg-slate-100 text-slate-500 flex items-center justify-center text-[9px] font-bold border-l border-slate-200 shrink-0">
@@ -414,14 +576,33 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                               <Input
                                 type="text"
                                 placeholder="0,00"
-                                value={field.value ? maskCurrency(Math.round(field.value * 100).toString()) : ''}
+                                value={
+                                  field.value
+                                    ? maskCurrency(
+                                        Math.round(
+                                          field.value * 100,
+                                        ).toString(),
+                                      )
+                                    : ''
+                                }
                                 onChange={(e) => {
                                   const masked = maskCurrency(e.target.value)
-                                  const raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
+                                  const raw =
+                                    parseFloat(
+                                      masked
+                                        .replace(/\./g, '')
+                                        .replace(',', '.'),
+                                    ) || 0
                                   field.onChange(raw)
 
-                                  const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
-                                  form.setValue(`items.${index}.subtotal`, qty * raw)
+                                  const qty =
+                                    Number(
+                                      form.getValues(`items.${index}.quantity`),
+                                    ) || 0
+                                  form.setValue(
+                                    `items.${index}.subtotal`,
+                                    qty * raw,
+                                  )
                                 }}
                                 className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-1"
                               />
@@ -434,7 +615,10 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                       </td>
                       <td className="px-2 py-4 align-top text-right">
                         <div className="h-10 flex items-center justify-end text-[14px] text-slate-800 font-bold tabular-nums">
-                          {brl((Number(watchItems[index]?.quantity) || 0) * (Number(watchItems[index]?.unit_price) || 0))}
+                          {brl(
+                            (Number(watchItems[index]?.quantity) || 0) *
+                              (Number(watchItems[index]?.unit_price) || 0),
+                          )}
                         </div>
                       </td>
                       <td className="pl-2 py-4 align-top text-right">
@@ -458,24 +642,31 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           {/* Botões de ação dos itens — abaixo da lista, à direita */}
           <div className="mt-4 flex items-center justify-end gap-1">
             {/* Botão Catálogo — discreto, sem borda */}
-            <Dialog open={openCatalogModal} onOpenChange={(open) => {
-              setOpenCatalogModal(open)
-              if (!open) {
-                setCatalogSearch('')
-              }
-            }}>
-              <DialogTrigger render={
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-indigo-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <Package className="h-4 w-4" />
-                  Catálogo
-                </button>
-              } />
+            <Dialog
+              open={openCatalogModal}
+              onOpenChange={(open) => {
+                setOpenCatalogModal(open)
+                if (!open) {
+                  setCatalogSearch('')
+                }
+              }}
+            >
+              <DialogTrigger
+                render={
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-indigo-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <Package className="h-4 w-4" />
+                    Catálogo
+                  </button>
+                }
+              />
               <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl shadow-xl">
                 <DialogHeader className="px-5 pt-5 pb-0">
-                  <DialogTitle className="text-base font-semibold text-slate-900">Adicionar do Catálogo</DialogTitle>
+                  <DialogTitle className="text-base font-semibold text-slate-900">
+                    Adicionar do Catálogo
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="p-4">
                   <div className="relative">
@@ -493,11 +684,13 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                   {filteredCatalog.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-slate-400">
                       <p className="text-sm">Nenhum item encontrado.</p>
-                      <p className="text-xs mt-1">Tente buscar por outro nome.</p>
+                      <p className="text-xs mt-1">
+                        Tente buscar por outro nome.
+                      </p>
                     </div>
                   ) : (
                     <div>
-                      {filteredCatalog.map(item => (
+                      {filteredCatalog.map((item) => (
                         <button
                           key={item.id}
                           type="button"
@@ -505,13 +698,26 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                           className="flex w-full items-center justify-between px-5 py-3.5 text-sm transition-colors text-left border-b border-slate-50 last:border-0 hover:bg-slate-50"
                         >
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">{item.name}</p>
+                            <p className="font-semibold text-slate-900 truncate">
+                              {item.name}
+                            </p>
                             <div className="flex items-center gap-3 mt-0.5">
-                              <span className="text-xs text-slate-500">{item.type === 'product' ? 'Produto' : 'Serviço'}</span>
+                              <span className="text-xs text-slate-500">
+                                {item.type === 'product'
+                                  ? 'Produto'
+                                  : 'Serviço'}
+                              </span>
                               <span className="text-xs text-slate-500">•</span>
-                              <span className="text-xs text-slate-500">Valor base: <strong className="text-slate-700">{brl(item.unit_price)}</strong></span>
+                              <span className="text-xs text-slate-500">
+                                Valor base:{' '}
+                                <strong className="text-slate-700">
+                                  {brl(item.unit_price)}
+                                </strong>
+                              </span>
                               {item.unit_measure && (
-                                <span className="text-xs text-slate-500">• {item.unit_measure}</span>
+                                <span className="text-xs text-slate-500">
+                                  • {item.unit_measure}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -524,7 +730,12 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
               </DialogContent>
             </Dialog>
 
-            <Button type="button" variant="outline" onClick={handleAddManualItem} className="h-9 px-4 border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 gap-2 text-[13px] font-medium">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddManualItem}
+              className="h-9 px-4 border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 gap-2 text-[13px] font-medium"
+            >
               <Plus className="h-4 w-4" /> Novo item
             </Button>
           </div>
@@ -535,7 +746,6 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
             </div>
           )}
         </CardContent>
-
       </Card>
 
       {/* Resumo e Pagamento */}
@@ -546,16 +756,27 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6 pt-2">
-
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <Label className="text-[13px] font-semibold text-slate-700">Desc. geral</Label>
+              <Label className="text-[13px] font-semibold text-slate-700">
+                Desc. geral
+              </Label>
               <div className="flex items-center gap-3">
-                <Select onValueChange={(val) => form.setValue('discount_type', val as any)} value={watchDiscountType}>
+                <Select
+                  onValueChange={(val) =>
+                    form.setValue('discount_type', val as 'none' | '%' | 'R$')
+                  }
+                  value={watchDiscountType}
+                >
                   <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-lg bg-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent alignItemWithTrigger={false} side="bottom" sideOffset={4} className="rounded-xl border-slate-200">
+                  <SelectContent
+                    alignItemWithTrigger={false}
+                    side="bottom"
+                    sideOffset={4}
+                    className="rounded-xl border-slate-200"
+                  >
                     <SelectItem value="%">%</SelectItem>
                     <SelectItem value="R$">R$</SelectItem>
                   </SelectContent>
@@ -568,13 +789,23 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
                       type={watchDiscountType === 'R$' ? 'text' : 'number'}
                       step="0.01"
                       placeholder={watchDiscountType === 'R$' ? '0,00' : '0'}
-                      value={watchDiscountType === 'R$'
-                        ? (field.value ? maskCurrency(Math.round(field.value * 100).toString()) : '')
-                        : field.value || ''}
+                      value={
+                        watchDiscountType === 'R$'
+                          ? field.value
+                            ? maskCurrency(
+                                Math.round(field.value * 100).toString(),
+                              )
+                            : ''
+                          : field.value || ''
+                      }
                       onChange={(e) => {
                         if (watchDiscountType === 'R$') {
                           const masked = maskCurrency(e.target.value)
-                          field.onChange(parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0)
+                          field.onChange(
+                            parseFloat(
+                              masked.replace(/\./g, '').replace(',', '.'),
+                            ) || 0,
+                          )
                         } else {
                           field.onChange(e.target.value)
                         }
@@ -588,14 +819,35 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[13px] font-semibold text-slate-700">Forma de pagamento</Label>
-              <Select onValueChange={(val) => form.setValue('payment_method', val as string)} value={watchPaymentMethod}>
+              <Label className="text-[13px] font-semibold text-slate-700">
+                Forma de pagamento
+              </Label>
+              <Select
+                onValueChange={(val) =>
+                  form.setValue('payment_method', val as string)
+                }
+                value={watchPaymentMethod}
+              >
                 <SelectTrigger className="h-10 border-slate-200 rounded-lg bg-white">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false} side="bottom" sideOffset={4} className="rounded-xl border-slate-200">
-                  {['Pix', 'Dinheiro', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto Bancário', 'Cheque'].map(m => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                <SelectContent
+                  alignItemWithTrigger={false}
+                  side="bottom"
+                  sideOffset={4}
+                  className="rounded-xl border-slate-200"
+                >
+                  {[
+                    'Pix',
+                    'Dinheiro',
+                    'Cartão de Crédito',
+                    'Cartão de Débito',
+                    'Boleto Bancário',
+                    'Cheque',
+                  ].map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -606,17 +858,35 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
             <div className="w-full max-w-[320px] space-y-3">
               <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
                 <span>Subtotal</span>
-                <span className="tabular-nums text-slate-700">{brl(subtotalFinal)}</span>
+                <span className="tabular-nums text-slate-700">
+                  {brl(subtotalFinal)}
+                </span>
               </div>
               <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
-                <span>Desconto {watchDiscountType === '%' && watchDiscountValue > 0 ? `(${watchDiscountValue}%)` : ''}</span>
+                <span>
+                  Desconto{' '}
+                  {watchDiscountType === '%' && watchDiscountValue > 0
+                    ? `(${watchDiscountValue}%)`
+                    : ''}
+                </span>
                 <span className="tabular-nums text-green-600">
-                  {watchDiscountValue > 0 ? '-' : ''}{brl(watchDiscountType === 'none' ? 0 : (watchDiscountType === 'R$' ? Number(watchDiscountValue) : subtotalFinal * (Number(watchDiscountValue) / 100)))}
+                  {watchDiscountValue > 0 ? '-' : ''}
+                  {brl(
+                    watchDiscountType === 'none'
+                      ? 0
+                      : watchDiscountType === 'R$'
+                        ? Number(watchDiscountValue)
+                        : subtotalFinal * (Number(watchDiscountValue) / 100),
+                  )}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-slate-100">
-                <span className="text-[14px] font-bold text-slate-900 uppercase tracking-tight">Total</span>
-                <span className="text-lg font-black text-blue-900 tabular-nums tracking-tighter">{brl(totalFinal)}</span>
+                <span className="text-[14px] font-bold text-slate-900 uppercase tracking-tight">
+                  Total
+                </span>
+                <span className="text-lg font-black text-blue-900 tabular-nums tracking-tighter">
+                  {brl(totalFinal)}
+                </span>
               </div>
             </div>
           </div>
@@ -670,4 +940,3 @@ export function QuoteForm({ customers, catalogItems, initialData }: { customers:
     </div>
   )
 }
-

@@ -18,7 +18,10 @@ export type Quote = {
   customers?: { name: string } | null
 }
 
-const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+const brl = (val: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    val,
+  )
 
 export const columns: ColumnDef<Quote>[] = [
   {
@@ -50,7 +53,9 @@ export const columns: ColumnDef<Quote>[] = [
       const customerName = row.original.customers?.name
       return (
         <div className="text-slate-600 font-medium">
-          {customerName || <span className="text-muted-foreground italic">Sem cliente</span>}
+          {customerName || (
+            <span className="text-muted-foreground italic">Sem cliente</span>
+          )}
         </div>
       )
     },
@@ -63,9 +68,7 @@ export const columns: ColumnDef<Quote>[] = [
       if (!dateStr) return <span className="text-slate-400">-</span>
       const date = new Date(dateStr + 'T00:00:00') // Add time to avoid TZ shifts
       return (
-        <div className="text-slate-600">
-          {date.toLocaleDateString('pt-BR')}
-        </div>
+        <div className="text-slate-600">{date.toLocaleDateString('pt-BR')}</div>
       )
     },
   },
@@ -106,7 +109,7 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => {
       const status = row.original.status
       const validUntil = row.original.valid_until
-      const statusMap: Record<string, { label: string, className: string }> = {
+      const statusMap: Record<string, { label: string; className: string }> = {
         draft: { label: 'Rascunho', className: 'bg-slate-900 text-white' },
         open: { label: 'Pendente', className: 'bg-indigo-900 text-white' },
         accepted: { label: 'Aprovado', className: 'bg-emerald-900 text-white' },
@@ -115,7 +118,10 @@ export const columns: ColumnDef<Quote>[] = [
         vencido: { label: 'Vencido', className: 'bg-slate-900 text-white' },
       }
 
-      const config = statusMap[status] || { label: status, className: 'bg-slate-500 text-white' }
+      const config = statusMap[status] || {
+        label: status,
+        className: 'bg-slate-500 text-white',
+      }
 
       // Se estiver aberto mas a validade passou, mostrar como expirado
       let finalConfig = config
@@ -127,7 +133,9 @@ export const columns: ColumnDef<Quote>[] = [
       }
 
       return (
-        <Badge className={`rounded-md px-3 py-0.5 text-[10px] font-bold border-none shadow-sm ${finalConfig.className}`}>
+        <Badge
+          className={`rounded-md px-3 py-0.5 text-[10px] font-bold border-none shadow-sm ${finalConfig.className}`}
+        >
           {finalConfig.label.toUpperCase()}
         </Badge>
       )
@@ -144,7 +152,12 @@ export const columns: ColumnDef<Quote>[] = [
         <div className="flex items-center justify-end gap-1">
           {!isDraft && (
             <Link href={`/app/quotes/${id}`} target="_blank">
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100" title="Ver Detalhes">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                title="Ver Detalhes"
+              >
                 <Eye className="h-4 w-4" />
                 <span className="sr-only">Ver orçameto</span>
               </Button>
@@ -152,7 +165,12 @@ export const columns: ColumnDef<Quote>[] = [
           )}
           {isDraft && (
             <Link href={`/app/quotes/${id}/edit`}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50" title="Editar Rascunho">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                title="Editar Rascunho"
+              >
                 <Pencil className="h-4 w-4" />
                 <span className="sr-only">Editar Rascunho</span>
               </Button>
@@ -163,4 +181,3 @@ export const columns: ColumnDef<Quote>[] = [
     },
   },
 ]
-

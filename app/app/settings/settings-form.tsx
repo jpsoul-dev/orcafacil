@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import Image from 'next/image'
 import { ImageIcon, Building2, MapPin, Loader2, Upload } from 'lucide-react'
 
@@ -29,9 +28,27 @@ const settingsSchema = z.object({
 
 type SettingsValues = z.infer<typeof settingsSchema>
 
-export function SettingsForm({ initialData }: { initialData: any }) {
+export interface Company {
+  id: string
+  user_id: string
+  name: string
+  phone: string
+  logo_url: string | null
+  address_zip?: string | null
+  address_street?: string | null
+  address_number?: string | null
+  address_complement?: string | null
+  address_neighborhood?: string | null
+  address_city?: string | null
+  address_state?: string | null
+  created_at: string
+}
+
+export function SettingsForm({ initialData }: { initialData: Company | null }) {
   const [loading, setLoading] = useState(false)
-  const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.logo_url || null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    initialData?.logo_url || null,
+  )
 
   const form = useForm<SettingsValues>({
     resolver: zodResolver(settingsSchema),
@@ -51,10 +68,13 @@ export function SettingsForm({ initialData }: { initialData: any }) {
   async function onSubmit(data: SettingsValues) {
     setLoading(true)
     const formData = new FormData()
-    Object.entries(data).forEach(([key, value]) => formData.append(key, value || ''))
+    Object.entries(data).forEach(([key, value]) =>
+      formData.append(key, value || ''),
+    )
     const fileInput = document.getElementById('logo') as HTMLInputElement
     if (fileInput?.files?.[0]) formData.append('logo', fileInput.files[0])
-    if (initialData?.logo_url) formData.append('existing_logo_url', initialData.logo_url)
+    if (initialData?.logo_url)
+      formData.append('existing_logo_url', initialData.logo_url)
     const result = await saveCompanySettings(formData)
     setLoading(false)
     if (result.error) {
@@ -111,7 +131,12 @@ export function SettingsForm({ initialData }: { initialData: any }) {
             <div className="shrink-0">
               {logoPreview ? (
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-border shadow-sm">
-                  <Image src={logoPreview} alt="Logo" fill className="object-contain" />
+                  <Image
+                    src={logoPreview}
+                    alt="Logo"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
               ) : (
                 <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border bg-muted/50 flex flex-col items-center justify-center text-muted-foreground">
@@ -126,9 +151,17 @@ export function SettingsForm({ initialData }: { initialData: any }) {
                   <Upload className="h-4 w-4 shrink-0" />
                   <span>Clique para selecionar uma imagem</span>
                 </div>
-                <Input id="logo" type="file" accept="image/png, image/jpeg" onChange={handleLogoChange} className="hidden" />
+                <Input
+                  id="logo"
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  onChange={handleLogoChange}
+                  className="hidden"
+                />
               </label>
-              <p className="text-xs text-muted-foreground">PNG ou JPG, recomendado 500×500px, máximo 2MB</p>
+              <p className="text-xs text-muted-foreground">
+                PNG ou JPG, recomendado 500×500px, máximo 2MB
+              </p>
             </div>
           </div>
         </CardContent>
@@ -145,17 +178,35 @@ export function SettingsForm({ initialData }: { initialData: any }) {
         <CardContent className="px-6 pb-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="font-medium text-sm">Nome da Empresa *</Label>
-              <Input id="name" {...form.register('name')} placeholder="Sua Empresa LTDA" className="h-10" />
+              <Label htmlFor="name" className="font-medium text-sm">
+                Nome da Empresa *
+              </Label>
+              <Input
+                id="name"
+                {...form.register('name')}
+                placeholder="Sua Empresa LTDA"
+                className="h-10"
+              />
               {form.formState.errors.name && (
-                <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.name.message}
+                </p>
               )}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="phone" className="font-medium text-sm">Telefone / WhatsApp *</Label>
-              <Input id="phone" {...form.register('phone')} placeholder="(00) 00000-0000" className="h-10" />
+              <Label htmlFor="phone" className="font-medium text-sm">
+                Telefone / WhatsApp *
+              </Label>
+              <Input
+                id="phone"
+                {...form.register('phone')}
+                placeholder="(00) 00000-0000"
+                className="h-10"
+              />
               {form.formState.errors.phone && (
-                <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.phone.message}
+                </p>
               )}
             </div>
           </div>
@@ -173,45 +224,102 @@ export function SettingsForm({ initialData }: { initialData: any }) {
         <CardContent className="px-6 pb-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="address_zip" className="font-medium text-sm">CEP</Label>
-              <Input id="address_zip" {...form.register('address_zip')} placeholder="00000-000" onBlur={checkCEP} className="h-10" />
+              <Label htmlFor="address_zip" className="font-medium text-sm">
+                CEP
+              </Label>
+              <Input
+                id="address_zip"
+                {...form.register('address_zip')}
+                placeholder="00000-000"
+                onBlur={checkCEP}
+                className="h-10"
+              />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="address_street" className="font-medium text-sm">Logradouro</Label>
-              <Input id="address_street" {...form.register('address_street')} className="h-10" />
+              <Label htmlFor="address_street" className="font-medium text-sm">
+                Logradouro
+              </Label>
+              <Input
+                id="address_street"
+                {...form.register('address_street')}
+                className="h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="address_number" className="font-medium text-sm">Número</Label>
-              <Input id="address_number" {...form.register('address_number')} className="h-10" />
+              <Label htmlFor="address_number" className="font-medium text-sm">
+                Número
+              </Label>
+              <Input
+                id="address_number"
+                {...form.register('address_number')}
+                className="h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="address_complement" className="font-medium text-sm">Complemento</Label>
-              <Input id="address_complement" {...form.register('address_complement')} className="h-10" />
+              <Label
+                htmlFor="address_complement"
+                className="font-medium text-sm"
+              >
+                Complemento
+              </Label>
+              <Input
+                id="address_complement"
+                {...form.register('address_complement')}
+                className="h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="address_neighborhood" className="font-medium text-sm">Bairro</Label>
-              <Input id="address_neighborhood" {...form.register('address_neighborhood')} className="h-10" />
+              <Label
+                htmlFor="address_neighborhood"
+                className="font-medium text-sm"
+              >
+                Bairro
+              </Label>
+              <Input
+                id="address_neighborhood"
+                {...form.register('address_neighborhood')}
+                className="h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="address_city" className="font-medium text-sm">Cidade</Label>
-              <Input id="address_city" {...form.register('address_city')} className="h-10" />
+              <Label htmlFor="address_city" className="font-medium text-sm">
+                Cidade
+              </Label>
+              <Input
+                id="address_city"
+                {...form.register('address_city')}
+                className="h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="address_state" className="font-medium text-sm">Estado (UF)</Label>
-              <Input id="address_state" {...form.register('address_state')} maxLength={2} className="h-10 uppercase" />
+              <Label htmlFor="address_state" className="font-medium text-sm">
+                Estado (UF)
+              </Label>
+              <Input
+                id="address_state"
+                {...form.register('address_state')}
+                maxLength={2}
+                className="h-10 uppercase"
+              />
             </div>
           </div>
         </CardContent>
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={loading} className="h-10 px-8 font-semibold gap-2">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-10 px-8 font-semibold gap-2"
+        >
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               Salvando...
             </>
-          ) : 'Salvar Configurações'}
+          ) : (
+            'Salvar Configurações'
+          )}
         </Button>
       </div>
     </form>

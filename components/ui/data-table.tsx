@@ -24,13 +24,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronsLeft, 
-  ChevronsRight, 
-  Search
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -53,7 +47,9 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = 'Buscar...',
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  )
   const [columnVisibility, setColumnVisibility] = React.useState({})
   const [globalFilter, setGlobalFilter] = React.useState('')
 
@@ -107,16 +103,22 @@ export function DataTable<TData, TValue>({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-muted/40 hover:bg-muted/40">
+              <TableRow
+                key={headerGroup.id}
+                className="bg-muted/40 hover:bg-muted/40"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="font-semibold text-foreground/80">
+                    <TableHead
+                      key={header.id}
+                      className="font-semibold text-foreground/80"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   )
                 })}
@@ -133,14 +135,20 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   Nenhum resultado encontrado.
                 </TableCell>
               </TableRow>
@@ -150,7 +158,9 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Linhas por página</span>
+          <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+            Linhas por página
+          </span>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {

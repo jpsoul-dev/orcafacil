@@ -3,14 +3,30 @@
 import { parseISO, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { maskPhone } from '@/lib/masks'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Printer, CopyIcon, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useState, useEffect, useMemo } from 'react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useState, useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
-import { updateQuoteStatus, updatePublicQuoteStatus } from '@/app/app/quotes/[id]/status-actions'
+import {
+  updateQuoteStatus,
+  updatePublicQuoteStatus,
+} from '@/app/app/quotes/[id]/status-actions'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +37,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 
-export type QuoteStatus = 'draft' | 'open' | 'accepted' | 'rejected' | 'expired' | 'vencido'
+export type QuoteStatus =
+  | 'draft'
+  | 'open'
+  | 'accepted'
+  | 'rejected'
+  | 'expired'
+  | 'vencido'
 
 export interface QuoteItem {
   item_name: string
@@ -70,20 +92,50 @@ export interface Quote {
   items: QuoteItem[]
 }
 
-const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+const brl = (val: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    val,
+  )
 
 interface QuoteViewerProps {
   quote: Quote
   isAdmin?: boolean
 }
 
-const STATUS_MAP: Record<QuoteStatus, { label: string, color: string, dot: string }> = {
-  draft: { label: 'Rascunho', color: 'bg-slate-100 text-slate-700 border-slate-200', dot: 'bg-slate-400' },
-  open: { label: 'Pendente', color: 'bg-indigo-100 text-indigo-700 border-indigo-200', dot: 'bg-indigo-600' },
-  accepted: { label: 'Aprovado', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', dot: 'bg-emerald-600' },
-  rejected: { label: 'Rejeitado', color: 'bg-red-100 text-red-700 border-red-200', dot: 'bg-red-600' },
-  expired: { label: 'Expirado', color: 'bg-gray-100 text-gray-700 border-gray-200', dot: 'bg-gray-600' },
-  vencido: { label: 'Vencido', color: 'bg-slate-100 text-slate-700 border-slate-200', dot: 'bg-slate-500' },
+const STATUS_MAP: Record<
+  QuoteStatus,
+  { label: string; color: string; dot: string }
+> = {
+  draft: {
+    label: 'Rascunho',
+    color: 'bg-slate-100 text-slate-700 border-slate-200',
+    dot: 'bg-slate-400',
+  },
+  open: {
+    label: 'Pendente',
+    color: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    dot: 'bg-indigo-600',
+  },
+  accepted: {
+    label: 'Aprovado',
+    color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    dot: 'bg-emerald-600',
+  },
+  rejected: {
+    label: 'Rejeitado',
+    color: 'bg-red-100 text-red-700 border-red-200',
+    dot: 'bg-red-600',
+  },
+  expired: {
+    label: 'Expirado',
+    color: 'bg-gray-100 text-gray-700 border-gray-200',
+    dot: 'bg-gray-600',
+  },
+  vencido: {
+    label: 'Vencido',
+    color: 'bg-slate-100 text-slate-700 border-slate-200',
+    dot: 'bg-slate-500',
+  },
 }
 
 export interface QuoteItem {
@@ -100,7 +152,10 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
 
   // Sincronizar estado local se a prop mudar (ex: re-render do pai)
   useEffect(() => {
-    setCurrentStatus(quote.status)
+    const timer = setTimeout(() => {
+      setCurrentStatus(quote.status)
+    }, 0)
+    return () => clearTimeout(timer)
   }, [quote.status])
 
   useEffect(() => {
@@ -155,7 +210,11 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         toast.error('Erro ao atualizar orçamento: ' + result.error)
         setCurrentStatus(previousStatus)
       } else {
-        toast.success(newStatus === 'accepted' ? 'Orçamento aprovado' : 'Orçamento rejeitado')
+        toast.success(
+          newStatus === 'accepted'
+            ? 'Orçamento aprovado'
+            : 'Orçamento rejeitado',
+        )
       }
     } catch (error) {
       toast.error('Ocorreu um erro ao processar sua solicitação.')
@@ -175,7 +234,10 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
       await navigator.clipboard.writeText(url)
       toast.success('Link do orçamento copiado! Envie para o seu cliente.')
     } catch (err) {
-      toast.error('Não foi possível copiar o link automaticamente. Copie manualmente: ' + url)
+      toast.error(
+        'Não foi possível copiar o link automaticamente. Copie manualmente: ' +
+          url,
+      )
     }
   }
 
@@ -187,13 +249,21 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           <div className="flex items-center gap-4">
             {isAdmin && (
               <div className="flex items-center gap-3">
-                <Select value={currentStatus} onValueChange={handleStatusChange} disabled={isUpdating}>
-                  <SelectTrigger className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}>
+                <Select
+                  value={currentStatus}
+                  onValueChange={handleStatusChange}
+                  disabled={isUpdating}
+                >
+                  <SelectTrigger
+                    className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}
+                  >
                     <div className="flex items-center gap-2">
                       {isUpdating ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                        <div className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`} />
+                        <div
+                          className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`}
+                        />
                       )}
                       <SelectValue>
                         {STATUS_MAP[currentStatus]?.label}
@@ -202,12 +272,24 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200">
                     {Object.entries(STATUS_MAP)
-                      .filter(([value]) => (value !== 'expired' && value !== 'draft') || value === currentStatus)
+                      .filter(
+                        ([value]) =>
+                          (value !== 'expired' && value !== 'draft') ||
+                          value === currentStatus,
+                      )
                       .map(([value, info]) => (
-                        <SelectItem key={value} value={value} className="py-2 focus:bg-slate-50">
+                        <SelectItem
+                          key={value}
+                          value={value}
+                          className="py-2 focus:bg-slate-50"
+                        >
                           <div className="flex items-center gap-2">
-                            <div className={`h-2 w-2 rounded-full ${info.dot}`} />
-                            <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">{info.label}</span>
+                            <div
+                              className={`h-2 w-2 rounded-full ${info.dot}`}
+                            />
+                            <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">
+                              {info.label}
+                            </span>
                           </div>
                         </SelectItem>
                       ))}
@@ -225,26 +307,40 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             {!isAdmin && currentStatus === 'open' && (
               <>
                 <AlertDialog>
-                  <AlertDialogTrigger render={
-                    <Button variant="outline" size="sm" className="h-9 gap-2 border-red-200 text-red-600 hover:bg-red-50 font-bold">
-                      <XCircle className="h-4 w-4" /> Rejeitar
-                    </Button>
-                  } />
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 gap-2 border-red-200 text-red-600 hover:bg-red-50 font-bold"
+                      >
+                        <XCircle className="h-4 w-4" /> Rejeitar
+                      </Button>
+                    }
+                  />
                   <AlertDialogContent className="rounded-2xl border-slate-200">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">Rejeitar Orçamento?</AlertDialogTitle>
+                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">
+                        Rejeitar Orçamento?
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-slate-500 font-medium">
-                        Tem certeza que deseja rejeitar este orçamento? Esta ação sinalizará à empresa que você não concorda com os termos propostos.
+                        Tem certeza que deseja rejeitar este orçamento? Esta
+                        ação sinalizará à empresa que você não concorda com os
+                        termos propostos.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl font-bold">Voltar</AlertDialogCancel>
+                      <AlertDialogCancel className="rounded-xl font-bold">
+                        Voltar
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         disabled={isUpdating}
                         onClick={() => handlePublicStatusChange('rejected')}
                         className="rounded-xl bg-red-600 hover:bg-red-700 font-bold"
                       >
-                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        {isUpdating ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : null}
                         Confirmar Rejeição
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -252,31 +348,44 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                 </AlertDialog>
 
                 <AlertDialog>
-                  <AlertDialogTrigger render={
-                    <Button
-                      disabled={isUpdating}
-                      size="sm"
-                      className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                    >
-                      {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                      Aprovar
-                    </Button>
-                  } />
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        disabled={isUpdating}
+                        size="sm"
+                        className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                      >
+                        {isUpdating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4" />
+                        )}
+                        Aprovar
+                      </Button>
+                    }
+                  />
                   <AlertDialogContent className="rounded-2xl border-slate-200">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">Aprovar Orçamento?</AlertDialogTitle>
+                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">
+                        Aprovar Orçamento?
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-slate-500 font-medium">
-                        Ao aprovar, você confirma que está de acordo com os itens, valores e condições descritos neste orçamento.
+                        Ao aprovar, você confirma que está de acordo com os
+                        itens, valores e condições descritos neste orçamento.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl font-bold">Voltar</AlertDialogCancel>
+                      <AlertDialogCancel className="rounded-xl font-bold">
+                        Voltar
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         disabled={isUpdating}
                         onClick={() => handlePublicStatusChange('accepted')}
                         className="rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-white"
                       >
-                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        {isUpdating ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : null}
                         Confirmar Aprovação
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -286,11 +395,21 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
               </>
             )}
 
-            <Button onClick={handlePrint} size="sm" className="h-9 gap-2 border-slate-200 font-bold">
-              <Printer className="h-4 w-4" />Imprimir
+            <Button
+              onClick={handlePrint}
+              size="sm"
+              className="h-9 gap-2 border-slate-200 font-bold"
+            >
+              <Printer className="h-4 w-4" />
+              Imprimir
             </Button>
             {isAdmin && (
-              <Button onClick={handleCopyLink} variant="secondary" size="sm" className="h-9 gap-2 border-slate-200 font-bold hover:bg-blue-50">
+              <Button
+                onClick={handleCopyLink}
+                variant="secondary"
+                size="sm"
+                className="h-9 gap-2 border-slate-200 font-bold hover:bg-blue-50"
+              >
                 <CopyIcon className="h-4 w-4" /> Link
               </Button>
             )}
@@ -300,7 +419,6 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
 
       {/* DOCUMENT CONTAINER */}
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-8 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative overflow-hidden">
-
         {/* COMPANY HEADER */}
         <div className="flex justify-between items-start mb-16">
           <div className="flex items-center gap-4">
@@ -316,20 +434,34 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
               </div>
             )}
             <div className="space-y-1">
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">{quote.company?.name || 'Sua Empresa'}</h2>
-              <p className="text-sm text-slate-500 font-medium">{maskPhone(quote.company?.phone)}</p>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                {quote.company?.name || 'Sua Empresa'}
+              </h2>
+              <p className="text-sm text-slate-500 font-medium">
+                {maskPhone(quote.company?.phone)}
+              </p>
             </div>
           </div>
 
           <div className="text-right">
-            <h1 className="text-3xl font-black text-slate-900 tracking-widest uppercase mb-1">Orçamento</h1>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest mb-6">Nº {quote.hash_id}</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-widest uppercase mb-1">
+              Orçamento
+            </h1>
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest mb-6">
+              Nº {quote.hash_id}
+            </p>
 
             <div className="flex items-center justify-end gap-3">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Válido até:</span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Válido até:
+              </span>
               <span className="text-[13px] font-black text-slate-900">
                 {quote.valid_until
-                  ? format(parseISO(quote.valid_until), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
+                  ? format(
+                      parseISO(quote.valid_until),
+                      "d 'de' MMMM 'de' yyyy",
+                      { locale: ptBR },
+                    )
                   : 'A combinar'}
               </span>
             </div>
@@ -341,17 +473,35 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         {/* CUSTOMER HEADER */}
         <div className="flex justify-between items-start mb-12">
           <div className="space-y-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Orçamento para</p>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">{quote.customer?.name}</h1>
-            <p className="text-sm text-slate-500 font-medium">CPF: {quote.customer?.document || '---'}</p>
-            <p className="text-sm text-slate-500 font-medium">{maskPhone(quote.customer?.phone)}</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+              Orçamento para
+            </p>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {quote.customer?.name}
+            </h1>
+            <p className="text-sm text-slate-500 font-medium">
+              CPF: {quote.customer?.document || '---'}
+            </p>
+            <p className="text-sm text-slate-500 font-medium">
+              {maskPhone(quote.customer?.phone)}
+            </p>
           </div>
 
           <div className="text-right border-r-4 border-emerald-500 pr-6 py-1">
-            <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest mb-2">Endereço</h4>
+            <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest mb-2">
+              Endereço
+            </h4>
             <div className="text-[13px] text-slate-500 font-medium leading-relaxed">
-              <p>{quote.customer?.address_street}{quote.customer?.address_number ? `, ${quote.customer.address_number}` : ''}</p>
-              <p>{quote.customer?.address_neighborhood} — {quote.customer?.address_city}, {quote.customer?.address_state}</p>
+              <p>
+                {quote.customer?.address_street}
+                {quote.customer?.address_number
+                  ? `, ${quote.customer.address_number}`
+                  : ''}
+              </p>
+              <p>
+                {quote.customer?.address_neighborhood} —{' '}
+                {quote.customer?.address_city}, {quote.customer?.address_state}
+              </p>
               <p>CEP: {quote.customer?.address_zip || '---'}</p>
             </div>
           </div>
@@ -361,23 +511,46 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           <Table>
             <TableHeader>
               <TableRow className="border-b-2 border-slate-100 hover:bg-transparent">
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 px-0">Descrição</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-center">Unid.</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-center">Qtd</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-right">Preço Unit.</TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-right pr-0">Total</TableHead>
+                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 px-0">
+                  Descrição
+                </TableHead>
+                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
+                  Unid.
+                </TableHead>
+                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
+                  Qtd
+                </TableHead>
+                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-right">
+                  Preço Unit.
+                </TableHead>
+                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-right pr-0">
+                  Total
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {quote.items?.map((item, i) => (
-                <TableRow key={i} className="border-b border-slate-50 hover:bg-transparent group">
+                <TableRow
+                  key={i}
+                  className="border-b border-slate-50 hover:bg-transparent group"
+                >
                   <TableCell className="py-5 px-0">
-                    <span className="text-sm font-black text-slate-800">{item.item_name}</span>
+                    <span className="text-sm font-black text-slate-800">
+                      {item.item_name}
+                    </span>
                   </TableCell>
-                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium">{item.unit_measure || 'un'}</TableCell>
-                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium tabular-nums">{item.quantity}</TableCell>
-                  <TableCell className="py-5 text-right text-[13px] text-slate-500 font-medium tabular-nums">{brl(item.unit_price)}</TableCell>
-                  <TableCell className="py-5 text-right pr-0 font-black text-slate-900 tabular-nums">{brl(item.subtotal)}</TableCell>
+                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium">
+                    {item.unit_measure || 'un'}
+                  </TableCell>
+                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium tabular-nums">
+                    {item.quantity}
+                  </TableCell>
+                  <TableCell className="py-5 text-right text-[13px] text-slate-500 font-medium tabular-nums">
+                    {brl(item.unit_price)}
+                  </TableCell>
+                  <TableCell className="py-5 text-right pr-0 font-black text-slate-900 tabular-nums">
+                    {brl(item.subtotal)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -389,13 +562,18 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           <div className="w-full max-w-[320px] space-y-4">
             <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
               <span className="text-slate-400 font-medium">Valor total</span>
-              <span className="font-bold text-slate-900 tabular-nums">{brl(quote.subtotal)}</span>
+              <span className="font-bold text-slate-900 tabular-nums">
+                {brl(quote.subtotal)}
+              </span>
             </div>
 
             {quote.discount_value > 0 && (
               <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
                 <span className="text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
-                  Desconto {quote.discount_type === 'percentage' ? `(${quote.discount_value}%)` : ''}
+                  Desconto{' '}
+                  {quote.discount_type === 'percentage'
+                    ? `(${quote.discount_value}%)`
+                    : ''}
                 </span>
                 <span className="font-bold text-emerald-600 tabular-nums">
                   - {brl(quote.discount_value)}
@@ -404,7 +582,9 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             )}
 
             <div className="flex justify-between items-center pt-2">
-              <span className="text-xl font-black text-slate-900 tracking-tight">Valor final</span>
+              <span className="text-xl font-black text-slate-900 tracking-tight">
+                Valor final
+              </span>
               <span className="text-2xl font-black text-emerald-600 tabular-nums tracking-tight">
                 {brl(quote.total)}
               </span>
@@ -415,10 +595,17 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         {/* NOTES SECTION */}
         {quote.notes && (
           <div className="mb-24 pt-8 border-t border-slate-100">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Observações Adicionais</h4>
-            <p className="text-sm text-slate-500 leading-relaxed italic">"{quote.notes}"</p>
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+              Observações Adicionais
+            </h4>
+            <p className="text-sm text-slate-500 leading-relaxed italic">
+              {`"${quote.notes}"`}
+            </p>
             {quote.payment_method && (
-              <p className="text-sm text-slate-900 font-bold mt-4">Forma de Pagamento: <span className="uppercase">{quote.payment_method}</span></p>
+              <p className="text-sm text-slate-900 font-bold mt-4">
+                Forma de Pagamento:{' '}
+                <span className="uppercase">{quote.payment_method}</span>
+              </p>
             )}
           </div>
         )}
@@ -428,12 +615,18 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           <div className="grid grid-cols-2 gap-20">
             <div className="text-center space-y-2">
               <div className="border-t border-slate-300 w-full" />
-              <p className="text-sm font-bold text-slate-900">{quote.company?.name || 'Empresa'}</p>
+              <p className="text-sm font-bold text-slate-900">
+                {quote.company?.name || 'Empresa'}
+              </p>
             </div>
             <div className="text-center space-y-2">
               <div className="border-t border-slate-300 w-full" />
-              <p className="text-sm font-bold text-slate-900">{quote.customer?.name}</p>
-              <p className="text-[11px] text-slate-400 font-medium">CPF: {quote.customer?.document || '---'}</p>
+              <p className="text-sm font-bold text-slate-900">
+                {quote.customer?.name}
+              </p>
+              <p className="text-[11px] text-slate-400 font-medium">
+                CPF: {quote.customer?.document || '---'}
+              </p>
             </div>
           </div>
         </div>
@@ -441,9 +634,10 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         {/* COMPANY DETAILS - BOTTOM SMALL */}
         <div className="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] opacity-50 print:hidden">
           <span>{quote.company?.name}</span>
-          <span>Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}</span>
+          <span>
+            Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}
+          </span>
         </div>
-
       </div>
     </div>
   )

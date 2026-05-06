@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -56,7 +56,7 @@ export function CatalogForm({
   const [loading, setLoading] = useState(false)
 
   const form = useForm<CatalogValues>({
-    resolver: zodResolver(catalogSchema) as any,
+    resolver: zodResolver(catalogSchema) as Resolver<CatalogValues>,
     defaultValues: {
       type: initialData?.type || 'product',
       name: initialData?.name || '',

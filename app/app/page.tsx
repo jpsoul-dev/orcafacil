@@ -3,24 +3,40 @@ import Link from 'next/link'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import {
-  FileText, Users, Package, Plus, ArrowRight, TrendingUp
-} from 'lucide-react'
+import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
 import { QuotesChart } from './components/quotes-chart'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const now = new Date()
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const firstDayOfMonth = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+  ).toISOString()
 
-  const [{ count: monthQuotesCount }, { data: quotesData }] = await Promise.all([
-    supabase.from('quotes').select('*', { count: 'exact', head: true }).gte('created_at', firstDayOfMonth),
-    supabase.from('quotes').select('created_at').order('created_at', { ascending: true })
-  ])
+  const [{ count: monthQuotesCount }, { data: quotesData }] = await Promise.all(
+    [
+      supabase
+        .from('quotes')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', firstDayOfMonth),
+      supabase
+        .from('quotes')
+        .select('created_at')
+        .order('created_at', { ascending: true }),
+    ],
+  )
 
-  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário'
+  const userName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split('@')[0] ||
+    'Usuário'
   const firstName = userName.split(' ')[0]
   const quotesLimit = 5
   const currentCount = monthQuotesCount ?? 0
@@ -44,21 +60,27 @@ export default async function DashboardPage() {
                 </h1>
                 <p className="text-primary-foreground/80 text-lg">
                   {isOverLimit
-                    ? "Você atingiu o limite mensal. Faça o upgrade agora!"
-                    : "Bom ver você novamente. Veja como está seu progresso."
-                  }
+                    ? 'Você atingiu o limite mensal. Faça o upgrade agora!'
+                    : 'Bom ver você novamente. Veja como está seu progresso.'}
                 </p>
               </div>
 
               <div className="max-w-md pt-2">
                 <div className="flex items-center justify-between text-sm mb-2 font-medium">
                   <span className="opacity-90">Uso de Orçamentos (Mensal)</span>
-                  <span>{currentCount} / {quotesLimit}</span>
+                  <span>
+                    {currentCount} / {quotesLimit}
+                  </span>
                 </div>
                 <div className="h-3 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
                   <div
-                    className={`h-full transition-all duration-700 ease-out rounded-full ${isOverLimit ? 'bg-red-400' : isNearLimit ? 'bg-yellow-400' : 'bg-white'
-                      }`}
+                    className={`h-full transition-all duration-700 ease-out rounded-full ${
+                      isOverLimit
+                        ? 'bg-red-400'
+                        : isNearLimit
+                          ? 'bg-yellow-400'
+                          : 'bg-white'
+                    }`}
                     style={{ width: `${usagePercentage}%` }}
                   />
                 </div>
@@ -76,7 +98,10 @@ export default async function DashboardPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 shrink-0">
-              <Link href="/app/quotes/new" className={isOverLimit ? 'pointer-events-none' : ''}>
+              <Link
+                href="/app/quotes/new"
+                className={isOverLimit ? 'pointer-events-none' : ''}
+              >
                 <Button
                   disabled={isOverLimit}
                   size="lg"
@@ -107,12 +132,14 @@ export default async function DashboardPage() {
       {/* Gráfico de Orçamentos */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Desempenho de Orçamentos</h2>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Desempenho de Orçamentos
+          </h2>
           <Link
             href="/app/quotes"
             className={cn(
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "text-muted-foreground hover:text-primary"
+              buttonVariants({ variant: 'ghost', size: 'sm' }),
+              'text-muted-foreground hover:text-primary',
             )}
           >
             Ver todos <ArrowRight className="ml-2 h-4 w-4" />

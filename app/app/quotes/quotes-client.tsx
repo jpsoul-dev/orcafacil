@@ -1,11 +1,10 @@
 'use client'
-
+ 
 import React, { useState, useMemo, useEffect } from 'react'
-import { KanbanBoard } from './components/kanban/kanban-board'
 import { DataTable } from '@/components/ui/data-table'
 import { columns, Quote } from './columns'
 import { Button } from '@/components/ui/button'
-import { LayoutGrid, List, Plus } from 'lucide-react'
+import { List, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { DatePickerWithRange } from './components/date-range-picker'
 import { DateRange } from 'react-day-picker'
@@ -19,13 +18,12 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
-
+ 
 interface QuotesClientProps {
   initialQuotes: Quote[]
 }
-
+ 
 export function QuotesClient({ initialQuotes }: QuotesClientProps) {
-  const [view, setView] = useState<'kanban' | 'table'>('kanban')
   const [search, setSearch] = useState('')
   const [statusTab, setStatusTab] = useState<'active' | 'draft'>('active')
   const [mounted, setMounted] = useState(false)
@@ -33,12 +31,12 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   })
-
+ 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0)
     return () => clearTimeout(timer)
   }, [])
-
+ 
   const filteredQuotes = useMemo(() => {
     return initialQuotes.filter((quote) => {
       const isDraft = quote.status === 'draft'
@@ -54,26 +52,26 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
         )
           return false
       }
-
+ 
       if (search) {
         const searchLower = search.toLowerCase()
         const customerName = quote.customers?.name?.toLowerCase() || ''
         const title = quote.title?.toLowerCase() || ''
         const hashId = quote.hash_id?.toLowerCase() || ''
-
+ 
         return (
           customerName.includes(searchLower) ||
           title.includes(searchLower) ||
           hashId.includes(searchLower)
         )
       }
-
+ 
       return true
     })
   }, [initialQuotes, date, search, statusTab])
-
+ 
   if (!mounted) return null
-
+ 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -93,7 +91,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           </Link>
         </div>
       </div>
-
+ 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-1 items-center gap-2 max-w-md relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -104,20 +102,14 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
+ 
         <div className="flex items-center gap-2">
           {statusTab === 'active' && (
             <DatePickerWithRange date={date} setDate={setDate} />
           )}
           <Tabs
             value={statusTab}
-            onValueChange={(v) => {
-              const newTab = v as 'active' | 'draft'
-              setStatusTab(newTab)
-              if (newTab === 'draft' && view === 'kanban') {
-                setView('table')
-              }
-            }}
+            onValueChange={(v) => setStatusTab(v as 'active' | 'draft')}
             className="bg-slate-100 p-1 rounded-lg"
           >
             <TabsList className="bg-transparent border-none p-0 h-8">
@@ -135,37 +127,15 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg ml-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`gap-2 h-8 px-3 rounded-md transition-all ${view === 'kanban' ? 'bg-white shadow-sm text-slate-900 hover:bg-white' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setView('kanban')}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`gap-2 h-8 px-3 rounded-md transition-all ${view === 'table' ? 'bg-white shadow-sm text-slate-900 hover:bg-white' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => setView('table')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </div>
-
+ 
       {filteredQuotes && filteredQuotes.length > 0 ? (
-        view === 'kanban' ? (
-          <KanbanBoard initialQuotes={filteredQuotes} />
-        ) : (
-          <DataTable columns={columns} data={filteredQuotes} />
-        )
+        <DataTable columns={columns} data={filteredQuotes} />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center shadow-sm">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 mb-4">
-            <LayoutGrid className="h-8 w-8 text-slate-300" />
+            <List className="h-8 w-8 text-slate-300" />
           </div>
           <p className="text-slate-500 text-sm mt-2 max-w-xs">
             {date?.from && date?.to

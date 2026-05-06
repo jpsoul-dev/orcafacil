@@ -5,7 +5,9 @@ import { revalidatePath } from 'next/cache'
 
 export async function saveOnboarding(data: { name: string; phone: string }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     return { error: 'Usuário não autenticado' }
@@ -22,13 +24,11 @@ export async function saveOnboarding(data: { name: string; phone: string }) {
     return { success: true } // Já existe, apenas prossegue
   }
 
-  const { error } = await supabase
-    .from('companies')
-    .insert({
-      user_id: user.id,
-      name: data.name,
-      phone: data.phone,
-    })
+  const { error } = await supabase.from('companies').insert({
+    user_id: user.id,
+    name: data.name,
+    phone: data.phone,
+  })
 
   if (error) {
     console.error('Erro ao salvar onboarding:', error)

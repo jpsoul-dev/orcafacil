@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, Column } from '@tanstack/react-table'
 import { ArrowUpDown, Box, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CatalogForm } from './catalog-form'
@@ -15,9 +15,18 @@ export type CatalogItem = {
   created_at: string
 }
 
-const brl = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+const brl = (val: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+    val,
+  )
 
-const SortButton = ({ column, label }: { column: any, label: string }) => {
+const SortButton = ({
+  column,
+  label,
+}: {
+  column: Column<CatalogItem, unknown>
+  label: string
+}) => {
   return (
     <Button
       variant="ghost"
@@ -35,13 +44,13 @@ export const columns: ColumnDef<CatalogItem>[] = [
     accessorKey: 'name',
     header: ({ column }) => <SortButton column={column} label="Nome" />,
     cell: ({ row }) => (
-      <CatalogForm 
-        initialData={row.original} 
+      <CatalogForm
+        initialData={row.original}
         trigger={
           <button className="font-bold text-foreground hover:text-blue-600 hover:underline transition-colors text-left">
             {row.getValue('name')}
           </button>
-        } 
+        }
       />
     ),
   },
@@ -52,13 +61,19 @@ export const columns: ColumnDef<CatalogItem>[] = [
       const type = row.getValue('type') as string
       if (type === 'product') {
         return (
-          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/10 hover:text-blue-600 border-blue-500/20 font-medium">
+          <Badge
+            variant="outline"
+            className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/10 hover:text-blue-600 border-blue-500/20 font-medium"
+          >
             <Box className="mr-1 h-3 w-3" /> Produto
           </Badge>
         )
       }
       return (
-        <Badge variant="outline" className="bg-orange-500/10 text-orange-600 hover:bg-orange-500/10 hover:text-orange-600 border-orange-500/20 font-medium">
+        <Badge
+          variant="outline"
+          className="bg-orange-500/10 text-orange-600 hover:bg-orange-500/10 hover:text-orange-600 border-orange-500/20 font-medium"
+        >
           <Wrench className="mr-1 h-3 w-3" /> Serviço
         </Badge>
       )
@@ -66,7 +81,9 @@ export const columns: ColumnDef<CatalogItem>[] = [
   },
   {
     accessorKey: 'unit_price',
-    header: ({ column }) => <SortButton column={column} label="Valor Unitário" />,
+    header: ({ column }) => (
+      <SortButton column={column} label="Valor Unitário" />
+    ),
     cell: ({ row }) => {
       const price = parseFloat(row.getValue('unit_price'))
       return <div className="text-foreground font-medium">{brl(price)}</div>

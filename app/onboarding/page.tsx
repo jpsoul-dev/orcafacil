@@ -45,7 +45,7 @@ export default function OnboardingPage() {
         toast.error(result.error || 'Ocorreu um erro ao salvar')
       }
     } catch (error) {
-      toast.error('Erro de conexão')
+      toast.error(`Erro de conexão: ${error}`)
     } finally {
       setLoading(false)
     }
@@ -58,8 +58,13 @@ export default function OnboardingPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-xl shadow-blue-600/20 mb-4">
             <Rocket className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Bem-vindo ao OrçaFácil!</h1>
-          <p className="text-slate-500 font-medium">Estamos quase prontos. Conte-nos um pouco sobre o seu negócio para começar.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            Bem-vindo ao OrçaFácil!
+          </h1>
+          <p className="text-slate-500 font-medium">
+            Estamos quase prontos. Conte-nos um pouco sobre o seu negócio para
+            começar.
+          </p>
         </div>
 
         <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-3xl overflow-hidden bg-white">
@@ -67,7 +72,10 @@ export default function OnboardingPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <Label
+                    htmlFor="name"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2"
+                  >
                     <Store className="h-3.5 w-3.5" /> Nome do seu Negócio
                   </Label>
                   <Input
@@ -78,31 +86,41 @@ export default function OnboardingPage() {
                     disabled={loading}
                   />
                   {form.formState.errors.name && (
-                    <p className="text-xs font-bold text-red-500 animate-in slide-in-from-top-1">{form.formState.errors.name.message}</p>
+                    <p className="text-xs font-bold text-red-500 animate-in slide-in-from-top-1">
+                      {form.formState.errors.name.message}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <MessageSquare className="h-3.5 w-3.5" /> WhatsApp de Contato
+                  <Label
+                    htmlFor="phone"
+                    className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" /> WhatsApp de
+                    Contato
                   </Label>
                   <Input
                     id="phone"
                     placeholder="(00) 00000-0000"
                     {...form.register('phone')}
-                    onChange={(e) => form.setValue('phone', maskPhone(e.target.value))}
+                    onChange={(e) =>
+                      form.setValue('phone', maskPhone(e.target.value))
+                    }
                     className="h-12 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all text-base tabular-nums"
                     disabled={loading}
                     maxLength={15}
                   />
                   {form.formState.errors.phone && (
-                    <p className="text-xs font-bold text-red-500 animate-in slide-in-from-top-1">{form.formState.errors.phone.message}</p>
+                    <p className="text-xs font-bold text-red-500 animate-in slide-in-from-top-1">
+                      {form.formState.errors.phone.message}
+                    </p>
                   )}
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-600/30 transition-all active:scale-95 group"
                 disabled={loading}
               >
@@ -120,7 +138,8 @@ export default function OnboardingPage() {
         </Card>
 
         <p className="text-center text-xs text-slate-400 font-medium italic">
-          Você poderá alterar essas informações e adicionar sua logo nas configurações mais tarde.
+          Você poderá alterar essas informações e adicionar sua logo nas
+          configurações mais tarde.
         </p>
       </div>
     </div>

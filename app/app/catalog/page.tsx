@@ -6,10 +6,14 @@ import { columns } from './columns'
 
 import { CatalogFilter } from './components/catalog-filter'
 
-export default async function CatalogPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>
+}) {
   const { type } = await searchParams
   const supabase = await createClient()
-  
+
   let query = supabase.from('catalog_items').select('*').order('name')
 
   if (type && type !== 'all') {
@@ -23,7 +27,9 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       {/* Header da Página */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Gerenciar Catálogo</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            Gerenciar Catálogo
+          </h2>
           <p className="text-muted-foreground text-sm mt-1">
             Cadastre e gerencie seus produtos e serviços.
           </p>

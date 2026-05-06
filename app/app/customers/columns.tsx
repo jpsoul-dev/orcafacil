@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, Column } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
@@ -18,7 +18,13 @@ export type Customer = {
   created_at: string
 }
 
-const SortButton = ({ column, label }: { column: any, label: string }) => {
+const SortButton = ({
+  column,
+  label,
+}: {
+  column: Column<Customer, unknown>
+  label: string
+}) => {
   return (
     <Button
       variant="ghost"
@@ -36,7 +42,7 @@ export const columns: ColumnDef<Customer>[] = [
     accessorKey: 'name',
     header: ({ column }) => <SortButton column={column} label="Cliente" />,
     cell: ({ row }) => (
-      <Link 
+      <Link
         href={`/app/customers/${row.original.id}`}
         className="font-bold text-foreground hover:text-blue-600 hover:underline transition-colors"
       >
@@ -47,21 +53,35 @@ export const columns: ColumnDef<Customer>[] = [
   {
     accessorKey: 'email',
     header: () => <div className="font-bold text-foreground">Email</div>,
-    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('email') || '—'}</div>,
+    cell: ({ row }) => (
+      <div className="text-muted-foreground">
+        {row.getValue('email') || '—'}
+      </div>
+    ),
   },
   {
     accessorKey: 'phone',
     header: () => <div className="font-bold text-foreground">Telefone</div>,
-    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('phone') || '—'}</div>,
+    cell: ({ row }) => (
+      <div className="text-muted-foreground">
+        {row.getValue('phone') || '—'}
+      </div>
+    ),
   },
   {
     accessorKey: 'document',
     header: () => <div className="font-bold text-foreground">Documento</div>,
-    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue('document') || '—'}</div>,
+    cell: ({ row }) => (
+      <div className="text-muted-foreground">
+        {row.getValue('document') || '—'}
+      </div>
+    ),
   },
   {
     accessorKey: 'created_at',
-    header: ({ column }) => <SortButton column={column} label="Data cadastro" />,
+    header: ({ column }) => (
+      <SortButton column={column} label="Data cadastro" />
+    ),
     cell: ({ row }) => {
       const date = new Date(row.getValue('created_at'))
       return (

@@ -4,13 +4,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CustomerQuotesClient } from './customer-quotes-client'
-import { Mail, Phone, MapPin, Calendar, FileText, User, Pencil } from 'lucide-react'
+import { Mail, Phone, MapPin, FileText, User, Pencil } from 'lucide-react'
 import { CustomerForm } from '../customer-form'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CustomerDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   const { id } = await params
   const supabase = await createClient()
 
@@ -26,10 +30,12 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
   const { data: quotes } = await supabase
     .from('quotes')
-    .select(`
+    .select(
+      `
       *,
       customers ( name )
-    `)
+    `,
+    )
     .eq('customer_id', id)
     .order('created_at', { ascending: false })
 
@@ -38,10 +44,15 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">{customer.name}</h2>
+            <h2 className="text-2xl font-bold tracking-tight">
+              {customer.name}
+            </h2>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-sm text-muted-foreground">
-                cliente desde: {format(new Date(customer.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                cliente desde:{' '}
+                {format(new Date(customer.created_at), 'dd/MM/yyyy', {
+                  locale: ptBR,
+                })}
               </span>
             </div>
           </div>
@@ -66,7 +77,10 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
           <TabsTrigger value="quotes" className="gap-2">
             <FileText className="h-4 w-4" /> Orcamentos
             {quotes && quotes.length > 0 && (
-              <Badge variant="secondary" className="ml-1 px-1.5 py-0 h-4 min-w-[1.2rem] flex items-center justify-center text-[10px]">
+              <Badge
+                variant="secondary"
+                className="ml-1 px-1.5 py-0 h-4 min-w-[1.2rem] flex items-center justify-center text-[10px]"
+              >
                 {quotes.length}
               </Badge>
             )}
@@ -77,11 +91,15 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="shadow-sm border-slate-200">
               <CardHeader>
-                <CardTitle className="text-base font-semibold">Informações de Contato</CardTitle>
+                <CardTitle className="text-base font-semibold">
+                  Informações de Contato
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">WhatsApp / Telefone</span>
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    WhatsApp / Telefone
+                  </span>
                   <div className="space-y-2 mt-1">
                     {customer.whatsapp && (
                       <div className="flex items-center gap-2 text-slate-900">
@@ -98,15 +116,21 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                       </div>
                     )}
                     {!customer.whatsapp && !customer.phone && (
-                      <div className="text-slate-400 text-sm italic">Não informado</div>
+                      <div className="text-slate-400 text-sm italic">
+                        Não informado
+                      </div>
                     )}
                   </div>
                 </div>
                 <div className="space-y-1 pt-2 border-t border-slate-100">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">E-mail</span>
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    E-mail
+                  </span>
                   <div className="flex items-center gap-2 text-slate-900 mt-1">
                     <Mail className="h-4 w-4 text-slate-400" />
-                    <span className="text-sm">{customer.email || 'Não informado'}</span>
+                    <span className="text-sm">
+                      {customer.email || 'Não informado'}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -114,7 +138,9 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
             <Card className="shadow-sm border-slate-200">
               <CardHeader>
-                <CardTitle className="text-base font-semibold">Dados de Endereço</CardTitle>
+                <CardTitle className="text-base font-semibold">
+                  Dados de Endereço
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">
@@ -124,7 +150,8 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                       {customer.address_street ? (
                         <>
                           {customer.address_street}, {customer.address_number}
-                          {customer.address_complement && ` - ${customer.address_complement}`}
+                          {customer.address_complement &&
+                            ` - ${customer.address_complement}`}
                           <br />
                           {customer.address_neighborhood}
                           <br />
@@ -133,7 +160,9 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
                           CEP: {customer.address_zip}
                         </>
                       ) : (
-                        <span className="text-slate-400 italic">Endereço não informado</span>
+                        <span className="text-slate-400 italic">
+                          Endereço não informado
+                        </span>
                       )}
                     </div>
                   </div>
@@ -146,7 +175,9 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
         <TabsContent value="quotes" className="mt-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Histórico de Orçamentos</h3>
+              <h3 className="text-lg font-bold text-slate-900">
+                Histórico de Orçamentos
+              </h3>
             </div>
             <CustomerQuotesClient quotes={quotes || []} />
           </div>

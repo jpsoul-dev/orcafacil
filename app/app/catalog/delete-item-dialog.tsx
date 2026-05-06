@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 
-export function DeleteItemDialog({ id, name }: { id: string, name: string }) {
+export function DeleteItemDialog({ id, name }: { id: string; name: string }) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -35,17 +35,24 @@ export function DeleteItemDialog({ id, name }: { id: string, name: string }) {
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-          <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Excluir</span>
-        </Button>
-      } />
+      <AlertDialogTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Excluir</span>
+          </Button>
+        }
+      />
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir item do catálogo?</AlertDialogTitle>
           <AlertDialogDescription>
-            Você está prestes a excluir <strong>{name}</strong>. Esta ação não pode ser desfeita.
+            Você está prestes a excluir <strong>{name}</strong>. Esta ação não
+            pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

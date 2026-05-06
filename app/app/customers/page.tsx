@@ -6,14 +6,19 @@ import { columns } from './columns'
 
 export default async function CustomersPage() {
   const supabase = await createClient()
-  const { data: customers } = await supabase.from('customers').select('*').order('name')
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('*')
+    .order('name')
 
   return (
     <div className="space-y-6">
       {/* Header da Página */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Gerenciar Clientes</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            Gerenciar Clientes
+          </h2>
           <p className="text-muted-foreground text-sm mt-1">
             Cadastre e consulte os dados dos seus clientes.
           </p>

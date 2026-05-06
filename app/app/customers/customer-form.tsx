@@ -11,9 +11,22 @@ import { maskCPF, maskCNPJ, maskPhone, maskCEP } from '@/lib/masks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Plus, Pencil, Loader2, Search, UserPlus } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogHeader, DialogClose } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogHeader,
+  DialogClose,
+} from '@/components/ui/dialog'
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -33,7 +46,32 @@ const customerSchema = z.object({
 
 type CustomerValues = z.infer<typeof customerSchema>
 
-export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData?: any, asMenuItem?: boolean, trigger?: ReactElement }) {
+export interface Customer {
+  id: string
+  name: string
+  document_type: 'cpf' | 'cnpj'
+  document?: string | null
+  email?: string | null
+  phone?: string | null
+  whatsapp?: string | null
+  address_zip?: string | null
+  address_street?: string | null
+  address_number?: string | null
+  address_complement?: string | null
+  address_neighborhood?: string | null
+  address_city?: string | null
+  address_state?: string | null
+}
+
+export function CustomerForm({
+  initialData,
+  asMenuItem,
+  trigger,
+}: {
+  initialData?: Customer
+  asMenuItem?: boolean
+  trigger?: ReactElement
+}) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
@@ -120,10 +158,16 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={
-        trigger ? trigger : (
-          asMenuItem ? (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+      <DialogTrigger
+        render={
+          trigger ? (
+            trigger
+          ) : asMenuItem ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            >
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Editar</span>
             </Button>
@@ -132,8 +176,8 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
               <UserPlus className="h-4 w-4" /> Novo cliente
             </Button>
           )
-        )
-      } />
+        }
+      />
 
       <DialogContent className="p-0 flex flex-col sm:max-w-3xl max-h-[95vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl bg-white">
         <DialogHeader className="px-6 py-6 border-none shrink-0 bg-white z-10 relative">
@@ -141,33 +185,46 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
             <DialogTitle className="text-xl font-bold text-slate-800">
               {initialData ? 'Editar cliente' : 'Novo cliente'}
             </DialogTitle>
-            <DialogClose render={
-              <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                <Plus className="h-6 w-6 rotate-45" />
-                <span className="sr-only">Fechar</span>
-              </button>
-            } />
+            <DialogClose
+              render={
+                <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <Plus className="h-6 w-6 rotate-45" />
+                  <span className="sr-only">Fechar</span>
+                </button>
+              }
+            />
           </div>
         </DialogHeader>
 
         {/* Conteúdo com scroll */}
         <div className="flex-1 overflow-y-auto">
-          <form id="customer-form" onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6 space-y-6">
-
+          <form
+            id="customer-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="px-6 pb-6 space-y-6"
+          >
             {/* Dados gerais */}
             <div className="space-y-4">
               <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div
+                  className="absolute inset-0 flex items-center"
+                  aria-hidden="true"
+                >
                   <div className="w-full border-t border-slate-100"></div>
                 </div>
                 <div className="relative flex justify-start">
-                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">Dados gerais</span>
+                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">
+                    Dados gerais
+                  </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 space-y-1.5">
-                  <Label htmlFor="name" className="text-sm font-bold text-slate-800">
+                  <Label
+                    htmlFor="name"
+                    className="text-sm font-bold text-slate-800"
+                  >
                     Nome <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -177,12 +234,19 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
                   />
                   {form.formState.errors.name && (
-                    <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
+                    <p className="text-xs text-red-500">
+                      {form.formState.errors.name.message}
+                    </p>
                   )}
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="phone" className="text-sm font-bold text-slate-800">Telefone</Label>
+                  <Label
+                    htmlFor="phone"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Telefone
+                  </Label>
                   <Controller
                     name="phone"
                     control={form.control}
@@ -190,7 +254,9 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                       <Input
                         id="phone"
                         {...field}
-                        onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(maskPhone(e.target.value))
+                        }
                         className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
                         placeholder="(11) 9 9999-9999"
                         maxLength={15}
@@ -200,7 +266,12 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="document" className="text-sm font-bold text-slate-800">CPF/CNPJ</Label>
+                  <Label
+                    htmlFor="document"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    CPF/CNPJ
+                  </Label>
                   <Controller
                     name="document"
                     control={form.control}
@@ -212,7 +283,8 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                           onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '')
                             let masked = e.target.value
-                            if (val.length <= 11) masked = maskCPF(e.target.value)
+                            if (val.length <= 11)
+                              masked = maskCPF(e.target.value)
                             else masked = maskCNPJ(e.target.value)
                             field.onChange(masked)
                           }}
@@ -226,7 +298,12 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="email" className="text-sm font-bold text-slate-800">Email</Label>
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -235,13 +312,19 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     placeholder="email@exemplo.com"
                   />
                   {form.formState.errors.email && (
-                    <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
+                    <p className="text-xs text-red-500">
+                      {form.formState.errors.email.message}
+                    </p>
                   )}
                 </div>
 
-
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="whatsapp" className="text-sm font-bold text-slate-800">WhatsApp</Label>
+                  <Label
+                    htmlFor="whatsapp"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    WhatsApp
+                  </Label>
                   <Controller
                     name="whatsapp"
                     control={form.control}
@@ -249,7 +332,9 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                       <Input
                         id="whatsapp"
                         {...field}
-                        onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(maskPhone(e.target.value))
+                        }
                         className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
                         placeholder="(11) 9 9999-9999"
                         maxLength={15}
@@ -263,17 +348,27 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
             {/* Dados de endereço */}
             <div className="space-y-4">
               <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div
+                  className="absolute inset-0 flex items-center"
+                  aria-hidden="true"
+                >
                   <div className="w-full border-t border-slate-100"></div>
                 </div>
                 <div className="relative flex justify-start">
-                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">Dados de endereço</span>
+                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">
+                    Dados de endereço
+                  </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="address_zip" className="text-sm font-bold text-slate-800">CEP</Label>
+                  <Label
+                    htmlFor="address_zip"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    CEP
+                  </Label>
                   <div className="relative">
                     <Controller
                       name="address_zip"
@@ -282,7 +377,9 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                         <Input
                           id="address_zip"
                           {...field}
-                          onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(maskCEP(e.target.value))
+                          }
                           onBlur={handleSearchCEP}
                           placeholder="00000-000"
                           className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums pr-8"
@@ -293,59 +390,156 @@ export function CustomerForm({ initialData, asMenuItem, trigger }: { initialData
                     {searchingCEP ? (
                       <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
                     ) : (
-                      <Search onClick={handleSearchCEP} className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600" />
+                      <Search
+                        onClick={handleSearchCEP}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600"
+                      />
                     )}
                   </div>
                 </div>
 
                 <div className="col-span-12 sm:col-span-8 space-y-1.5">
-                  <Label htmlFor="address_street" className="text-sm font-bold text-slate-800">Logradouro</Label>
-                  <Input id="address_street" {...form.register('address_street')} className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" placeholder="Rua, Av., etc." />
+                  <Label
+                    htmlFor="address_street"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Logradouro
+                  </Label>
+                  <Input
+                    id="address_street"
+                    {...form.register('address_street')}
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    placeholder="Rua, Av., etc."
+                  />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="address_number" className="text-sm font-bold text-slate-800">Número</Label>
-                  <Input id="address_number" {...form.register('address_number')} placeholder="123" className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
+                  <Label
+                    htmlFor="address_number"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Número
+                  </Label>
+                  <Input
+                    id="address_number"
+                    {...form.register('address_number')}
+                    placeholder="123"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                  />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="address_complement" className="text-sm font-bold text-slate-800">Complemento</Label>
-                  <Input id="address_complement" {...form.register('address_complement')} placeholder="Apto, sala, etc." className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
+                  <Label
+                    htmlFor="address_complement"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Complemento
+                  </Label>
+                  <Input
+                    id="address_complement"
+                    {...form.register('address_complement')}
+                    placeholder="Apto, sala, etc."
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                  />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="address_neighborhood" className="text-sm font-bold text-slate-800">Bairro</Label>
-                  <Input id="address_neighborhood" {...form.register('address_neighborhood')} placeholder="Bairro" className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
+                  <Label
+                    htmlFor="address_neighborhood"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Bairro
+                  </Label>
+                  <Input
+                    id="address_neighborhood"
+                    {...form.register('address_neighborhood')}
+                    placeholder="Bairro"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                  />
                 </div>
 
                 <div className="col-span-12 sm:col-span-8 space-y-1.5">
-                  <Label htmlFor="address_city" className="text-sm font-bold text-slate-800">Cidade</Label>
-                  <Input id="address_city" {...form.register('address_city')} placeholder="Cidade" className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950" />
+                  <Label
+                    htmlFor="address_city"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Cidade
+                  </Label>
+                  <Input
+                    id="address_city"
+                    {...form.register('address_city')}
+                    placeholder="Cidade"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                  />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                  <Label htmlFor="address_state" className="text-sm font-bold text-slate-800">Estado</Label>
-                  <Select onValueChange={(val) => form.setValue('address_state', val as any)} value={form.watch('address_state')}>
+                  <Label
+                    htmlFor="address_state"
+                    className="text-sm font-bold text-slate-800"
+                  >
+                    Estado
+                  </Label>
+                  <Select
+                    onValueChange={(val) =>
+                      form.setValue('address_state', val || undefined)
+                    }
+                    value={form.watch('address_state') ?? undefined}
+                  >
                     <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-slate-950 text-slate-700">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
-                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                      {[
+                        'AC',
+                        'AL',
+                        'AP',
+                        'AM',
+                        'BA',
+                        'CE',
+                        'DF',
+                        'ES',
+                        'GO',
+                        'MA',
+                        'MT',
+                        'MS',
+                        'MG',
+                        'PA',
+                        'PB',
+                        'PR',
+                        'PE',
+                        'PI',
+                        'RJ',
+                        'RN',
+                        'RS',
+                        'RO',
+                        'RR',
+                        'SC',
+                        'SP',
+                        'SE',
+                        'TO',
+                      ].map((uf) => (
+                        <SelectItem key={uf} value={uf}>
+                          {uf}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </div>
-
           </form>
         </div>
 
         {/* Footer com botões lado a lado */}
         <div className="shrink-0 border-none bg-white p-6 pt-0">
           <div className="flex items-center justify-end">
-            <Button form="customer-form" type="submit" disabled={loading} className="h-10 px-10 font-bold text-sm bg-slate-950 hover:bg-slate-800 text-white rounded-lg shadow-sm">
+            <Button
+              form="customer-form"
+              type="submit"
+              disabled={loading}
+              className="h-10 px-10 font-bold text-sm bg-slate-950 hover:bg-slate-800 text-white rounded-lg shadow-sm"
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

@@ -3,9 +3,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function saveCatalogItem(data: any, id?: string) {
+export interface CatalogItemInput {
+  type: 'product' | 'service'
+  name: string
+  unit_price: number
+  unit_measure?: string | null
+}
+
+export async function saveCatalogItem(data: CatalogItemInput, id?: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) return { error: 'Not authenticated' }
 
@@ -14,7 +23,7 @@ export async function saveCatalogItem(data: any, id?: string) {
     user_id: user.id,
   }
 
-  let error;
+  let error
   if (id) {
     const { error: updateError } = await supabase
       .from('catalog_items')
@@ -39,7 +48,9 @@ export async function saveCatalogItem(data: any, id?: string) {
 
 export async function deleteCatalogItem(id: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
   const { error } = await supabase

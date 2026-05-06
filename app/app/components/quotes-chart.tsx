@@ -1,11 +1,28 @@
 'use client'
 
 import * as React from 'react'
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, startOfYear, subMonths } from 'date-fns'
+import {
+  format,
+  parseISO,
+  eachDayOfInterval,
+  eachMonthOfInterval,
+  subMonths,
+} from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const chartConfig = {
@@ -28,14 +45,14 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
       const end = new Date()
       const start = subMonths(end, 1)
       const days = eachDayOfInterval({ start, end })
-      
+
       const counts = quotes.reduce((acc: Record<string, number>, quote) => {
         const date = format(parseISO(quote.created_at), 'yyyy-MM-dd')
         acc[date] = (acc[date] || 0) + 1
         return acc
       }, {})
 
-      return days.map(day => {
+      return days.map((day) => {
         const dateKey = format(day, 'yyyy-MM-dd')
         return {
           label: format(day, 'dd/MM'),
@@ -55,7 +72,7 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
         return acc
       }, {})
 
-      return months.map(month => {
+      return months.map((month) => {
         const dateKey = format(month, 'yyyy-MM')
         return {
           label: format(month, 'MMM', { locale: ptBR }),
@@ -70,22 +87,40 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
     <Card className="border-border/60 shadow-sm overflow-hidden">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle className="text-lg font-bold tracking-tight">Histórico de Orçamentos</CardTitle>
+          <CardTitle className="text-lg font-bold tracking-tight">
+            Histórico de Orçamentos
+          </CardTitle>
           <CardDescription className="text-xs font-medium text-muted-foreground">
             Acompanhe o volume de orçamentos criados
           </CardDescription>
         </div>
         <div className="flex items-center px-6 py-4 sm:py-0">
-          <Tabs value={view} onValueChange={(v) => setView(v as 'day' | 'month')}>
+          <Tabs
+            value={view}
+            onValueChange={(v) => setView(v as 'day' | 'month')}
+          >
             <TabsList className="bg-muted/50 h-9">
-              <TabsTrigger value="day" className="text-xs font-semibold px-4 h-7">Dia</TabsTrigger>
-              <TabsTrigger value="month" className="text-xs font-semibold px-4 h-7">Mês</TabsTrigger>
+              <TabsTrigger
+                value="day"
+                className="text-xs font-semibold px-4 h-7"
+              >
+                Dia
+              </TabsTrigger>
+              <TabsTrigger
+                value="month"
+                className="text-xs font-semibold px-4 h-7"
+              >
+                Mês
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[250px] w-full"
+        >
           <LineChart
             data={chartData}
             margin={{
@@ -95,7 +130,11 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
               bottom: 12,
             }}
           >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted/30" />
+            <CartesianGrid
+              vertical={false}
+              strokeDasharray="3 3"
+              className="stroke-muted/30"
+            />
             <XAxis
               dataKey="label"
               tickLine={false}
@@ -128,14 +167,14 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
               stroke="var(--color-quotes)"
               strokeWidth={2.5}
               dot={{
-                fill: "var(--color-quotes)",
+                fill: 'var(--color-quotes)',
                 strokeWidth: 2,
                 r: 4,
-                stroke: "#fff"
+                stroke: '#fff',
               }}
               activeDot={{
                 r: 6,
-                strokeWidth: 0
+                strokeWidth: 0,
               }}
             />
           </LineChart>

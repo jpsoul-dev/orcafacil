@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
 
 import { redirect } from "next/navigation"
+import { NotificationBell } from "@/components/notification-bell"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
@@ -78,7 +79,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <Separator orientation="vertical" className="h-4" />
             <AppBreadcrumb />
             <div className="flex-1" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <NotificationBell />
               <div className="text-right hidden sm:block">
                 <p className="text-lg font-bold text-foreground leading-none">{companyName}</p>
               </div>

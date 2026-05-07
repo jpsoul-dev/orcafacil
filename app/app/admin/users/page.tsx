@@ -16,6 +16,7 @@ import { UserRowActions } from './user-row-actions'
 import { getAdminDashboardStats } from '../actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
+import { BroadcastForm } from './broadcast-form'
 
 export const metadata = {
   title: 'Gerenciamento de Usuários | OrçaFácil',
@@ -103,9 +104,9 @@ export default async function AdminUsersPage() {
   return (
     <div className="p-8 w-full max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gerenciamento de Usuários</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gerenciamento Administrativo</h1>
         <p className="text-gray-500 dark:text-gray-400">
-          Visualize todos os usuários cadastrados e sincronize seus pagamentos com o Stripe.
+          Visualize métricas, gerencie usuários e envie comunicados para toda a base.
         </p>
       </div>
 
@@ -155,48 +156,59 @@ export default async function AdminUsersPage() {
         </Card>
       </div>
 
-      <div className="border rounded-lg bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Fim do Trial</TableHead>
-              <TableHead>Stripe ID</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mergedUsers.length === 0 ? (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Tabela de Usuários */}
+        <div className="lg:col-span-2 border rounded-lg bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <div className="p-4 border-b bg-gray-50/50 dark:bg-gray-800/50">
+            <h2 className="font-bold text-lg">Usuários Cadastrados</h2>
+          </div>
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  Nenhum usuário encontrado.
-                </TableCell>
+                <TableHead>E-mail</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Fim do Trial</TableHead>
+                <TableHead>Stripe ID</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ) : (
-              mergedUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.email}</TableCell>
-                  <TableCell>{getStatusBadge(user.subscription_status, user.trial_ends_at)}</TableCell>
-                  <TableCell>
-                    {user.trial_ends_at 
-                      ? format(new Date(user.trial_ends_at), "dd 'de' MMM, yyyy", { locale: ptBR }) 
-                      : '-'}
-                  </TableCell>
-                  <TableCell className="text-gray-500 font-mono text-xs">
-                    {user.stripe_customer_id || 'Não criado'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <UserRowActions 
-                      userId={user.id} 
-                      stripeCustomerId={user.stripe_customer_id} 
-                    />
+            </TableHeader>
+            <TableBody>
+              {mergedUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    Nenhum usuário encontrado.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                mergedUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.email}</TableCell>
+                    <TableCell>{getStatusBadge(user.subscription_status, user.trial_ends_at)}</TableCell>
+                    <TableCell>
+                      {user.trial_ends_at 
+                        ? format(new Date(user.trial_ends_at), "dd 'de' MMM, yyyy", { locale: ptBR }) 
+                        : '-'}
+                    </TableCell>
+                    <TableCell className="text-gray-500 font-mono text-xs">
+                      {user.stripe_customer_id || 'Não criado'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <UserRowActions 
+                        userId={user.id} 
+                        stripeCustomerId={user.stripe_customer_id} 
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Formulário de Comunicado */}
+        <div className="space-y-6">
+          <BroadcastForm />
+        </div>
       </div>
     </div>
   )

@@ -54,9 +54,10 @@ export async function syncUserSubscriptionAction(
     revalidatePath('/app/admin/users')
 
     return { success: true, status: subscription.status }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro na sincronização:', error)
-    return { error: error.message || 'Erro desconhecido ao sincronizar.' }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido ao sincronizar.'
+    return { error: message }
   }
 }
 
@@ -99,9 +100,10 @@ export async function deleteUserAction(
     revalidatePath('/app/admin/users')
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro na exclusão de usuário:', error)
-    return { error: error.message || 'Erro desconhecido ao excluir usuário.' }
+    const message = error instanceof Error ? error.message : 'Erro desconhecido ao excluir usuário.'
+    return { error: message }
   }
 }
 
@@ -175,5 +177,43 @@ export async function getAdminDashboardStats() {
   } catch (error) {
     console.error('Erro ao buscar estatísticas do dashboard:', error)
     throw error
+  }
+}
+
+export async function broadcastNotificationAction(content: string, title?: string, type: string = 'info') {
+  try {
+    // 1. Verificar quem está logado usando o client padrão (que tem a sessão dos cookies)
+    const { createClient: createSupabaseServerClient } = await import('@/lib/supabase/server')
+    const supabase = await createSupabaseServerClient()
+    
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Não autenticado' }
+
+    const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+
+    if (!profile?.is_admin) {
+      return { error: 'Não autorizado' }
+    }
+
+    // 2. Inserir usando o Service Role Key
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await supabaseAdmin.from('notifications').insert({
+      content,
+      title,
+      type
+    })
+
+    if (error) throw error
+
+    revalidatePath('/app/admin/users')
+    return { success: true }
+  } catch (error: unknown) {
+    console.error('Erro ao enviar comunicado:', error)
+    const message = error instanceof Error ? error.message : 'Erro ao enviar comunicado'
+    return { error: message }
   }
 }

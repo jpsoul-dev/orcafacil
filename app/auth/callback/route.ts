@@ -9,8 +9,29 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && sessionData?.user) {
+      // Garantir que o usuário tem um profile
+      const { data: profile } = await supabase.from('profiles').select('id').eq('id', sessionData.user.id).single()
+
+      if (!profile) {
+        // Criar Stripe Customer
+        const { stripe } = await import('@/lib/stripe')
+        const customer = await stripe.customers.create({
+          email: sessionData.user.email,
+        })
+
+        const trialEndsAt = new Date()
+        trialEndsAt.setDate(trialEndsAt.getDate() + 15)
+
+        await supabase.from('profiles').insert({
+          id: sessionData.user.id,
+          stripe_customer_id: customer.id,
+          subscription_status: 'trialing',
+          trial_ends_at: trialEndsAt.toISOString(),
+        })
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {

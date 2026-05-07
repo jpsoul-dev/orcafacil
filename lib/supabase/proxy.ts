@@ -31,7 +31,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isPublicRoute = request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/quote/') || request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register' || request.nextUrl.pathname.startsWith('/auth/callback');
+  const isPublicRoute = request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/quote/') || request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register' || request.nextUrl.pathname.startsWith('/auth/callback') || request.nextUrl.pathname.startsWith('/api/webhook');
 
   if (
     !user &&
@@ -48,6 +48,8 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/app'
     return NextResponse.redirect(url)
   }
+
+  // Paywall Logic delegada para os componentes da UI (layout.tsx) para exibir o modal de bloqueio
 
   return supabaseResponse
 }

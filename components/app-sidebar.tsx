@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap } from "lucide-react"
+import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -18,6 +18,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { logout } from "@/app/auth/actions"
+import { createPortalAction } from "@/app/pricing/server-actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -155,10 +156,20 @@ export function AppSidebar({
               >
                 <DropdownMenuItem
                   render={
+                    <form action={createPortalAction} className="w-full" />
+                  }
+                >
+                  <button type="submit" className="flex w-full items-center gap-2 cursor-pointer text-sidebar-foreground/80 hover:text-sidebar-foreground">
+                    <CreditCard className="size-4" />
+                    <span>Gerenciar Assinatura</span>
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  render={
                     <form action={logout} className="w-full" />
                   }
                 >
-                  <button type="submit" className="flex w-full items-center gap-2 text-red-500 cursor-pointer">
+                  <button type="submit" className="flex w-full items-center gap-2 text-red-500 cursor-pointer hover:text-red-600">
                     <LogOut className="size-4" />
                     <span>Sair da conta</span>
                   </button>

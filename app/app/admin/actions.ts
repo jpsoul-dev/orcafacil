@@ -104,3 +104,76 @@ export async function deleteUserAction(
     return { error: error.message || 'Erro desconhecido ao excluir usuário.' }
   }
 }
+
+export async function getAdminDashboardStats() {
+  try {
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // 1. MRR do Stripe
+    // Nota: Para bases muito grandes, precisaria de paginação (auto-paging)
+    const subscriptions = await stripe.subscriptions.list({
+      status: 'active',
+      limit: 100,
+    })
+
+    let mrr = 0
+    subscriptions.data.forEach((sub) => {
+      const price = sub.items.data[0].price
+      const amount = price.unit_amount || 0
+      const interval = price.recurring?.interval
+      
+      if (interval === 'month') {
+        mrr += amount
+      } else if (interval === 'year') {
+        mrr += amount / 12
+      }
+    })
+    mrr = mrr / 100 // Converter de centavos para Reais (unidade principal)
+
+    // 2. Métricas de Usuários (Supabase)
+    const { data: profiles, error: profilesError } = await supabaseAdmin
+      .from('profiles')
+      .select('subscription_status, trial_ends_at')
+
+    if (profilesError) throw profilesError
+
+    const now = new Date()
+    const stats = {
+      totalUsers: profiles.length,
+      activeSubscribers: profiles.filter(p => p.subscription_status === 'active').length,
+      activeTrials: profiles.filter(p => 
+        p.subscription_status === 'trialing' && 
+        p.trial_ends_at && new Date(p.trial_ends_at) > now
+      ).length,
+      expiredUsers: profiles.filter(p => {
+        const isTrialingActive = p.subscription_status === 'trialing' && p.trial_ends_at && new Date(p.trial_ends_at) > now
+        return p.subscription_status !== 'active' && !isTrialingActive
+      }).length
+    }
+
+    // 3. Métricas de Uso (Quotes criados nos últimos 30 dias)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const { count: quotesCount, error: quotesError } = await supabaseAdmin
+      .from('quotes')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', thirtyDaysAgo.toISOString())
+
+    if (quotesError) throw quotesError
+
+    return {
+      mrr,
+      users: stats,
+      usage: {
+        quotesLastMonth: quotesCount || 0
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do dashboard:', error)
+    throw error
+  }
+}

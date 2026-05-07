@@ -13,6 +13,9 @@ import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { UserRowActions } from './user-row-actions'
+import { getAdminDashboardStats } from '../actions'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
 
 export const metadata = {
   title: 'Gerenciamento de Usuários | OrçaFácil',
@@ -45,7 +48,10 @@ export default async function AdminUsersPage() {
     redirect('/app') // Redireciona se não for admin
   }
 
-  // 2. Buscar usuários e perfis usando Service Role Key
+  // 2. Buscar estatísticas do dashboard
+  const stats = await getAdminDashboardStats()
+
+  // 3. Buscar usuários e perfis usando Service Role Key
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -101,6 +107,52 @@ export default async function AdminUsersPage() {
         <p className="text-gray-500 dark:text-gray-400">
           Visualize todos os usuários cadastrados e sincronize seus pagamentos com o Stripe.
         </p>
+      </div>
+
+      {/* Dashboard Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">MRR Atual</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.mrr)}
+            </div>
+            <p className="text-xs text-muted-foreground">Assinaturas ativas no Stripe</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Assinantes Pagos</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.users.activeSubscribers}</div>
+            <p className="text-xs text-muted-foreground">Plano Pro em dia</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trials Ativos</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.users.activeTrials}</div>
+            <p className="text-xs text-muted-foreground">Período de teste gratuito</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Orçamentos (30d)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.usage.quotesLastMonth}</div>
+            <p className="text-xs text-muted-foreground">Criados nos últimos 30 dias</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="border rounded-lg bg-white dark:bg-gray-900 shadow-sm overflow-hidden">

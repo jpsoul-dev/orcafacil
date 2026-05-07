@@ -59,3 +59,48 @@ export async function syncUserSubscriptionAction(
     return { error: error.message || 'Erro desconhecido ao sincronizar.' }
   }
 }
+
+export async function deleteUserAction(
+  userId: string,
+  stripeCustomerId: string | null
+) {
+  try {
+    if (!userId) {
+      return { error: 'ID de usuário inválido' }
+    }
+
+    // 1. Instanciar Supabase Admin
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    // 2. Apagar o cliente no Stripe (se existir)
+    if (stripeCustomerId) {
+      try {
+        await stripe.customers.del(stripeCustomerId)
+      } catch (stripeError) {
+        console.error('Erro ao deletar cliente no Stripe:', stripeError)
+        // Optamos por continuar a exclusão mesmo se o Stripe falhar, 
+        // para garantir que o usuário seja removido do banco.
+      }
+    }
+
+    // 3. Apagar usuário no Supabase
+    // Isso vai acionar o ON DELETE CASCADE e limpar todas as tabelas (profiles, companies, quotes, etc)
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+    if (deleteError) {
+      console.error('Erro ao deletar usuário no Supabase:', deleteError)
+      return { error: 'Falha ao deletar usuário do banco de dados.' }
+    }
+
+    // 4. Revalidar a página
+    revalidatePath('/app/admin/users')
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Erro na exclusão de usuário:', error)
+    return { error: error.message || 'Erro desconhecido ao excluir usuário.' }
+  }
+}

@@ -13,3 +13,7 @@ trigger: always_on
 # Language
 
 - Sempre devolva as respostas, os passos e todas as informações em Portugues Brasil
+
+#shadcn
+
+- O shadcn está utilizando o Base UI (@base-ui/react) e não mais o radix, considere isso na hora de utilizar os componentes do shadcn.

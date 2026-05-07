@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { login, signInWithGoogle } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,24 +12,19 @@ import { FileText, Zap, ArrowRight, Loader2 } from 'lucide-react'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const router = useRouter()
 
   async function handleLogin(formData: FormData) {
     setLoading(true)
     const result = await login(formData)
-    setLoading(false)
     if (result?.error) {
       toast.error(result.error)
-    } else {
-      router.push('/app')
+      setLoading(false)
     }
   }
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Lado esquerdo — Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-blue-700 flex-col justify-between p-12 text-white">
-        {/* Camada de Gradiente e Grid */}
         <div className="absolute inset-0 bg-linear-to-br from-blue-700 via-blue-800 to-blue-950 z-0" />
         <div
           className="absolute inset-0 opacity-10 z-0"
@@ -189,8 +183,16 @@ export default function LoginPage() {
 
           <form
             action={async () => {
-              setGoogleLoading(true)
-              await signInWithGoogle()
+              try {
+                setGoogleLoading(true)
+                await signInWithGoogle(window.location.origin)
+              } catch (err) {
+                console.error(err)
+                toast.error(
+                  'Ocorreu um erro ao conectar com o Google. Tente novamente.',
+                )
+                setGoogleLoading(false)
+              }
             }}
           >
             <Button

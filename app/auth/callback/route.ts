@@ -1,41 +1,32 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { setupNewUser } from '@/lib/services/user-service'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/app'
 
   if (code) {
     const supabase = await createClient()
-    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: sessionData, error } =
+      await supabase.auth.exchangeCodeForSession(code)
     if (!error && sessionData?.user) {
-      // Garantir que o usuário tem um profile
-      const { data: profile } = await supabase.from('profiles').select('id').eq('id', sessionData.user.id).single()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', sessionData.user.id)
+        .single()
 
-      if (!profile) {
-        // Criar Stripe Customer
-        const { stripe } = await import('@/lib/stripe')
-        const customer = await stripe.customers.create({
-          email: sessionData.user.email,
-        })
-
-        const trialEndsAt = new Date()
-        trialEndsAt.setDate(trialEndsAt.getDate() + 15)
-
-        await supabase.from('profiles').insert({
-          id: sessionData.user.id,
-          stripe_customer_id: customer.id,
-          subscription_status: 'trialing',
-          trial_ends_at: trialEndsAt.toISOString(),
-        })
+      if (!profile || !profile.stripe_customer_id) {
+        if (sessionData.user.email) {
+          await setupNewUser(sessionData.user.id, sessionData.user.email)
+        }
       }
 
-      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+      const forwardedHost = request.headers.get('x-forwarded-host')
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
-        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
         return NextResponse.redirect(`${origin}${next}`)
       } else if (forwardedHost) {
         return NextResponse.redirect(`https://${forwardedHost}${next}`)
@@ -45,7 +36,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // return the user to an error page with instructions
   return NextResponse.redirect(
     `${origin}/login?error=Could not authenticate user`,
   )

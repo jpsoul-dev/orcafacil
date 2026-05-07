@@ -1,8 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
 
 export async function setupNewUser(userId: string, email: string) {
-  const supabase = await createClient()
+  // Usamos o Service Role Key para ignorar RLS, pois o usuário ainda não confirmou o e-mail
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   try {
     // 1. Criar Stripe Customer
@@ -13,7 +17,7 @@ export async function setupNewUser(userId: string, email: string) {
     trialEndsAt.setDate(trialEndsAt.getDate() + 15)
 
     // 3. Atualizar o perfil que foi criado pela trigger no Supabase
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('profiles')
       .update({
         stripe_customer_id: customer.id,

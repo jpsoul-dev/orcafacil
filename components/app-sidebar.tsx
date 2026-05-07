@@ -45,9 +45,11 @@ function isActive(pathname: string, url: string, exact?: boolean) {
 }
 
 export function AppSidebar({
-  user
+  user,
+  isAdmin,
 }: {
   user: { name: string; email: string; avatar?: string }
+  isAdmin?: boolean
 }) {
   const pathname = usePathname()
 
@@ -118,6 +120,20 @@ export function AppSidebar({
                   </SidebarMenuItem>
                 )
               })}
+              
+              {/* Admin Menu Item */}
+              {isAdmin && (
+                <SidebarMenuItem key="AdminUsers">
+                  <SidebarMenuButton
+                    render={<Link href="/app/admin/users" />}
+                    isActive={isActive(pathname, '/app/admin/users')}
+                    className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium mt-1"
+                  >
+                    <Users className="h-4 w-4 shrink-0" />
+                    <span>Usuários (Admin)</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

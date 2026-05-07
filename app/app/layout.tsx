@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   // Lógica de Paywall no Layout
   const { data: profile } = await supabase
     .from('profiles')
-    .select('subscription_status, trial_ends_at')
+    .select('subscription_status, trial_ends_at, is_admin')
     .eq('id', user?.id || '')
     .single()
 
@@ -45,7 +45,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const isTrialing = profile?.subscription_status === 'trialing' && daysRemaining > 0
   
   const isExpired = !isActive && !isTrialing
-
+  const isAdmin = profile?.is_admin === true
   return (
     <>
       {isExpired && (
@@ -71,7 +71,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       )}
 
       <SidebarProvider>
-        <AppSidebar user={userData} />
+        <AppSidebar user={userData} isAdmin={isAdmin} />
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4 print:hidden">
             <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />

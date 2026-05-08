@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { CatalogForm } from './catalog-form'
 import { Package } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table'
@@ -14,7 +15,10 @@ export default async function CatalogPage({
   const { type } = await searchParams
   const supabase = await createClient()
 
-  let query = supabase.from('catalog_items').select('*').order('name')
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  let query = supabase.from('catalog_items').select('*').eq('user_id', user.id).order('name')
 
   if (type && type !== 'all') {
     query = query.eq('type', type)

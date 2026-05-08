@@ -80,7 +80,7 @@ export function CatalogForm({
   async function onSubmit(data: CatalogValues) {
     setLoading(true)
     const result = await saveCatalogItem(
-      { ...data, unit_measure: 'Un' },
+      data,
       initialData?.id,
     )
     setLoading(false)

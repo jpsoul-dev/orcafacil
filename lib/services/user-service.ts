@@ -9,7 +9,18 @@ export async function setupNewUser(userId: string, email: string) {
   )
 
   try {
-    // 1. Criar Stripe Customer
+    // 1. Verificar se o usuário já tem um customer_id para evitar duplicidade
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('id', userId)
+      .single()
+
+    if (profile?.stripe_customer_id) {
+      return { success: true }
+    }
+
+    // 2. Criar Stripe Customer
     const customer = await stripe.customers.create({ email })
 
     // 2. Definir o fim do trial (15 dias a partir de agora)

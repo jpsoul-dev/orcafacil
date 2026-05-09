@@ -1,6 +1,7 @@
 "use client"
 
-import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, CreditCard } from "lucide-react"
+import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, CreditCard, ShieldCheck } from "lucide-react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -27,6 +28,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from "lucide-react"
+import { ManageAccountModal } from "@/components/manage-account-modal"
 
 const mainItems = [
   { title: "Painel", url: "/app", icon: LayoutDashboard, exact: true },
@@ -47,11 +49,14 @@ function isActive(pathname: string, url: string, exact?: boolean) {
 export function AppSidebar({
   user,
   isAdmin,
+  hasPassword,
 }: {
   user: { name: string; email: string; avatar?: string }
   isAdmin?: boolean
+  hasPassword: boolean
 }) {
   const pathname = usePathname()
+  const [isManageAccountOpen, setIsManageAccountOpen] = useState(false)
 
   return (
     <Sidebar collapsible="icon">
@@ -181,6 +186,18 @@ export function AppSidebar({
                   </button>
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  nativeButton={true}
+                  render={
+                    <button
+                      onClick={() => setIsManageAccountOpen(true)}
+                      className="flex w-full items-center gap-2 cursor-pointer text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                    />
+                  }
+                >
+                  <ShieldCheck className="size-4" />
+                  <span>Gerenciar conta</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   render={
                     <form action={logout} className="w-full" />
                   }
@@ -195,6 +212,12 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      <ManageAccountModal 
+        open={isManageAccountOpen} 
+        onOpenChange={setIsManageAccountOpen} 
+        user={user}
+        hasPasswordInitial={hasPassword}
+      />
     </Sidebar>
   )
 }

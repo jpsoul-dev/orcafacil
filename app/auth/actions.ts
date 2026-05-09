@@ -92,3 +92,30 @@ export async function signInWithGoogle(origin?: string) {
     redirect(data.url)
   }
 }
+
+export async function updatePassword(password: string) {
+  const supabase = await createClient()
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    return { error: 'Usuário não autenticado.' }
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({ password })
+
+  if (updateError) {
+    return { error: updateError.message }
+  }
+
+  // Atualiza o estado na tabela profiles
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ has_password: true })
+    .eq('id', user.id)
+
+  if (profileError) {
+    console.error('Erro ao atualizar profiles:', profileError)
+  }
+
+  return { success: true }
+}

@@ -20,14 +20,21 @@ export async function setupNewUser(userId: string, email: string) {
       return { success: true }
     }
 
-    // 2. Criar Stripe Customer
-    const customer = await stripe.customers.create({ email })
+    // 2. Criar Stripe Customer com Idempotency Key para evitar duplicidade em Race Conditions
+    // Se dois requests chegarem ao mesmo tempo, o Stripe retornará o mesmo cliente para a mesma chave.
+    const customer = await stripe.customers.create(
+      { 
+        email,
+        metadata: { supabase_userId: userId }
+      },
+      { idempotencyKey: `cust_${userId}` }
+    )
 
     // 2. Definir o fim do trial (15 dias a partir de agora)
     const trialEndsAt = new Date()
     trialEndsAt.setDate(trialEndsAt.getDate() + 15)
 
-    // 3. Atualizar o perfil que foi criado pela trigger no Supabase
+    // 3. Atualizar o perfil com uma verificação atômica: só atualiza se stripe_customer_id for null
     const { error } = await supabaseAdmin
       .from('profiles')
       .update({
@@ -36,6 +43,7 @@ export async function setupNewUser(userId: string, email: string) {
         trial_ends_at: trialEndsAt.toISOString(),
       })
       .eq('id', userId)
+      .is('stripe_customer_id', null)
 
     if (error) {
       console.error('Erro ao atualizar perfil com dados do Stripe:', error)

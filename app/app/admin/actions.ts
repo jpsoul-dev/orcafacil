@@ -3,12 +3,37 @@
 import { createClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
 import { revalidatePath } from 'next/cache'
+import { createClient as createSupabaseServerClient } from '@/lib/supabase/server'
+
+/**
+ * Helper interno para garantir que apenas administradores executem as ações.
+ */
+async function validateAdmin() {
+  const supabase = await createSupabaseServerClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.is_admin) return { error: 'Não autorizado' }
+  
+  return { authorized: true }
+}
 
 export async function syncUserSubscriptionAction(
   userId: string,
   stripeCustomerId: string | null
 ) {
   try {
+    // 0. Verificar autorização
+    const auth = await validateAdmin()
+    if (auth.error) return { error: auth.error }
+
     // 1. Validar inputs
     if (!userId) {
       return { error: 'ID de usuário inválido' }
@@ -66,6 +91,10 @@ export async function deleteUserAction(
   stripeCustomerId: string | null
 ) {
   try {
+    // 0. Verificar autorização
+    const auth = await validateAdmin()
+    if (auth.error) return { error: auth.error }
+
     if (!userId) {
       return { error: 'ID de usuário inválido' }
     }
@@ -109,6 +138,10 @@ export async function deleteUserAction(
 
 export async function getAdminDashboardStats() {
   try {
+    // 0. Verificar autorização
+    const auth = await validateAdmin()
+    if (auth.error) throw new Error(auth.error)
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -182,18 +215,9 @@ export async function getAdminDashboardStats() {
 
 export async function broadcastNotificationAction(content: string, title?: string, type: string = 'info') {
   try {
-    // 1. Verificar quem está logado usando o client padrão (que tem a sessão dos cookies)
-    const { createClient: createSupabaseServerClient } = await import('@/lib/supabase/server')
-    const supabase = await createSupabaseServerClient()
-    
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Não autenticado' }
-
-    const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
-
-    if (!profile?.is_admin) {
-      return { error: 'Não autorizado' }
-    }
+    // 1. Verificar autorização usando o helper
+    const auth = await validateAdmin()
+    if (auth.error) return { error: auth.error }
 
     // 2. Inserir usando o Service Role Key
     const supabaseAdmin = createClient(

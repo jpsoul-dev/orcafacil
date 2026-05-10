@@ -30,6 +30,7 @@ export async function signup(formData: FormData) {
   const rawData = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
+    confirmPassword: formData.get('confirmPassword') as string,
   }
 
   // Validação no servidor
@@ -41,7 +42,10 @@ export async function signup(formData: FormData) {
 
   const data = validation.data
 
-  const { data: authData, error } = await supabase.auth.signUp(data)
+  const { data: authData, error } = await supabase.auth.signUp({
+    email: data.email,
+    password: data.password,
+  })
 
   if (error) {
     return { error: error.message }

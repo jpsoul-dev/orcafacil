@@ -33,6 +33,7 @@ export default function RegisterPage() {
     const formData = new FormData()
     formData.append('email', data.email)
     formData.append('password', data.password)
+    formData.append('confirmPassword', data.confirmPassword)
 
     const result = await signup(formData)
     if (result?.error) {
@@ -186,6 +187,23 @@ export default function RegisterPage() {
                   <ShieldCheck className="h-3.5 w-3.5 text-primary/70" />
                   <span>Mínimo 6 caracteres, letras (A-z) e números.</span>
                 </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="font-medium">
+                Confirmar Senha
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                className="h-11"
+                {...register('confirmPassword')}
+              />
+              {errors.confirmPassword && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
             <Button

@@ -265,7 +265,14 @@ export default function RegisterPage() {
 
           <p className="text-center text-xs text-muted-foreground">
             Ao criar uma conta, você concorda com nossos{' '}
-            <span className="underline cursor-pointer">Termos de Uso</span>
+            <Link
+              href="/termos"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-primary transition-colors"
+            >
+              Termos de Uso
+            </Link>
           </p>
         </div>
       </div>

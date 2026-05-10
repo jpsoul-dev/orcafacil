@@ -40,8 +40,9 @@ export async function GET(request: Request) {
         .eq('id', sessionData.user.id)
         .maybeSingle()
 
-      if (profileError) {
+      if (profileError && profileError.code !== 'PGRST116') {
         console.error('Erro ao buscar perfil do usuário:', profileError)
+        return NextResponse.redirect(`${origin}/login?error=server_error`)
       }
 
       if ((!profile || !profile.stripe_customer_id) && sessionData.user.email) {

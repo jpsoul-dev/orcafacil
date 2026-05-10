@@ -38,6 +38,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/quote/') ||
     request.nextUrl.pathname === '/login' ||
     request.nextUrl.pathname === '/register' ||
+    request.nextUrl.pathname === '/termos' ||
     request.nextUrl.pathname.startsWith('/auth/callback') ||
     request.nextUrl.pathname.startsWith('/api/webhook')
 

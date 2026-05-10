@@ -15,9 +15,12 @@ export default function LoginPage() {
 
   async function handleLogin(formData: FormData) {
     setLoading(true)
-    const result = await login(formData)
-    if (result?.error) {
-      toast.error(result.error)
+    try {
+      const result = await login(formData)
+      if (result?.error) {
+        toast.error(result.error)
+      }
+    } finally {
       setLoading(false)
     }
   }
@@ -183,14 +186,13 @@ export default function LoginPage() {
 
           <form
             action={async () => {
+              setGoogleLoading(true)
               try {
-                setGoogleLoading(true)
-                await signInWithGoogle(window.location.origin)
-              } catch (err) {
-                console.error(err)
-                toast.error(
-                  'Ocorreu um erro ao conectar com o Google. Tente novamente.',
-                )
+                const result = await signInWithGoogle(window.location.origin)
+                if (result?.error) {
+                  toast.error(result.error)
+                }
+              } finally {
                 setGoogleLoading(false)
               }
             }}

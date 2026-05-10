@@ -17,13 +17,16 @@ export default function RegisterPage() {
 
   async function handleRegister(formData: FormData) {
     setLoading(true)
-    const result = await signup(formData)
-    setLoading(false)
-    if (result?.error) {
-      toast.error(result.error)
-    } else {
-      toast.success('Conta criada! Verifique seu e-mail para confirmar.')
-      router.push('/login')
+    try {
+      const result = await signup(formData)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Conta criada! Verifique seu e-mail para confirmar.')
+        router.push('/login')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -196,7 +199,14 @@ export default function RegisterPage() {
           <form
             action={async () => {
               setGoogleLoading(true)
-              await signInWithGoogle()
+              try {
+                const result = await signInWithGoogle(window.location.origin)
+                if (result?.error) {
+                  toast.error(result.error)
+                }
+              } finally {
+                setGoogleLoading(false)
+              }
             }}
           >
             <Button

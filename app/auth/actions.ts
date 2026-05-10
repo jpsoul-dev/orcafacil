@@ -81,17 +81,22 @@ export async function signInWithGoogle(origin?: string) {
     ? `${origin}/auth/callback`
     : `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback`
 
-  const { data } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: redirectUrl,
     },
   })
 
+  if (error) {
+    return { error: error.message }
+  }
+
   if (data.url) {
     redirect(data.url)
   }
 }
+
 
 export async function updatePassword(password: string) {
   const supabase = await createClient()

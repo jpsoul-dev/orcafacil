@@ -112,6 +112,9 @@ export async function updatePassword(password: string) {
     return { error: updateError.message }
   }
 
+  // Invalida todas as outras sessões ativas por segurança
+  await supabase.auth.signOut({ scope: 'others' })
+
   // Atualiza o estado na tabela profiles
   const { error: profileError } = await supabase
     .from('profiles')

@@ -18,20 +18,19 @@ import { Label } from '@/components/ui/label'
 import { User, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { updatePassword } from '@/app/auth/actions'
+import { passwordSchema } from '@/lib/validations/auth'
 
-const passwordSchema = z
+const managePasswordSchema = z
   .object({
-    password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
-    confirmPassword: z
-      .string()
-      .min(6, 'A confirmação deve ter pelo menos 6 caracteres'),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, 'Confirme sua senha'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',
     path: ['confirmPassword'],
   })
 
-type PasswordForm = z.infer<typeof passwordSchema>
+type PasswordForm = z.infer<typeof managePasswordSchema>
 
 interface ManageAccountModalProps {
   open: boolean
@@ -50,7 +49,7 @@ export function ManageAccountModal({
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<PasswordForm>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(managePasswordSchema),
     defaultValues: {
       password: '',
       confirmPassword: '',
@@ -167,10 +166,15 @@ export function ManageAccountModal({
                         className="h-11"
                         {...form.register('password')}
                       />
-                      {form.formState.errors.password && (
+                      {form.formState.errors.password ? (
                         <p className="text-xs text-destructive font-medium">
                           {form.formState.errors.password.message}
                         </p>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/30 p-2 rounded-md border border-muted-foreground/10">
+                          <ShieldCheck className="h-3.5 w-3.5 text-primary/70" />
+                          <span>Mínimo 6 caracteres, letras (A-z) e números.</span>
+                        </div>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -194,11 +198,7 @@ export function ManageAccountModal({
                     disabled={isLoading}
                     className="h-11 px-8"
                   >
-                    {isLoading
-                      ? 'Salvando...'
-                      : hasPassword
-                        ? 'Atualizar senha'
-                        : 'Criar Senha'}
+                    {isLoading ? 'Salvando...' : 'Alterar senha'}
                   </Button>
                 </form>
               </div>

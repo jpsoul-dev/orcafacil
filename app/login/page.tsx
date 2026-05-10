@@ -8,20 +8,33 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { FileText, Zap, ArrowRight, Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { loginSchema, type LoginSchema } from '@/lib/validations/auth'
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
 
-  async function handleLogin(formData: FormData) {
-    setLoading(true)
-    try {
-      const result = await login(formData)
-      if (result?.error) {
-        toast.error(result.error)
-      }
-    } finally {
-      setLoading(false)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginSchema>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
+  async function onSubmit(data: LoginSchema) {
+    const formData = new FormData()
+    formData.append('email', data.email)
+    formData.append('password', data.password)
+
+    const result = await login(formData)
+    if (result?.error) {
+      toast.error(result.error)
     }
   }
 
@@ -127,39 +140,47 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form action={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="font-medium">
                 E-mail
               </Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
                 placeholder="seu@email.com"
-                required
                 className="h-11"
+                {...register('email')}
               />
+              {errors.email && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="font-medium">
+              <Label htmlFor="password" title="Senha" className="font-medium">
                 Senha
               </Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
                 placeholder="••••••••"
-                required
                 className="h-11"
+                {...register('password')}
               />
+              {errors.password && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
             <Button
               className="w-full h-11 font-semibold gap-2"
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Entrando...
@@ -220,7 +241,7 @@ export default function LoginPage() {
                     fill="#FBBC05"
                   />
                   <path
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     fill="#EA4335"
                   />
                 </svg>

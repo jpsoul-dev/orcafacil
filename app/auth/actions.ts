@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { setupNewUser } from '@/lib/services/user-service'
+import { authSchema, passwordSchema } from '@/lib/validations/auth'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -26,10 +27,19 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  const data = {
+  const rawData = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
+
+  // Validação no servidor
+  const validation = authSchema.safeParse(rawData)
+  if (!validation.success) {
+    const errorMessage = validation.error.issues[0].message
+    return { error: errorMessage }
+  }
+
+  const data = validation.data
 
   const { data: authData, error } = await supabase.auth.signUp(data)
 
@@ -77,7 +87,14 @@ export async function signInWithGoogle(origin?: string) {
 }
 
 
+
 export async function updatePassword(password: string) {
+  // Validação no servidor
+  const validation = passwordSchema.safeParse(password)
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message }
+  }
+
   const supabase = await createClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 

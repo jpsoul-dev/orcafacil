@@ -38,33 +38,12 @@ export async function signup(formData: FormData) {
   }
 
   if (authData.user) {
-    const hasPasswordIdentity = authData.user.identities?.some(
-      (id) => id.provider === 'email',
-    )
-
-    if (!hasPasswordIdentity) {
-      if (authData.session) {
-        await supabase.auth.updateUser({ password: data.password })
-      } else {
-        const { createClient: createAdminClient } =
-          await import('@supabase/supabase-js')
-        const supabaseAdmin = createAdminClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        )
-
-        await supabaseAdmin.auth.admin.updateUserById(authData.user.id, {
-          password: data.password,
-          email_confirm: true,
-        })
-      }
-    }
-
     const result = await setupNewUser(authData.user.id, data.email)
     if (result.error) {
       console.error(result.error)
     }
   }
+
 
   return { success: true }
 }

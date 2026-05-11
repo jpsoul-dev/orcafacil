@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm, Resolver } from 'react-hook-form'
+import { useForm, Resolver, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCatalogItem } from './actions'
+import { maskCurrency } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -96,6 +97,7 @@ export function CatalogForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
+        nativeButton={true}
         render={
           trigger ? (
             trigger
@@ -228,13 +230,32 @@ export function CatalogForm({
                 >
                   Valor Unitário (R$)
                 </Label>
-                <Input
-                  id="unit_price"
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  {...form.register('unit_price')}
-                  className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
+                <Controller
+                  name="unit_price"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Input
+                      id="unit_price"
+                      type="text"
+                      placeholder="0,00"
+                      value={
+                        field.value
+                          ? maskCurrency(
+                              Math.round(field.value * 100).toString(),
+                            )
+                          : ''
+                      }
+                      onChange={(e) => {
+                        const masked = maskCurrency(e.target.value)
+                        const raw =
+                          parseFloat(
+                            masked.replace(/\./g, '').replace(',', '.'),
+                          ) || 0
+                        field.onChange(raw)
+                      }}
+                      className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
+                    />
+                  )}
                 />
               </div>
             </div>

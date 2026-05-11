@@ -1,7 +1,7 @@
 'use client'
 
 import { ColumnDef, Column } from '@tanstack/react-table'
-import { ArrowUpDown, Box, Wrench } from 'lucide-react'
+import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CatalogForm } from './catalog-form'
 import { Badge } from '@/components/ui/badge'
@@ -45,9 +45,14 @@ export const columns: ColumnDef<CatalogItem>[] = [
     accessorKey: 'name',
     header: ({ column }) => <SortButton column={column} label="Nome" />,
     cell: ({ row }) => (
-      <div className="font-bold text-foreground">
-        {row.getValue('name')}
-      </div>
+      <CatalogForm
+        initialData={row.original}
+        trigger={
+          <button className="font-bold text-slate-900 cursor-pointer hover:text-blue-600 transition-colors bg-transparent border-none p-0 text-left">
+            {row.getValue('name')}
+          </button>
+        }
+      />
     ),
   },
   {
@@ -57,20 +62,14 @@ export const columns: ColumnDef<CatalogItem>[] = [
       const type = row.original.type
       if (type === 'product') {
         return (
-          <Badge
-            variant="outline"
-            className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/10 hover:text-blue-600 border-blue-500/20 font-medium"
-          >
-            <Box className="mr-1 h-3 w-3" /> Produto
+          <Badge className="bg-blue-900 text-white border-none shadow-sm font-bold text-[10px] px-3 py-0.5 rounded-md uppercase">
+            Produto
           </Badge>
         )
       }
       return (
-        <Badge
-          variant="outline"
-          className="bg-orange-500/10 text-orange-600 hover:bg-orange-500/10 hover:text-orange-600 border-orange-500/20 font-medium"
-        >
-          <Wrench className="mr-1 h-3 w-3" /> Serviço
+        <Badge className="bg-amber-900 text-white border-none shadow-sm font-bold text-[10px] px-3 py-0.5 rounded-md uppercase">
+          Serviço
         </Badge>
       )
     },

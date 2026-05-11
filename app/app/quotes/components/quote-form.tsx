@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useForm, useFieldArray, useWatch, Controller, Resolver } from 'react-hook-form'
+import {
+  useForm,
+  useFieldArray,
+  useWatch,
+  Controller,
+  Resolver,
+} from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -165,10 +171,22 @@ export function QuoteForm({
   })
   const watchedItems = useWatch({ control: form.control, name: 'items' })
   const watchItems = useMemo(() => watchedItems || [], [watchedItems])
-  const watchDiscountType = useWatch({ control: form.control, name: 'discount_type' })
-  const watchDiscountValue = useWatch({ control: form.control, name: 'discount_value' })
-  const watchCustomerId = useWatch({ control: form.control, name: 'customer_id' })
-  const watchPaymentMethod = useWatch({ control: form.control, name: 'payment_method' })
+  const watchDiscountType = useWatch({
+    control: form.control,
+    name: 'discount_type',
+  })
+  const watchDiscountValue = useWatch({
+    control: form.control,
+    name: 'discount_value',
+  })
+  const watchCustomerId = useWatch({
+    control: form.control,
+    name: 'customer_id',
+  })
+  const watchPaymentMethod = useWatch({
+    control: form.control,
+    name: 'payment_method',
+  })
 
   const { subtotalFinal, totalFinal } = useMemo(() => {
     const sub = (watchItems || []).reduce((acc, item) => {
@@ -340,6 +358,7 @@ export function QuoteForm({
                 }}
               >
                 <DialogTrigger
+                  nativeButton={true}
                   render={
                     <Button
                       type="button"
@@ -652,6 +671,7 @@ export function QuoteForm({
               }}
             >
               <DialogTrigger
+                nativeButton={true}
                 render={
                   <button
                     type="button"

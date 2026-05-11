@@ -36,6 +36,7 @@ export function DeleteItemDialog({ id, name }: { id: string; name: string }) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger
+        nativeButton={true}
         render={
           <Button
             variant="ghost"

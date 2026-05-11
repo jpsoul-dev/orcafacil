@@ -159,6 +159,7 @@ export function CustomerForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
+        nativeButton={true}
         render={
           trigger ? (
             trigger

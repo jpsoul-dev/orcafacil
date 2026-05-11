@@ -5,54 +5,90 @@ export async function setupNewUser(userId: string, email: string) {
   // Usamos o Service Role Key para ignorar RLS, pois o usuário ainda não confirmou o e-mail
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
   try {
-    // 1. Verificar se o usuário já tem um customer_id para evitar duplicidade
-    const { data: profile } = await supabaseAdmin
+    // 1. Verificar dados atuais do perfil para evitar sobrescrever o trial
+    interface ProfileData {
+      stripe_customer_id: string | null
+      trial_ends_at: string | null
+      subscription_status: string | null
+    }
+
+    const { data } = await supabaseAdmin
       .from('profiles')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, trial_ends_at, subscription_status')
       .eq('id', userId)
       .single()
 
+    const profile = data as ProfileData | null
+
     if (profile?.stripe_customer_id) {
-      return { success: true }
+      return { success: true, customerId: profile.stripe_customer_id }
     }
 
-    // 2. Criar Stripe Customer com Idempotency Key para evitar duplicidade em Race Conditions
-    // Se dois requests chegarem ao mesmo tempo, o Stripe retornará o mesmo cliente para a mesma chave.
+    // 2. Criar Stripe Customer com Idempotency Key
     const customer = await stripe.customers.create(
-      { 
-        email,
-        metadata: { supabase_userId: userId }
+      {
+        email: email || undefined,
+        metadata: { supabase_userId: userId },
       },
-      { idempotencyKey: `cust_${userId}` }
+      { idempotencyKey: `cust_${userId}` },
     )
 
-    // 2. Definir o fim do trial (15 dias a partir de agora)
-    const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + 15)
-
-    // 3. Atualizar o perfil com uma verificação atômica: só atualiza se stripe_customer_id for null
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .update({
-        stripe_customer_id: customer.id,
-        subscription_status: 'trialing',
-        trial_ends_at: trialEndsAt.toISOString(),
-      })
-      .eq('id', userId)
-      .is('stripe_customer_id', null)
-
-    if (error) {
-      console.error('Erro ao atualizar perfil com dados do Stripe:', error)
-      return { error: 'Falha ao configurar assinatura do usuário.' }
+    // 3. Só define novo trial se o usuário ainda não tiver um
+    interface ProfileUpdate {
+      stripe_customer_id: string
+      subscription_status: string
+      trial_ends_at?: string
     }
 
-    return { success: true }
-  } catch (err) {
-    console.error('Erro na integração com Stripe:', err)
-    return { error: 'Falha na comunicação com o provedor de pagamentos.' }
+    const updateData: ProfileUpdate = {
+      stripe_customer_id: customer.id,
+      subscription_status: profile?.subscription_status || 'trialing',
+    }
+
+    if (!profile?.trial_ends_at) {
+      const trialEndsAt = new Date()
+      trialEndsAt.setDate(trialEndsAt.getDate() + 15)
+      updateData.trial_ends_at = trialEndsAt.toISOString()
+    }
+
+    // 4. Garantir a persistência usando upsert
+    console.log(`Realizando upsert no perfil do usuário: ${userId}`, updateData)
+    const { error, data: updatedData } = await supabaseAdmin
+      .from('profiles')
+      .upsert(
+        {
+          id: userId,
+          ...updateData,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' },
+      )
+      .select()
+
+    if (error) {
+      console.error('Erro detalhado no upsert do perfil:', error)
+      return { error: `Falha ao salvar dados de pagamento: ${error.message}` }
+    }
+
+    if (!updatedData || updatedData.length === 0) {
+      console.error(
+        'Upsert não retornou dados. Verifique as permissões da Service Role.',
+      )
+      return { error: 'Erro de consistência: Perfil não persistido.' }
+    }
+
+    console.log('Perfil atualizado com sucesso:', updatedData[0].id)
+    return { success: true, customerId: customer.id }
+  } catch (err: unknown) {
+    console.error('Erro completo na integração com Stripe:', err)
+    const message =
+      err instanceof Error
+        ? err.message
+        : 'Falha na comunicação com o provedor de pagamentos.'
+    return { error: message }
   }
 }

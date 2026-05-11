@@ -5,33 +5,53 @@ import { stripe } from '../../lib/stripe'
 import { redirect } from 'next/navigation'
 
 export async function createCheckoutAction() {
-  console.log("createCheckoutAction called")
+  console.log('createCheckoutAction called')
   const supabase = await createClient()
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    console.error("User not found in createCheckoutAction", userError)
+    console.error('User not found in createCheckoutAction', userError)
     redirect('/login')
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
-    .select('stripe_customer_id')
+    .select('stripe_customer_id, subscription_status')
     .eq('id', user.id)
     .single()
 
-  if (profileError || !profile?.stripe_customer_id) {
-    console.error("Profile or Stripe customer not found", profileError)
-    throw new Error('Stripe customer not found')
+  let stripeCustomerId = profile?.stripe_customer_id
+
+  // AUTO-CORREÇÃO: Se não tiver o ID do Stripe, tenta criar agora (Lazy Creation)
+  if (!stripeCustomerId) {
+    console.log(
+      'Stripe customer missing, attempting lazy creation for user:',
+      user.id,
+    )
+    const { setupNewUser } = await import('../../lib/services/user-service')
+    const result = await setupNewUser(user.id, user.email!)
+
+    if (result.error || !result.customerId) {
+      console.error('Failed to lazily create Stripe customer', result.error)
+      throw new Error(
+        result.error ||
+          'Não foi possível configurar sua conta de pagamento. Tente novamente mais tarde.',
+      )
+    }
+
+    stripeCustomerId = result.customerId
   }
 
-  console.log("Creating checkout session for customer:", profile.stripe_customer_id)
+  console.log('Creating checkout session for customer:', stripeCustomerId)
 
   let sessionUrl: string | null = null
 
   try {
     const session = await stripe.checkout.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: stripeCustomerId,
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
@@ -44,10 +64,10 @@ export async function createCheckoutAction() {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing`,
     })
 
-    console.log("Session created:", session.url)
+    console.log('Session created:', session.url)
     sessionUrl = session.url
   } catch (error) {
-    console.error("Error creating Stripe session:", error)
+    console.error('Error creating Stripe session:', error)
     throw error
   }
 
@@ -58,7 +78,9 @@ export async function createCheckoutAction() {
 
 export async function createPortalAction() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
@@ -68,15 +90,25 @@ export async function createPortalAction() {
     .eq('id', user.id)
     .single()
 
-  if (!profile?.stripe_customer_id) {
-    throw new Error('Customer not found')
+  let stripeCustomerId = profile?.stripe_customer_id
+
+  if (!stripeCustomerId) {
+    // Tenta auto-correção também no portal
+    const { setupNewUser } = await import('../../lib/services/user-service')
+    const result = await setupNewUser(user.id, user.email!)
+
+    if (result.error || !result.customerId) {
+      throw new Error('Perfil de pagamento não encontrado.')
+    }
+
+    stripeCustomerId = result.customerId
   }
 
   let portalUrl: string | null = null
 
   try {
     const session = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/app`,
     })
     portalUrl = session.url

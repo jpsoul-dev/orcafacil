@@ -16,7 +16,7 @@ export async function saveCatalogItem(data: CatalogItemInput, id?: string) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Not authenticated' }
+  if (!user) return { error: 'Não autenticado' }
 
   const itemData = {
     ...data,
@@ -51,7 +51,7 @@ export async function deleteCatalogItem(id: string) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
+  if (!user) return { error: 'Não autenticado' }
 
   const { error } = await supabase
     .from('catalog_items')

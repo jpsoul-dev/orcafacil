@@ -25,7 +25,7 @@ export async function saveCustomer(data: CustomerInput, id?: string) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Not authenticated' }
+  if (!user) return { error: 'Não autenticado' }
 
   const customerData = {
     ...data,
@@ -52,17 +52,29 @@ export async function saveCustomer(data: CustomerInput, id?: string) {
   }
 
   revalidatePath('/app/customers')
+  if (id) revalidatePath(`/app/customers/${id}`)
   return { success: true }
 }
 
 export async function deleteCustomer(id: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('customers').delete().eq('id', id)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Não autenticado' }
+
+  const { error } = await supabase
+    .from('customers')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
 
   if (error) {
     return { error: error.message }
   }
 
   revalidatePath('/app/customers')
+  revalidatePath(`/app/customers/${id}`)
   return { success: true }
 }

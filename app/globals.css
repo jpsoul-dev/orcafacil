@@ -71,6 +71,12 @@
   --accent-foreground: oklch(0.205 0 0);
 
   --destructive: oklch(0.577 0.245 27.325);
+  --success: oklch(0.627 0.194 149.214);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.205 0 0);
+  --info: oklch(0.6 0.15 250);
+  --info-foreground: oklch(0.985 0 0);
 
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -113,6 +119,12 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.627 0.194 149.214);
+  --success-foreground: oklch(0.205 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.205 0 0);
+  --info: oklch(0.5 0.15 250);
+  --info-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -168,6 +180,31 @@
   }
   .card-hover {
     @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  .cn-toast {
+    @apply !backdrop-blur-md !bg-white/80 dark:!bg-slate-900/80 !border-slate-200/50 dark:!border-slate-800/50 !shadow-xl !rounded-2xl !p-4 !font-sans;
+    border-left-width: 4px !important;
+  }
+
+  .cn-toast-success {
+    @apply !bg-emerald-50/80 !border-emerald-200/50;
+    border-left-color: var(--success) !important;
+  }
+
+  .cn-toast-error {
+    @apply !bg-red-50/80 !border-red-200/50;
+    border-left-color: var(--destructive) !important;
+  }
+
+  .cn-toast-warning {
+    @apply !bg-amber-50/80 !border-amber-200/50;
+    border-left-color: var(--warning) !important;
+  }
+
+  .cn-toast-info {
+    @apply !bg-blue-50/80 !border-blue-200/50;
+    border-left-color: var(--info) !important;
   }
 }
 

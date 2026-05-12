@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { randomUUID } from 'crypto'
 
 export async function saveCompanySettings(formData: FormData) {
   try {
@@ -29,7 +30,7 @@ export async function saveCompanySettings(formData: FormData) {
 
     if (logoFile && logoFile.size > 0) {
       const fileExt = logoFile.name.split('.').pop()
-      const filePath = `${user.id}-${Math.random()}.${fileExt}`
+      const filePath = `${randomUUID()}.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
         .from('company-logos')

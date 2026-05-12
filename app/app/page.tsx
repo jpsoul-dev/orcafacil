@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,7 +14,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    throw new Error('User not found')
+    redirect('/login')
   }
 
   const now = new Date()
@@ -23,11 +24,12 @@ export default async function DashboardPage() {
       supabase
         .from('quotes')
         .select('created_at')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: true }),
       supabase
         .from('profiles')
         .select('subscription_status, trial_ends_at')
-        .eq('id', user?.id || '')
+        .eq('id', user.id)
         .single()
     ],
   )

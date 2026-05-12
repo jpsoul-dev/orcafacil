@@ -1,20 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { SettingsForm } from './settings-form'
 import { Settings } from 'lucide-react'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  let company = null
-  if (user) {
-    const { data } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-    company = data
+  if (!user) {
+    redirect('/login')
   }
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('user_id', user.id)
+    .single()
 
   return (
     <div className="space-y-6">

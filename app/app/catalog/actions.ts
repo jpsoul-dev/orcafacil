@@ -11,58 +11,80 @@ export interface CatalogItemInput {
 }
 
 export async function saveCatalogItem(data: CatalogItemInput, id?: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Não autenticado' }
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
 
-  const itemData = {
-    ...data,
-    user_id: user.id,
+    const itemData = {
+      ...data,
+      user_id: user.id,
+    }
+
+    if (id) {
+      const { error } = await supabase
+        .from('catalog_items')
+        .update(itemData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+    } else {
+      const { error } = await supabase
+        .from('catalog_items')
+        .insert(itemData)
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+    }
+
+    revalidatePath('/app/catalog')
+    return { success: true }
+  } catch (error) {
+    console.error('Error in saveCatalogItem:', error)
+    return {
+      success: false,
+      error: 'Ocorreu um erro inesperado ao salvar o item do catálogo.',
+    }
   }
-
-  let error
-  if (id) {
-    const { error: updateError } = await supabase
-      .from('catalog_items')
-      .update(itemData)
-      .eq('id', id)
-      .eq('user_id', user.id)
-    error = updateError
-  } else {
-    const { error: insertError } = await supabase
-      .from('catalog_items')
-      .insert(itemData)
-    error = insertError
-  }
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/app/catalog')
-  return { success: true }
 }
 
 export async function deleteCatalogItem(id: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autenticado' }
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  const { error } = await supabase
-    .from('catalog_items')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id)
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
 
-  if (error) {
-    return { error: error.message }
+    const { error } = await supabase
+      .from('catalog_items')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/app/catalog')
+    return { success: true }
+  } catch (error) {
+    console.error('Error in deleteCatalogItem:', error)
+    return {
+      success: false,
+      error: 'Ocorreu um erro inesperado ao excluir o item do catálogo.',
+    }
   }
-
-  revalidatePath('/app/catalog')
-  return { success: true }
 }

@@ -20,61 +20,82 @@ export interface CustomerInput {
 }
 
 export async function saveCustomer(data: CustomerInput, id?: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Não autenticado' }
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
 
-  const customerData = {
-    ...data,
-    user_id: user.id,
+    const customerData = {
+      ...data,
+      user_id: user.id,
+    }
+
+    if (id) {
+      const { error } = await supabase
+        .from('customers')
+        .update(customerData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+    } else {
+      const { error } = await supabase
+        .from('customers')
+        .insert(customerData)
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+    }
+
+    revalidatePath('/app/customers')
+    if (id) revalidatePath(`/app/customers/${id}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error in saveCustomer:', error)
+    return {
+      success: false,
+      error: 'Ocorreu um erro inesperado ao salvar o cliente.',
+    }
   }
-
-  let error
-  if (id) {
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update(customerData)
-      .eq('id', id)
-      .eq('user_id', user.id)
-    error = updateError
-  } else {
-    const { error: insertError } = await supabase
-      .from('customers')
-      .insert(customerData)
-    error = insertError
-  }
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/app/customers')
-  if (id) revalidatePath(`/app/customers/${id}`)
-  return { success: true }
 }
 
 export async function deleteCustomer(id: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Não autenticado' }
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
 
-  const { error } = await supabase
-    .from('customers')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id)
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
 
-  if (error) {
-    return { error: error.message }
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/app/customers')
+    revalidatePath(`/app/customers/${id}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error in deleteCustomer:', error)
+    return {
+      success: false,
+      error: 'Ocorreu um erro inesperado ao excluir o cliente.',
+    }
   }
-
-  revalidatePath('/app/customers')
-  revalidatePath(`/app/customers/${id}`)
-  return { success: true }
 }

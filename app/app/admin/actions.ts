@@ -81,8 +81,9 @@ export async function syncUserSubscriptionAction(
     return { success: true, status: subscription.status }
   } catch (error: unknown) {
     console.error('Erro na sincronização:', error)
-    const message = error instanceof Error ? error.message : 'Erro desconhecido ao sincronizar.'
-    return { error: message }
+    const message =
+      error instanceof Error ? error.message : 'Erro desconhecido ao sincronizar.'
+    return { success: false, error: message }
   }
 }
 
@@ -131,8 +132,11 @@ export async function deleteUserAction(
     return { success: true }
   } catch (error: unknown) {
     console.error('Erro na exclusão de usuário:', error)
-    const message = error instanceof Error ? error.message : 'Erro desconhecido ao excluir usuário.'
-    return { error: message }
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Erro desconhecido ao excluir usuário.'
+    return { success: false, error: message }
   }
 }
 
@@ -237,7 +241,8 @@ export async function broadcastNotificationAction(content: string, title?: strin
     return { success: true }
   } catch (error: unknown) {
     console.error('Erro ao enviar comunicado:', error)
-    const message = error instanceof Error ? error.message : 'Erro ao enviar comunicado'
-    return { error: message }
+    const message =
+      error instanceof Error ? error.message : 'Erro ao enviar comunicado'
+    return { success: false, error: message }
   }
 }

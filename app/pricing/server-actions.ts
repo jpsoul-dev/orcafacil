@@ -3,9 +3,10 @@
 import { createClient } from '../../lib/supabase/server'
 import { stripe } from '../../lib/stripe'
 import { redirect } from 'next/navigation'
+import { logger } from '@/lib/logger'
 
 export async function createCheckoutAction() {
-  console.log('createCheckoutAction called')
+  logger.info('createCheckoutAction called')
   const supabase = await createClient()
   const {
     data: { user },
@@ -13,7 +14,7 @@ export async function createCheckoutAction() {
   } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    console.error('User not found in createCheckoutAction', userError)
+    logger.error('User not found in createCheckoutAction', userError)
     redirect('/login')
   }
 
@@ -27,7 +28,7 @@ export async function createCheckoutAction() {
 
   // AUTO-CORREÇÃO: Se não tiver o ID do Stripe, tenta criar agora (Lazy Creation)
   if (!stripeCustomerId) {
-    console.log(
+    logger.info(
       'Stripe customer missing, attempting lazy creation for user:',
       user.id,
     )
@@ -35,7 +36,7 @@ export async function createCheckoutAction() {
     const result = await setupNewUser(user.id, user.email!)
 
     if (result.error || !result.customerId) {
-      console.error('Failed to lazily create Stripe customer', result.error)
+      logger.error('Failed to lazily create Stripe customer', result.error)
       throw new Error(
         result.error ||
           'Não foi possível configurar sua conta de pagamento. Tente novamente mais tarde.',
@@ -45,7 +46,7 @@ export async function createCheckoutAction() {
     stripeCustomerId = result.customerId
   }
 
-  console.log('Creating checkout session for customer:', stripeCustomerId)
+  logger.info('Creating checkout session for customer:', stripeCustomerId)
 
   let sessionUrl: string | null = null
 
@@ -64,10 +65,10 @@ export async function createCheckoutAction() {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing`,
     })
 
-    console.log('Session created:', session.url)
+    logger.info('Session created:', session.url)
     sessionUrl = session.url
   } catch (error) {
-    console.error('Error creating Stripe session:', error)
+    logger.error('Error creating Stripe session:', error)
     throw error
   }
 
@@ -113,7 +114,7 @@ export async function createPortalAction() {
     })
     portalUrl = session.url
   } catch (error) {
-    console.error('Error creating portal session:', error)
+    logger.error('Error creating portal session:', error)
     throw error
   }
 

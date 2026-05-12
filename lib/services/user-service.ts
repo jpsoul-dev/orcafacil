@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
+import { logger } from '@/lib/logger'
 
 export async function setupNewUser(userId: string, email: string) {
   // Usamos o Service Role Key para ignorar RLS, pois o usuário ainda não confirmou o e-mail
@@ -56,7 +57,7 @@ export async function setupNewUser(userId: string, email: string) {
     }
 
     // 4. Garantir a persistência usando upsert
-    console.log(`Realizando upsert no perfil do usuário: ${userId}`, updateData)
+    logger.info(`Realizando upsert no perfil do usuário: ${userId}`, updateData)
     const { error, data: updatedData } = await supabaseAdmin
       .from('profiles')
       .upsert(
@@ -70,21 +71,21 @@ export async function setupNewUser(userId: string, email: string) {
       .select()
 
     if (error) {
-      console.error('Erro detalhado no upsert do perfil:', error)
+      logger.error('Erro detalhado no upsert do perfil:', error)
       return { error: `Falha ao salvar dados de pagamento: ${error.message}` }
     }
 
     if (!updatedData || updatedData.length === 0) {
-      console.error(
+      logger.error(
         'Upsert não retornou dados. Verifique as permissões da Service Role.',
       )
       return { error: 'Erro de consistência: Perfil não persistido.' }
     }
 
-    console.log('Perfil atualizado com sucesso:', updatedData[0].id)
+    logger.info('Perfil atualizado com sucesso:', updatedData[0].id)
     return { success: true, customerId: customer.id }
   } catch (err: unknown) {
-    console.error('Erro completo na integração com Stripe:', err)
+    logger.error('Erro completo na integração com Stripe:', err)
     const message =
       err instanceof Error
         ? err.message

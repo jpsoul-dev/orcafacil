@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
     )
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Webhook signature verification failed:', errorMessage)
+    logger.error('Webhook signature verification failed:', errorMessage)
     return NextResponse.json(
       { error: `Webhook Error: ${errorMessage}` },
       { status: 400 },
@@ -67,19 +68,19 @@ export async function POST(req: Request) {
 
         // TODO: Implemente o envio de e-mail (Resend, Nodemailer, etc.)
         // await sendTrialEndingEmail(subscription.customer as string)
-        console.log(`Trial will end soon for customer ${subscription.customer}`)
+        logger.info(`Trial will end soon for customer ${subscription.customer}`)
         break
       }
 
       default:
-        console.log(`Unhandled event type ${event.type}`)
+        logger.info(`Unhandled event type ${event.type}`)
     }
 
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error'
-    console.error('Error handling webhook event:', errorMessage)
+    logger.error('Error handling webhook event:', errorMessage)
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 },

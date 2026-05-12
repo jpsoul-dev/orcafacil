@@ -36,11 +36,15 @@ export async function markAllAsReadAction() {
 
     if (!user) return { error: 'Não autenticado' }
 
-    // Simplificação: Vamos pegar as notificações existentes e inserir o registro de leitura.
-    const { data: allNotifications } = await supabase.from('notifications').select('id')
+    // Busca as notificações mais recentes com um limite de segurança para evitar estouro de memória
+    const { data: recentNotifications } = await supabase
+      .from('notifications')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(100)
     
-    if (allNotifications && allNotifications.length > 0) {
-      const reads = allNotifications.map(n => ({
+    if (recentNotifications && recentNotifications.length > 0) {
+      const reads = recentNotifications.map(n => ({
         notification_id: n.id,
         user_id: user.id
       }))

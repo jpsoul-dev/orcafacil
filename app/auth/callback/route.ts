@@ -50,7 +50,7 @@ export async function GET(request: Request) {
           sessionData.user.id,
           sessionData.user.email,
         )
-        if (setupResult.error) {
+        if (!setupResult.success) {
           console.error(
             'Erro durante o setup do novo usuário (Stripe/Database):',
             setupResult.error,

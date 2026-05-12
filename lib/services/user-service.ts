@@ -2,7 +2,14 @@ import { createClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
 
-export async function setupNewUser(userId: string, email: string) {
+export type SetupNewUserResult =
+  | { success: true; customerId: string; error?: never }
+  | { success: false; error: string; customerId?: never }
+
+export async function setupNewUser(
+  userId: string,
+  email: string
+): Promise<SetupNewUserResult> {
   // Usamos o Service Role Key para ignorar RLS, pois o usuário ainda não confirmou o e-mail
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,14 +79,14 @@ export async function setupNewUser(userId: string, email: string) {
 
     if (error) {
       logger.error('Erro detalhado no upsert do perfil:', error)
-      return { error: `Falha ao salvar dados de pagamento: ${error.message}` }
+      return { success: false, error: `Falha ao salvar dados de pagamento: ${error.message}` }
     }
 
     if (!updatedData || updatedData.length === 0) {
       logger.error(
         'Upsert não retornou dados. Verifique as permissões da Service Role.',
       )
-      return { error: 'Erro de consistência: Perfil não persistido.' }
+      return { success: false, error: 'Erro de consistência: Perfil não persistido.' }
     }
 
     logger.info('Perfil atualizado com sucesso:', updatedData[0].id)
@@ -90,6 +97,6 @@ export async function setupNewUser(userId: string, email: string) {
       err instanceof Error
         ? err.message
         : 'Falha na comunicação com o provedor de pagamentos.'
-    return { error: message }
+    return { success: false, error: message }
   }
 }

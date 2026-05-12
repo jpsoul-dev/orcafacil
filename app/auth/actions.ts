@@ -67,7 +67,7 @@ export async function signup(formData: FormData) {
 
   if (authData.user) {
     const result = await setupNewUser(authData.user.id, data.email)
-    if (result.error) {
+    if (!result.success) {
       console.error(result.error)
     }
   }

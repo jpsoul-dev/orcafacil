@@ -35,7 +35,7 @@ export async function createCheckoutAction() {
     const { setupNewUser } = await import('../../lib/services/user-service')
     const result = await setupNewUser(user.id, user.email!)
 
-    if (result.error || !result.customerId) {
+    if (!result.success) {
       logger.error('Failed to lazily create Stripe customer', result.error)
       throw new Error(
         result.error ||
@@ -50,14 +50,19 @@ export async function createCheckoutAction() {
 
   let sessionUrl: string | null = null
 
-  try {
+    const priceId = process.env.STRIPE_PRICE_ID
+    if (!priceId) {
+      throw new Error('Configuração ausente: STRIPE_PRICE_ID não definida nas variáveis de ambiente.')
+    }
+
+    try {
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         {
-          price: 'price_1TU8m5PcWUVwpJOwXrI8ilBt',
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -98,8 +103,8 @@ export async function createPortalAction() {
     const { setupNewUser } = await import('../../lib/services/user-service')
     const result = await setupNewUser(user.id, user.email!)
 
-    if (result.error || !result.customerId) {
-      throw new Error('Perfil de pagamento não encontrado.')
+    if (!result.success) {
+      throw new Error(result.error || 'Perfil de pagamento não encontrado.')
     }
 
     stripeCustomerId = result.customerId

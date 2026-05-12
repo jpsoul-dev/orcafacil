@@ -14,12 +14,15 @@ import { NotificationBell } from "@/components/notification-bell"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
-  const [{ data: { user } }, { data: company }] = await Promise.all([
-    supabase.auth.getUser(),
-    supabase.from('companies').select('name').single()
-  ])
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (user && !company) {
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: company } = await supabase.from('companies').select('name').single()
+
+  if (!company) {
     redirect('/onboarding')
   }
 

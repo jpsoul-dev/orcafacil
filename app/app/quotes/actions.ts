@@ -54,6 +54,7 @@ export async function saveQuote(data: QuoteInput) {
       .from('quotes')
       .update(quotePayload)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select('id, public_uuid')
       .single()
 
@@ -103,28 +104,59 @@ export async function saveQuote(data: QuoteInput) {
 }
 
 export async function deleteQuote(id: string) {
-  const supabase = await createClient()
-  const { error } = await supabase.from('quotes').delete().eq('id', id)
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (error) {
-    return { error: error.message }
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    const { error } = await supabase
+      .from('quotes')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/app/quotes')
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting quote:', error)
+    return { success: false, error: 'Erro interno ao deletar orçamento' }
   }
-
-  revalidatePath('/app/quotes')
-  return { success: true }
 }
 
 export async function updateQuoteStatus(id: string, status: string) {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('quotes')
-    .update({ status })
-    .eq('id', id)
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (error) {
-    return { error: error.message }
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status })
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/app/quotes')
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating quote status:', error)
+    return { success: false, error: 'Erro interno ao atualizar status do orçamento' }
   }
-
-  revalidatePath('/app/quotes')
-  return { success: true }
 }

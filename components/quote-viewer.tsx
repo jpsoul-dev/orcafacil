@@ -2,6 +2,7 @@
 
 import { parseISO, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import Image from 'next/image'
 import { maskPhone } from '@/lib/masks'
 import {
   Table,
@@ -150,7 +151,6 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  // Sincronizar estado local se a prop mudar (ex: re-render do pai)
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentStatus(quote.status)
@@ -232,17 +232,14 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
     const url = `${window.location.origin}/quote/${quote.public_uuid}`
     try {
       await navigator.clipboard.writeText(url)
-      toast.success('Link do orçamento copiado! Envie para o seu cliente.')
+      toast.success('Link do orçamento copiado!')
     } catch (err) {
-      toast.error(
-        'Não foi possível copiar o link automaticamente. Copie manualmente: ' +
-          url,
-      )
+      toast.error('Não foi possível copiar o link' + url)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 py-0 sm:py-8 print:bg-white print:py-0">
+    <div className="min-h-screen bg-slate-50 py-0 print:bg-white print:py-0">
       {/* ACTION BAR - NO PRINT */}
       <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 print:hidden mb-8">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -423,9 +420,11 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         <div className="flex justify-between items-start mb-16">
           <div className="flex items-center gap-4">
             {quote.company?.logo_url ? (
-              <img
+              <Image
                 src={quote.company.logo_url}
                 alt={quote.company.name}
+                width={64}
+                height={64}
                 className="h-16 w-16 object-contain rounded-xl bg-slate-50 p-2"
               />
             ) : (

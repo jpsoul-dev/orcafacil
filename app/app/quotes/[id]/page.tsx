@@ -10,9 +10,6 @@ export default async function QuoteDetailsPage({
   const { id } = await params
   const supabase = await createClient()
 
-  // Buscar o orçamento com todos os relacionamentos necessários
-  // Usamos o rpc get_public_quote mas passando o public_uuid
-  // Primeiro pegamos o public_uuid pelo id
   const { data: quoteMeta } = await supabase
     .from('quotes')
     .select('public_uuid')

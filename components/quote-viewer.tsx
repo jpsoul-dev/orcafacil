@@ -13,7 +13,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Printer, CopyIcon, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import {
+  Printer,
+  CopyIcon,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Phone,
+  Mail,
+  MessageCircle,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Select,
@@ -65,12 +74,22 @@ export interface Customer {
   address_city: string
   address_state: string
   address_zip: string
+  address_complement?: string
+  email?: string
+  whatsapp?: string
 }
 
 export interface Company {
   name: string
   logo_url?: string
   phone: string
+  address_street?: string
+  address_number?: string
+  address_neighborhood?: string
+  address_city?: string
+  address_state?: string
+  address_zip?: string
+  address_complement?: string
 }
 
 export interface Quote {
@@ -292,12 +311,8 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                       ))}
                   </SelectContent>
                 </Select>
-                <Separator orientation="vertical" className="h-6" />
               </div>
             )}
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              #{quote.hash_id}
-            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -419,7 +434,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         {/* COMPANY HEADER */}
         <div className="flex justify-between items-start mb-16">
           <div className="flex items-center gap-4">
-            {quote.company?.logo_url ? (
+            {quote.company?.logo_url && (
               <Image
                 src={quote.company.logo_url}
                 alt={quote.company.name}
@@ -427,31 +442,38 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                 height={64}
                 className="h-16 w-16 object-contain rounded-xl bg-slate-50 p-2"
               />
-            ) : (
-              <div className="h-16 w-16 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-2xl">
-                {quote.company?.name?.charAt(0) || 'O'}
-              </div>
             )}
             <div className="space-y-1">
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                 {quote.company?.name || 'Sua Empresa'}
               </h2>
-              <p className="text-sm text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 {maskPhone(quote.company?.phone)}
+              </p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                {[
+                  quote.company?.address_street &&
+                    `${quote.company.address_street}${quote.company.address_number ? `, ${quote.company.address_number}` : ''}${quote.company.address_complement ? ` - ${quote.company.address_complement}` : ''}`,
+                  quote.company?.address_neighborhood,
+                  quote.company?.address_city &&
+                    `${quote.company.address_city}${quote.company.address_state ? `/${quote.company.address_state}` : ''}`,
+                ]
+                  .filter(Boolean)
+                  .join(' — ')}
               </p>
             </div>
           </div>
 
           <div className="text-right">
-            <h1 className="text-3xl font-black text-slate-900 tracking-widest uppercase mb-1">
+            <h1 className="text-2xl font-black text-slate-900 tracking-widest uppercase mb-1">
               Orçamento
             </h1>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest mb-6">
-              Nº {quote.hash_id}
+            <p className="text-slate-400 font-bold text-sm tracking-widest mb-6">
+              # {quote.hash_id}
             </p>
 
             <div className="flex items-center justify-end gap-3">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+              <span className="text-sm font-bold text-slate-400 tracking-widest">
                 Válido até:
               </span>
               <span className="text-[13px] font-black text-slate-900">
@@ -467,7 +489,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           </div>
         </div>
 
-        <Separator className="mb-12 bg-slate-100" />
+        <Separator className="mb-12 bg-slate-200" />
 
         {/* CUSTOMER HEADER */}
         <div className="flex justify-between items-start mb-12">
@@ -481,27 +503,29 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             <p className="text-sm text-slate-500 font-medium">
               CPF: {quote.customer?.document || '---'}
             </p>
-            <p className="text-sm text-slate-500 font-medium">
-              {maskPhone(quote.customer?.phone)}
-            </p>
           </div>
 
-          <div className="text-right border-r-4 border-emerald-500 pr-6 py-1">
+          <div className="text-right border-r-4 border-indigo-500 pr-6 py-1">
             <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest mb-2">
-              Endereço
+              Contato
             </h4>
-            <div className="text-[13px] text-slate-500 font-medium leading-relaxed">
-              <p>
-                {quote.customer?.address_street}
-                {quote.customer?.address_number
-                  ? `, ${quote.customer.address_number}`
-                  : ''}
-              </p>
-              <p>
-                {quote.customer?.address_neighborhood} —{' '}
-                {quote.customer?.address_city}, {quote.customer?.address_state}
-              </p>
-              <p>CEP: {quote.customer?.address_zip || '---'}</p>
+            <div className="text-[13px] text-slate-500 font-medium leading-relaxed space-y-1">
+              <div className="flex items-center justify-end gap-2">
+                <Phone className="h-3.5 w-3.5 text-slate-400" />
+                <span>{maskPhone(quote.customer?.phone) || '---'}</span>
+              </div>
+              {quote.customer?.whatsapp && (
+                <div className="flex items-center justify-end gap-2">
+                  <MessageCircle className="h-3.5 w-3.5 text-slate-400" />
+                  <span>{maskPhone(quote.customer.whatsapp)}</span>
+                </div>
+              )}
+              {quote.customer?.email && (
+                <div className="flex items-center justify-end gap-2">
+                  <Mail className="h-3.5 w-3.5 text-slate-400" />
+                  <span>{quote.customer.email}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -510,20 +534,20 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           <Table>
             <TableHeader>
               <TableRow className="border-b-2 border-slate-100 hover:bg-transparent">
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 px-0">
+                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 px-0">
                   Descrição
                 </TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
+                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
                   Unid.
                 </TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
+                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
                   Qtd
                 </TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-right">
+                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-right">
                   Preço Unit.
                 </TableHead>
-                <TableHead className="text-[10px] font-bold text-slate-400 uppercase tracking-widest h-10 text-right pr-0">
-                  Total
+                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-right pr-0">
+                  Total item
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -584,7 +608,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
               <span className="text-xl font-black text-slate-900 tracking-tight">
                 Valor final
               </span>
-              <span className="text-2xl font-black text-emerald-600 tabular-nums tracking-tight">
+              <span className="text-2xl font-black text-indigo-600 tabular-nums tracking-tight">
                 {brl(quote.total)}
               </span>
             </div>
@@ -595,7 +619,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         {quote.notes && (
           <div className="mb-24 pt-8 border-t border-slate-100">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-              Observações Adicionais
+              Anotações
             </h4>
             <p className="text-sm text-slate-500 leading-relaxed italic">
               {`"${quote.notes}"`}
@@ -631,8 +655,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
         </div>
 
         {/* COMPANY DETAILS - BOTTOM SMALL */}
-        <div className="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] opacity-50 print:hidden">
-          <span>{quote.company?.name}</span>
+        <div className="absolute bottom-8 left-0 right-0 px-16 flex justify-end items-center text-xs text-slate-400 font-bold tracking-[0.2em] opacity-50 print:hidden">
           <span>
             Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}
           </span>

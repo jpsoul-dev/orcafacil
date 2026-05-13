@@ -15,6 +15,9 @@ import { useRouter } from 'next/navigation'
 import { saveQuote } from '../actions'
 import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,13 +32,17 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import {
   Trash2,
   Plus,
   Search,
-  Check,
-  ChevronDown,
   Package,
-  UserPlus,
+  Calendar as CalendarIcon,
 } from 'lucide-react'
 import {
   Dialog,
@@ -44,14 +51,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { CustomerForm, Customer } from '../../customers/customer-form'
+
+import { Customer } from '../../customers/customer-form'
 import { CatalogItem } from '../../catalog/columns'
+import { CustomerSelector } from './customer-selector'
 
 export interface QuoteWithItems {
   id: string
@@ -126,8 +129,6 @@ export function QuoteForm({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   // Estados dos modais de busca
-  const [openCustomerModal, setOpenCustomerModal] = useState(false)
-  const [customerSearch, setCustomerSearch] = useState('')
   const [openCatalogModal, setOpenCatalogModal] = useState(false)
   const [catalogSearch, setCatalogSearch] = useState('')
 
@@ -204,7 +205,6 @@ export function QuoteForm({
     }
   }, [watchItems, watchDiscountType, watchDiscountValue])
 
-  const debouncedCustomerSearch = useDebounce(customerSearch, 300)
   const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
 
   const handleAddCatalogItem = (item: CatalogItem) => {
@@ -276,16 +276,6 @@ export function QuoteForm({
       }
     }
   }
-
-  // Filtra clientes pelo nome usando o valor com debounce
-  const filteredCustomers = useMemo(() => {
-    const term = debouncedCustomerSearch.trim().toLowerCase()
-    // Regra: 2+ caracteres ou vazio para mostrar nada/limpar
-    if (term.length < 2) return []
-    return customers.filter((c) => c.name?.toLowerCase().includes(term))
-  }, [customers, debouncedCustomerSearch])
-
-  // Filtra catálogo pelo nome usando o valor com debounce
   const filteredCatalog = useMemo(() => {
     const term = debouncedCatalogSearch.trim().toLowerCase()
     if (!term) return catalogItems
@@ -293,47 +283,100 @@ export function QuoteForm({
     return catalogItems.filter((i) => i.name?.toLowerCase().includes(term))
   }, [catalogItems, debouncedCatalogSearch])
 
-  const selectedCustomerName = useMemo(() => {
-    if (!watchCustomerId) return null
-    return customers.find((c) => c.id === watchCustomerId)?.name
-  }, [watchCustomerId, customers])
-
   return (
     <div className="space-y-6 w-full">
-      {/* Dados do Cliente e Validade */}
-      <Card className="rounded-[12px] border-slate-200 shadow-sm overflow-hidden bg-white">
-        <CardHeader className="p-6 pb-2">
-          <CardTitle className="text-[16px] font-bold text-slate-800">
-            Dados do Cliente e Validade
-          </CardTitle>
-        </CardHeader>
+      <Card className="rounded-md border-slate-200 shadow-sm overflow-hidden bg-white">
         <CardContent className="p-6 space-y-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
               <Label
                 htmlFor="title"
-                className="text-[13px] font-semibold text-slate-700"
+                className="text-sm font-semibold text-slate-700"
               >
-                Título do orçamento
+                Título do orçamento{' '}
+                <span className="text-slate-400 text-xs">(opcional)</span>
               </Label>
               <Input
                 id="title"
                 {...form.register('title')}
-                className="h-10 border-slate-200 rounded-lg bg-white"
+                className="h-10 border-slate-200 rounded-md bg-white"
               />
             </div>
             <div className="space-y-2">
               <Label
                 htmlFor="valid_until"
-                className="text-[13px] font-semibold text-slate-700"
+                className="text-sm font-semibold text-slate-700"
               >
                 Validade
               </Label>
-              <Input
-                id="valid_until"
-                type="date"
-                {...form.register('valid_until')}
-                className={`h-10 border-slate-200 rounded-lg bg-white w-full ${form.formState.errors.valid_until ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+              <Controller
+                control={form.control}
+                name="valid_until"
+                render={({ field }) => (
+                  <div>
+                    <Popover>
+                      <PopoverTrigger
+                        id="valid_until"
+                        nativeButton={true}
+                        render={
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={cn(
+                              'w-full justify-between text-left font-normal h-10 border-slate-200 rounded-md bg-white',
+                              !field.value && 'text-muted-foreground',
+                              form.formState.errors.valid_until &&
+                                'border-red-500 focus-visible:ring-red-500',
+                            )}
+                          />
+                        }
+                      >
+                        {field.value ? (
+                          format(
+                            new Date(field.value + 'T00:00:00'),
+                            'dd/MM/yyyy',
+                            { locale: ptBR },
+                          )
+                        ) : (
+                          <span>Selecione uma data</span>
+                        )}
+                        <CalendarIcon className="h-4 w-4 opacity-50" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={
+                            field.value
+                              ? new Date(field.value + 'T00:00:00')
+                              : undefined
+                          }
+                          onSelect={(date) => {
+                            if (date) {
+                              const year = date.getFullYear()
+                              const month = String(
+                                date.getMonth() + 1,
+                              ).padStart(2, '0')
+                              const day = String(date.getDate()).padStart(
+                                2,
+                                '0',
+                              )
+                              field.onChange(`${year}-${month}-${day}`)
+                            } else {
+                              field.onChange(null)
+                            }
+                          }}
+                          disabled={(date) => {
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            return date < today
+                          }}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
               />
               {form.formState.errors.valid_until && (
                 <p className="text-xs text-red-500">
@@ -343,155 +386,23 @@ export function QuoteForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-[13px] font-semibold text-slate-700">
-              Cliente <span className="text-red-500">*</span>
-            </Label>
-            <div className="flex items-center gap-3">
-              <Dialog
-                open={openCustomerModal}
-                onOpenChange={(open) => {
-                  setOpenCustomerModal(open)
-                  if (!open) {
-                    setCustomerSearch('')
-                  }
-                }}
-              >
-                <DialogTrigger
-                  nativeButton={true}
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      role="combobox"
-                      className={`flex-1 justify-between h-10 px-4 border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-normal ${!selectedCustomerName ? 'text-slate-500' : 'text-slate-900 font-medium'} ${form.formState.errors.customer_id ? 'border-red-500' : ''}`}
-                    >
-                      <span className="truncate">
-                        {selectedCustomerName || 'Selecionar cliente'}
-                      </span>
-                      <div className="flex items-center gap-2 text-slate-400">
-                        <Search className="h-4 w-4" />
-                        <ChevronDown className="h-4 w-4" />
-                      </div>
-                    </Button>
-                  }
-                />
-                {form.formState.errors.customer_id && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {form.formState.errors.customer_id.message}
-                  </p>
-                )}
-                <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden rounded-xl shadow-xl">
-                  <DialogHeader className="px-5 pt-5 pb-0">
-                    <DialogTitle className="text-base font-semibold text-slate-900">
-                      Selecionar cliente
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="p-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <input
-                        autoFocus
-                        placeholder="Buscar por nome"
-                        value={customerSearch}
-                        onChange={(e) => setCustomerSearch(e.target.value)}
-                        className="w-full h-10 pl-9 pr-4 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400"
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-[320px] overflow-y-auto border-t border-slate-100">
-                    {customerSearch.trim() === '' ? (
-                      <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                        <Search className="h-8 w-8 mb-2 opacity-40" />
-                        <p className="text-sm">Digite para buscar clientes</p>
-                      </div>
-                    ) : filteredCustomers.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                        <p className="text-sm">Nenhum cliente encontrado.</p>
-                        <p className="text-xs mt-1">
-                          Tente buscar por outro nome, CPF ou WhatsApp.
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        {filteredCustomers.map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => {
-                              form.setValue('customer_id', c.id)
-                              setOpenCustomerModal(false)
-                              setCustomerSearch('')
-                            }}
-                            className={`flex w-full items-center justify-between px-5 py-3.5 text-sm transition-colors text-left border-b border-slate-50 last:border-0 ${
-                              watchCustomerId === c.id
-                                ? 'bg-blue-50'
-                                : 'hover:bg-slate-50'
-                            }`}
-                          >
-                            <div className="min-w-0">
-                              <p className="font-semibold text-slate-900 truncate">
-                                {c.name}
-                              </p>
-                              <div className="flex items-center gap-3 mt-0.5">
-                                {c.document && (
-                                  <span className="text-xs text-slate-500">
-                                    {c.document}
-                                  </span>
-                                )}
-                                {c.whatsapp && (
-                                  <span className="text-xs text-slate-500">
-                                    {c.whatsapp}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {watchCustomerId === c.id && (
-                              <Check className="h-4 w-4 shrink-0 text-blue-600 ml-3" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {watchCustomerId && (
-                    <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          form.setValue('customer_id', '')
-                          setOpenCustomerModal(false)
-                        }}
-                        className="w-full text-sm text-slate-500 hover:text-red-500 transition-colors py-1"
-                      >
-                        Remover seleção
-                      </button>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <CustomerForm
-                    trigger={
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 shrink-0 border-slate-200"
-                          >
-                            <UserPlus className="h-4 w-4" />
-                          </Button>
-                        }
-                      />
-                    }
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 space-y-2">
+              <Label className="text-sm font-semibold text-slate-700">
+                Cliente <span className="text-red-500">*</span>
+              </Label>
+              <Controller
+                control={form.control}
+                name="customer_id"
+                render={({ field }) => (
+                  <CustomerSelector
+                    customers={customers}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={form.formState.errors.customer_id?.message}
                   />
-                  <TooltipContent>Cadastrar novo cliente</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                )}
+              />
             </div>
           </div>
         </CardContent>

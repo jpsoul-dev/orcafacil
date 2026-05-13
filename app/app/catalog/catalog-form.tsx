@@ -80,10 +80,7 @@ export function CatalogForm({
 
   async function onSubmit(data: CatalogValues) {
     setLoading(true)
-    const result = await saveCatalogItem(
-      data,
-      initialData?.id,
-    )
+    const result = await saveCatalogItem(data, initialData?.id)
     setLoading(false)
     if (result.error) {
       toast.error(result.error)
@@ -213,7 +210,6 @@ export function CatalogForm({
                 <Input
                   id="name"
                   {...form.register('name')}
-                  placeholder="Ex: Produto X ou Serviço Y"
                   className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
                 />
                 {form.formState.errors.name && (

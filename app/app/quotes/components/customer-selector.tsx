@@ -105,13 +105,13 @@ export function CustomerSelector({
           />
 
           <PopoverContent
-            className="w-(--base-ui-popover-trigger-width) min-w-(--base-ui-popover-trigger-width) p-0 shadow-2xl border-slate-200 rounded-xl overflow-hidden"
+            className="w-(--anchor-width) min-w-(--anchor-width) p-0 shadow-2xl border-slate-200 rounded-xl overflow-hidden"
             align="start"
             sideOffset={4}
           >
             <Command shouldFilter={false} className="w-full">
               <CommandInput
-                placeholder="Buscar por nome, CPF/CNPJ ou WhatsApp..."
+                placeholder="Buscar por nome, CPF/CNPJ ou WhatsApp"
                 value={search}
                 onValueChange={setSearch}
                 className="h-11 border-none focus:ring-0"
@@ -129,7 +129,7 @@ export function CustomerSelector({
                         className="h-8 px-3 text-xs font-semibold border-slate-200"
                       >
                         <UserPlus className="h-3.5 w-3.5 mr-2" />
-                        Criar novo cliente
+                        Cadastrar novo cliente
                       </Button>
                     }
                   />
@@ -154,12 +154,12 @@ export function CustomerSelector({
                         {(customer.document || customer.whatsapp) && (
                           <div className="flex items-center gap-2 mt-0.5 opacity-60">
                             {customer.document && (
-                              <span className="text-[10px] text-slate-500 font-medium">
+                              <span className="text-xs text-slate-700 font-medium">
                                 {customer.document}
                               </span>
                             )}
                             {customer.whatsapp && (
-                              <span className="text-[10px] text-slate-400">
+                              <span className="text-xs text-slate-700 font-medium">
                                 {customer.whatsapp}
                               </span>
                             )}
@@ -173,20 +173,6 @@ export function CustomerSelector({
                   ))}
                 </div>
               </CommandList>
-
-              <div className="p-1 border-t border-slate-100">
-                <CustomerForm
-                  trigger={
-                    <button
-                      type="button"
-                      className="flex w-full items-center py-2 px-3 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Criar novo cliente
-                    </button>
-                  }
-                />
-              </div>
             </Command>
           </PopoverContent>
         </Popover>

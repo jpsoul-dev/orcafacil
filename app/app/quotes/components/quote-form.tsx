@@ -43,6 +43,7 @@ import {
   Package,
   Calendar as CalendarIcon,
   Search,
+  Edit2,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -140,6 +141,7 @@ export function QuoteForm({
   const [loading, setLoading] = useState(false)
   // Estados dos modais de busca
   const [openCatalogModal, setOpenCatalogModal] = useState(false)
+  const [openDiscountModal, setOpenDiscountModal] = useState(false)
   const [catalogSearch, setCatalogSearch] = useState('')
 
   const defaultValidDate = new Date()
@@ -705,67 +707,6 @@ export function QuoteForm({
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-2">
               <Label className="text-[13px] font-semibold text-slate-700">
-                Desc. geral
-              </Label>
-              <div className="flex items-center gap-3">
-                <Select
-                  onValueChange={(val) =>
-                    form.setValue('discount_type', val as 'none' | '%' | 'R$')
-                  }
-                  value={watchDiscountType}
-                >
-                  <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-md bg-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    alignItemWithTrigger={false}
-                    side="bottom"
-                    sideOffset={4}
-                    className="rounded-xl border-slate-200"
-                  >
-                    <SelectItem value="%">%</SelectItem>
-                    <SelectItem value="R$">R$</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Controller
-                  name="discount_value"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Input
-                      type={watchDiscountType === 'R$' ? 'text' : 'number'}
-                      step="0.01"
-                      placeholder={watchDiscountType === 'R$' ? '0,00' : '0'}
-                      value={
-                        watchDiscountType === 'R$'
-                          ? field.value
-                            ? maskCurrency(
-                                Math.round(field.value * 100).toString(),
-                              )
-                            : ''
-                          : field.value || ''
-                      }
-                      onChange={(e) => {
-                        if (watchDiscountType === 'R$') {
-                          const masked = maskCurrency(e.target.value)
-                          field.onChange(
-                            parseFloat(
-                              masked.replace(/\./g, '').replace(',', '.'),
-                            ) || 0,
-                          )
-                        } else {
-                          field.onChange(e.target.value)
-                        }
-                      }}
-                      disabled={watchDiscountType === 'none'}
-                      className="h-10 border-slate-200 rounded-md bg-white flex-1 text-slate-700 disabled:opacity-50"
-                    />
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[13px] font-semibold text-slate-700">
                 Forma de pagamento
               </Label>
               <Select
@@ -809,22 +750,127 @@ export function QuoteForm({
                 </span>
               </div>
               <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
-                <span>
-                  Desconto{' '}
-                  {watchDiscountType === '%' && watchDiscountValue > 0
-                    ? `(${watchDiscountValue}%)`
-                    : ''}
-                </span>
-                <span className="tabular-nums text-green-600">
-                  {watchDiscountValue > 0 ? '-' : ''}
-                  {brl(
-                    watchDiscountType === 'none'
-                      ? 0
-                      : watchDiscountType === 'R$'
-                        ? Number(watchDiscountValue)
-                        : subtotalFinal * (Number(watchDiscountValue) / 100),
-                  )}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span>
+                    Desconto{' '}
+                    {watchDiscountType === '%' && watchDiscountValue > 0
+                      ? `(${watchDiscountValue}%)`
+                      : ''}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Dialog
+                    open={openDiscountModal}
+                    onOpenChange={setOpenDiscountModal}
+                  >
+                    <DialogTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        />
+                      }
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      <span className="sr-only">Editar desconto</span>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[400px] rounded-xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-bold">
+                          Aplicar Desconto
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">Tipo</Label>
+                          <Select
+                            onValueChange={(val) =>
+                              form.setValue(
+                                'discount_type',
+                                val as 'none' | '%' | 'R$',
+                              )
+                            }
+                            value={watchDiscountType}
+                          >
+                            <SelectTrigger className="w-full border-slate-200 rounded-lg">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                              <SelectItem value="%">Porcentagem (%)</SelectItem>
+                              <SelectItem value="R$">
+                                Valor Fixo (R$)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">Valor</Label>
+                          <Controller
+                            name="discount_value"
+                            control={form.control}
+                            render={({ field }) => (
+                              <Input
+                                type={
+                                  watchDiscountType === 'R$' ? 'text' : 'number'
+                                }
+                                step="0.01"
+                                placeholder={
+                                  watchDiscountType === 'R$' ? '0,00' : '0'
+                                }
+                                value={
+                                  watchDiscountType === 'R$'
+                                    ? field.value
+                                      ? maskCurrency(
+                                          Math.round(
+                                            field.value * 100,
+                                          ).toString(),
+                                        )
+                                      : ''
+                                    : field.value || ''
+                                }
+                                onChange={(e) => {
+                                  if (watchDiscountType === 'R$') {
+                                    const masked = maskCurrency(e.target.value)
+                                    field.onChange(
+                                      parseFloat(
+                                        masked
+                                          .replace(/\./g, '')
+                                          .replace(',', '.'),
+                                      ) || 0,
+                                    )
+                                  } else {
+                                    field.onChange(e.target.value)
+                                  }
+                                }}
+                                className="w-full border-slate-200 rounded-lg"
+                                autoFocus={true}
+                              />
+                            )}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          className="w-full bg-slate-900 text-white font-bold h-11 rounded-lg mt-2"
+                          onClick={() => setOpenDiscountModal(false)}
+                        >
+                          Confirmar
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <span className="tabular-nums text-green-600 text-sm">
+                    {watchDiscountValue > 0 ? '-' : ''}
+                    {brl(
+                      watchDiscountType === 'none'
+                        ? 0
+                        : watchDiscountType === 'R$'
+                          ? Number(watchDiscountValue)
+                          : subtotalFinal * (Number(watchDiscountValue) / 100),
+                    )}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                 <span className="text-[14px] font-bold text-slate-900 uppercase tracking-tight">

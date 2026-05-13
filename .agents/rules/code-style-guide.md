@@ -17,3 +17,7 @@ trigger: always_on
 #shadcn
 
 - O shadcn está utilizando o Base UI (@base-ui/react) e não mais o radix, considere isso na hora de utilizar os componentes do shadcn.
+
+- **Tailwind:** Use classes utilitárias do Tailwind CSS de forma limpa, utilizando bibliotecas como `clsx` e `tailwind-merge` (`cn()`) para composição condicional de classes.
+- **Numeros mágicos:** Não utilize numeros mágicos taxativos nas estilizações como por exemplo `h-[500px]` utilize os padrões do tailwind
+- **consitencia visual:** Mantenha a consistencia visual em toda a aplicação.

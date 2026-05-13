@@ -4,6 +4,8 @@ import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/logger'
+import { z } from 'zod'
+
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -32,6 +34,18 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
 
+  // Enum de status permitidos pelo Stripe que nossa aplicação suporta
+  const subscriptionStatusSchema = z.enum([
+    'active',
+    'trialing',
+    'past_due',
+    'canceled',
+    'unpaid',
+    'incomplete',
+    'incomplete_expired',
+    'paused',
+  ])
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -52,16 +66,30 @@ export async function POST(req: Request) {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
+        const statusValidation = subscriptionStatusSchema.safeParse(
+          subscription.status,
+        )
+
+        if (!statusValidation.success) {
+          logger.error(
+            `Invalid subscription status received: ${subscription.status}`,
+          )
+          return NextResponse.json(
+            { error: 'Invalid subscription status' },
+            { status: 400 },
+          )
+        }
 
         const { error } = await supabase.rpc('update_profile_subscription', {
           p_stripe_customer_id: subscription.customer as string,
-          p_subscription_status: subscription.status,
+          p_subscription_status: statusValidation.data,
           p_subscription_id: subscription.id,
         })
 
         if (error) throw error
         break
       }
+
 
       case 'customer.subscription.trial_will_end': {
         const subscription = event.data.object as Stripe.Subscription

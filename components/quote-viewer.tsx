@@ -599,7 +599,11 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                     : ''}
                 </span>
                 <span className="font-bold text-emerald-600 tabular-nums">
-                  - {brl(quote.discount_value)}
+                  - {brl(
+                    quote.discount_type === 'percentage'
+                      ? quote.subtotal * (quote.discount_value / 100)
+                      : quote.discount_value
+                  )}
                 </span>
               </div>
             )}

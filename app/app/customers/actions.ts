@@ -2,25 +2,35 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 
-export interface CustomerInput {
-  name: string
-  document_type?: 'cpf' | 'cnpj'
-  document?: string | null
-  email?: string | null
-  phone?: string | null
-  whatsapp?: string | null
-  address_zip?: string | null
-  address_street?: string | null
-  address_number?: string | null
-  address_complement?: string | null
-  address_neighborhood?: string | null
-  address_city?: string | null
-  address_state?: string | null
-}
+const customerSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  document_type: z.enum(['cpf', 'cnpj']).optional(),
+  document: z.string().optional().nullable(),
+  email: z.string().email('E-mail inválido').optional().nullable().or(z.literal('')),
+  phone: z.string().optional().nullable(),
+  whatsapp: z.string().optional().nullable(),
+  address_zip: z.string().optional().nullable(),
+  address_street: z.string().optional().nullable(),
+  address_number: z.string().optional().nullable(),
+  address_complement: z.string().optional().nullable(),
+  address_neighborhood: z.string().optional().nullable(),
+  address_city: z.string().optional().nullable(),
+  address_state: z.string().optional().nullable(),
+})
+
+export type CustomerInput = z.infer<typeof customerSchema>
+
 
 export async function saveCustomer(data: CustomerInput, id?: string) {
   try {
+    const validation = customerSchema.safeParse(data)
+    if (!validation.success) {
+      return { success: false, error: 'Dados do cliente inválidos' }
+    }
+
+    const validatedData = validation.data
     const supabase = await createClient()
     const {
       data: { user },
@@ -31,9 +41,10 @@ export async function saveCustomer(data: CustomerInput, id?: string) {
     }
 
     const customerData = {
-      ...data,
+      ...validatedData,
       user_id: user.id,
     }
+
 
     if (id) {
       const { error } = await supabase
@@ -69,6 +80,10 @@ export async function saveCustomer(data: CustomerInput, id?: string) {
 
 export async function deleteCustomer(id: string) {
   try {
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'ID do cliente inválido' }
+    }
+
     const supabase = await createClient()
     const {
       data: { user },

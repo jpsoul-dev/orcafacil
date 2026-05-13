@@ -3,6 +3,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { randomUUID } from 'crypto'
+import { z } from 'zod'
+
+const settingsSchema = z.object({
+  name: z.string().min(1, 'Nome da empresa é obrigatório'),
+  phone: z.string().min(1, 'Telefone é obrigatório'),
+  address_zip: z.string().optional().nullable(),
+  address_street: z.string().optional().nullable(),
+  address_number: z.string().optional().nullable(),
+  address_complement: z.string().optional().nullable(),
+  address_neighborhood: z.string().optional().nullable(),
+  address_city: z.string().optional().nullable(),
+  address_state: z.string().optional().nullable(),
+})
 
 export async function saveCompanySettings(formData: FormData) {
   try {
@@ -15,18 +28,27 @@ export async function saveCompanySettings(formData: FormData) {
       return { success: false, error: 'Usuário não autenticado' }
     }
 
-    const name = formData.get('name') as string
-    const phone = formData.get('phone') as string
-    const address_zip = formData.get('address_zip') as string
-    const address_street = formData.get('address_street') as string
-    const address_number = formData.get('address_number') as string
-    const address_complement = formData.get('address_complement') as string
-    const address_neighborhood = formData.get('address_neighborhood') as string
-    const address_city = formData.get('address_city') as string
-    const address_state = formData.get('address_state') as string
-    const logoFile = formData.get('logo') as File | null
+    const rawData = {
+      name: formData.get('name') as string,
+      phone: formData.get('phone') as string,
+      address_zip: formData.get('address_zip') as string,
+      address_street: formData.get('address_street') as string,
+      address_number: formData.get('address_number') as string,
+      address_complement: formData.get('address_complement') as string,
+      address_neighborhood: formData.get('address_neighborhood') as string,
+      address_city: formData.get('address_city') as string,
+      address_state: formData.get('address_state') as string,
+    }
 
+    const validation = settingsSchema.safeParse(rawData)
+    if (!validation.success) {
+      return { success: false, error: 'Dados das configurações inválidos' }
+    }
+
+    const validatedData = validation.data
+    const logoFile = formData.get('logo') as File | null
     let logo_url = formData.get('existing_logo_url') as string
+
 
     if (logoFile && logoFile.size > 0) {
       const fileExt = logoFile.name.split('.').pop()
@@ -49,16 +71,8 @@ export async function saveCompanySettings(formData: FormData) {
 
     const companyData = {
       user_id: user.id,
-      name,
-      phone,
       logo_url,
-      address_zip,
-      address_street,
-      address_number,
-      address_complement,
-      address_neighborhood,
-      address_city,
-      address_state,
+      ...validatedData,
     }
 
     // Check if company exists

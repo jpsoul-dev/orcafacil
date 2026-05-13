@@ -129,10 +129,12 @@ export function QuoteForm({
   customers,
   catalogItems,
   initialData,
+  mode = 'new',
 }: {
   customers: Customer[]
   catalogItems: CatalogItem[]
   initialData?: QuoteWithItems
+  mode?: 'new' | 'edit' | 'clone'
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -261,7 +263,7 @@ export function QuoteForm({
     const result = await saveQuote({
       ...data,
       discount_type: dbDiscountType,
-      id: initialData?.id,
+      id: mode === 'edit' ? initialData?.id : undefined,
       status,
       subtotal: subtotalFinal,
       total: totalFinal,
@@ -457,7 +459,7 @@ export function QuoteForm({
                               `items.${index}.item_name` as const,
                             )}
                             placeholder="Descrição"
-                            className={`h-10 text-sm border-slate-200 rounded-lg ${form.formState.errors.items?.[index]?.item_name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            className={`h-10 text-sm border-slate-200 rounded-md ${form.formState.errors.items?.[index]?.item_name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                           />
                           {form.formState.errors.items?.[index]?.item_name && (
                             <p className="text-[10px] text-red-500 mt-1 font-medium ml-1">
@@ -470,7 +472,7 @@ export function QuoteForm({
                         </div>
                       </td>
                       <td className="px-2 py-4 align-top">
-                        <div className="flex h-10 border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+                        <div className="flex h-10 border border-slate-200 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
                           <Input
                             type="number"
                             min="1"
@@ -504,7 +506,7 @@ export function QuoteForm({
                         </div>
                       </td>
                       <td className="px-2 py-4 align-top">
-                        <div className="flex h-10 border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+                        <div className="flex h-10 border border-slate-200 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
                           <Controller
                             name={`items.${index}.unit_price` as const}
                             control={form.control}
@@ -593,7 +595,7 @@ export function QuoteForm({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-md transition-colors"
                   >
                     <Package className="h-4 w-4" />
                     Catálogo
@@ -633,7 +635,7 @@ export function QuoteForm({
                           key={item.id}
                           value={item.id}
                           onSelect={() => handleAddCatalogItem(item)}
-                          className="flex items-center justify-between p-3 cursor-pointer rounded-lg data-[selected=true]:bg-slate-100 transition-all border border-transparent data-[selected=true]:border-slate-200"
+                          className="flex items-center justify-between p-3 cursor-pointer rounded-md data-[selected=true]:bg-slate-100 transition-all border border-transparent data-[selected=true]:border-slate-200"
                         >
                           <div className="flex flex-col min-w-0 flex-1 mr-4">
                             <div className="flex items-center gap-2 mb-1">
@@ -678,7 +680,7 @@ export function QuoteForm({
               type="button"
               variant="outline"
               onClick={handleAddManualItem}
-              className="h-9 px-4 border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 gap-2 text-[13px] font-medium"
+              className="h-9 px-4 border-slate-200 rounded-md text-slate-700 hover:bg-slate-50 gap-2 text-[13px] font-medium"
             >
               <Plus className="h-4 w-4" /> Novo item
             </Button>
@@ -712,7 +714,7 @@ export function QuoteForm({
                   }
                   value={watchDiscountType}
                 >
-                  <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-lg bg-white">
+                  <SelectTrigger className="h-10 w-[120px] border-slate-200 rounded-md bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent
@@ -755,7 +757,7 @@ export function QuoteForm({
                         }
                       }}
                       disabled={watchDiscountType === 'none'}
-                      className="h-10 border-slate-200 rounded-lg bg-white flex-1 text-slate-700 disabled:opacity-50"
+                      className="h-10 border-slate-200 rounded-md bg-white flex-1 text-slate-700 disabled:opacity-50"
                     />
                   )}
                 />
@@ -772,7 +774,7 @@ export function QuoteForm({
                 }
                 value={watchPaymentMethod}
               >
-                <SelectTrigger className="h-10 border-slate-200 rounded-lg bg-white">
+                <SelectTrigger className="h-10 border-slate-200 rounded-md bg-white">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent
@@ -848,7 +850,7 @@ export function QuoteForm({
           <Textarea
             id="notes"
             {...form.register('notes')}
-            className="resize-none text-sm p-4 border-slate-200 rounded-lg bg-white min-h-[100px]"
+            className="resize-none text-sm p-4 border-slate-200 rounded-md bg-white min-h-[100px]"
           />
         </CardContent>
       </Card>
@@ -878,7 +880,11 @@ export function QuoteForm({
           onClick={() => handleSave('open')}
           className="h-11 px-8 rounded-xl font-bold bg-slate-950 hover:bg-slate-800 text-white shadow-lg shadow-slate-200"
         >
-          {loading ? 'Gerando...' : 'Gerar Orçamento'}
+          {loading
+            ? 'Processando...'
+            : mode === 'edit'
+              ? 'Salvar Alterações'
+              : 'Gerar Orçamento'}
         </Button>
       </div>
     </div>

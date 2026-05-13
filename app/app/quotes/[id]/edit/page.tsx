@@ -1,6 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
-import { QuoteForm } from '../../components/quote-form'
-import { notFound } from 'next/navigation'
+import { QuotePageContent } from '../../components/quote-page-content'
 
 export default async function EditQuotePage({
   params,
@@ -8,51 +6,6 @@ export default async function EditQuotePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
 
-  // Buscar o orçamento
-  const { data: quote } = await supabase
-    .from('quotes')
-    .select(
-      `
-      *,
-      quote_items (*)
-    `,
-    )
-    .eq('id', id)
-    .single()
-
-  if (!quote) {
-    notFound()
-  }
-
-  // Buscar clientes do usuário logado
-  const { data: customers } = await supabase
-    .from('customers')
-    .select('*')
-    .order('name')
-
-  // Buscar produtos/serviços
-  const { data: catalogItems } = await supabase
-    .from('catalog_items')
-    .select('*')
-    .order('name')
-
-  return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-          Editar Orçamento
-        </h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Altere os dados abaixo e conclua ou salve novamente como rascunho.
-        </p>
-      </div>
-      <QuoteForm
-        customers={customers || []}
-        catalogItems={catalogItems || []}
-        initialData={quote}
-      />
-    </div>
-  )
+  return <QuotePageContent id={id} mode="edit" />
 }

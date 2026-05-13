@@ -66,7 +66,7 @@ export function CustomerSelector({
                 role="combobox"
                 aria-expanded={open}
                 className={cn(
-                  'flex-1 justify-between h-10 px-4 border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-normal transition-all',
+                  'flex-1 justify-between h-10 px-4 border-slate-200 rounded-lg bg-white hover:bg-slate-50 font-normal transition-all min-w-0',
                   !selectedCustomer && 'text-slate-500',
                   selectedCustomer &&
                     'text-slate-900 font-medium border-slate-300 shadow-sm',

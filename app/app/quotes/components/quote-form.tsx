@@ -235,9 +235,7 @@ export function QuoteForm({
   ) {
     const isValid = await form.trigger()
     if (!isValid) {
-      toast.error(
-        'Por favor, preencha todos os campos obrigatórios corretamente.',
-      )
+      toast.error('Preencha todos os campos obrigatórios corretamente.')
       return
     }
 
@@ -285,7 +283,7 @@ export function QuoteForm({
 
   return (
     <div className="space-y-6 w-full">
-      <Card className="rounded-md border-slate-200 shadow-sm overflow-hidden bg-white">
+      <Card className="rounded-md border-slate-200 shadow-sm overflow-hidden bg-white w-full">
         <CardContent className="p-6 space-y-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
@@ -387,7 +385,7 @@ export function QuoteForm({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 space-y-2">
+            <div className="md:col-span-full space-y-2">
               <Label className="text-sm font-semibold text-slate-700">
                 Cliente <span className="text-red-500">*</span>
               </Label>

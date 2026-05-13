@@ -40,10 +40,18 @@ import { Calendar } from '@/components/ui/calendar'
 import {
   Trash2,
   Plus,
-  Search,
   Package,
   Calendar as CalendarIcon,
+  Search,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -283,7 +291,7 @@ export function QuoteForm({
 
   return (
     <div className="space-y-6 w-full">
-      <Card className="rounded-md border-slate-200 shadow-sm overflow-hidden bg-white w-full">
+      <Card className="rounded-md border-slate-200 shadow-sm overflow-hidden bg-white">
         <CardContent className="p-6 space-y-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
@@ -582,80 +590,87 @@ export function QuoteForm({
               <DialogTrigger
                 nativeButton={true}
                 render={
-                  <button
+                  <Button
                     type="button"
-                    className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-indigo-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                    variant="ghost"
+                    className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg transition-colors"
                   >
                     <Package className="h-4 w-4" />
                     Catálogo
-                  </button>
+                  </Button>
                 }
               />
-              <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl shadow-xl">
-                <DialogHeader className="px-5 pt-5 pb-0">
-                  <DialogTitle className="text-base font-semibold text-slate-900">
+              <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl shadow-2xl border-slate-200">
+                <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-50">
+                  <DialogTitle className="text-base font-bold text-slate-800">
                     Adicionar do Catálogo
                   </DialogTitle>
                 </DialogHeader>
-                <div className="p-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <input
-                      autoFocus
-                      placeholder="Buscar produto ou serviço..."
-                      value={catalogSearch}
-                      onChange={(e) => setCatalogSearch(e.target.value)}
-                      className="w-full h-10 pl-9 pr-4 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-                <div className="max-h-[380px] overflow-y-auto border-t border-slate-100">
-                  {filteredCatalog.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                      <p className="text-sm">Nenhum item encontrado.</p>
-                      <p className="text-xs mt-1">
-                        Tente buscar por outro nome.
+
+                <Command shouldFilter={false} className="rounded-none">
+                  <CommandInput
+                    placeholder="Buscar produto ou serviço..."
+                    value={catalogSearch}
+                    onValueChange={setCatalogSearch}
+                    className="h-12"
+                  />
+                  <CommandList className="max-h-[400px] p-2 no-scrollbar">
+                    <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
+                      <div className="bg-slate-50 p-3 rounded-full mb-3">
+                        <Search className="h-6 w-6 text-slate-300" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-900">
+                        Nenhum item encontrado
                       </p>
-                    </div>
-                  ) : (
-                    <div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Tente buscar por um termo diferente
+                      </p>
+                    </CommandEmpty>
+
+                    <div className="space-y-1">
                       {filteredCatalog.map((item) => (
-                        <button
+                        <CommandItem
                           key={item.id}
-                          type="button"
-                          onClick={() => handleAddCatalogItem(item)}
-                          className="flex w-full items-center justify-between px-5 py-3.5 text-sm transition-colors text-left border-b border-slate-50 last:border-0 hover:bg-slate-50"
+                          value={item.id}
+                          onSelect={() => handleAddCatalogItem(item)}
+                          className="flex items-center justify-between p-3 cursor-pointer rounded-lg data-[selected=true]:bg-slate-100 transition-all border border-transparent data-[selected=true]:border-slate-200"
                         >
-                          <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">
-                              {item.name}
-                            </p>
-                            <div className="flex items-center gap-3 mt-0.5">
-                              <span className="text-xs text-slate-500">
-                                {item.type === 'product'
-                                  ? 'Produto'
-                                  : 'Serviço'}
+                          <div className="flex flex-col min-w-0 flex-1 mr-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-semibold text-slate-900 truncate">
+                                {item.name}
                               </span>
-                              <span className="text-xs text-slate-500">•</span>
-                              <span className="text-xs text-slate-500">
-                                Valor base:{' '}
-                                <strong className="text-slate-700">
-                                  {brl(item.unit_price)}
-                                </strong>
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider',
+                                  item.type === 'product'
+                                    ? 'bg-blue-50 text-blue-600 border-blue-100'
+                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                                )}
+                              >
+                                {item.type === 'product' ? 'PROD' : 'SERV'}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-bold text-slate-700">
+                                {brl(item.unit_price)}
                               </span>
                               {item.unit_measure && (
-                                <span className="text-xs text-slate-500">
-                                  • {item.unit_measure}
+                                <span className="text-[11px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+                                  {item.unit_measure}
                                 </span>
                               )}
                             </div>
                           </div>
-                          <Plus className="h-4 w-4 shrink-0 text-slate-400 ml-3" />
-                        </button>
+                          <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center group-data-[selected=true]:bg-white group-data-[selected=true]:shadow-sm transition-all">
+                            <Plus className="h-4 w-4 text-slate-400 group-data-[selected=true]:text-blue-600" />
+                          </div>
+                        </CommandItem>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </CommandList>
+                </Command>
               </DialogContent>
             </Dialog>
 

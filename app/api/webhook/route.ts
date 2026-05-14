@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
 
@@ -29,10 +29,7 @@ export async function POST(req: Request) {
     )
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+
 
   // Enum de status permitidos pelo Stripe que nossa aplicação suporta
   const subscriptionStatusSchema = z.enum([
@@ -52,7 +49,7 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session
 
         if (session.customer && session.subscription) {
-          const { error } = await supabase.rpc('update_profile_subscription', {
+          const { error } = await supabaseAdmin.rpc('update_profile_subscription', {
             p_stripe_customer_id: session.customer as string,
             p_subscription_status: 'active',
             p_subscription_id: session.subscription as string,
@@ -80,7 +77,7 @@ export async function POST(req: Request) {
           )
         }
 
-        const { error } = await supabase.rpc('update_profile_subscription', {
+        const { error } = await supabaseAdmin.rpc('update_profile_subscription', {
           p_stripe_customer_id: subscription.customer as string,
           p_subscription_status: statusValidation.data,
           p_subscription_id: subscription.id,

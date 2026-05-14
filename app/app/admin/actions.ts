@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+
 import { revalidatePath } from 'next/cache'
 import { createClient as createSupabaseServerClient } from '@/lib/supabase/server'
 
@@ -57,10 +58,7 @@ export async function syncUserSubscriptionAction(
     const subscription = subscriptions.data[0]
 
     // 3. Atualizar Supabase (usando Service Role para contornar RLS)
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+
 
     const { error: updateError } = await supabaseAdmin
       .from('profiles')
@@ -101,10 +99,7 @@ export async function deleteUserAction(
     }
 
     // 1. Instanciar Supabase Admin
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+
 
     // 2. Apagar o cliente no Stripe (se existir)
     if (stripeCustomerId) {
@@ -146,20 +141,15 @@ export async function getAdminDashboardStats() {
     const auth = await validateAdmin()
     if (auth.error) throw new Error(auth.error)
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
 
-    // 1. MRR do Stripe
-    // Nota: Para bases muito grandes, precisaria de paginação (auto-paging)
-    const subscriptions = await stripe.subscriptions.list({
-      status: 'active',
-      limit: 100,
-    })
 
     let mrr = 0
-    subscriptions.data.forEach((sub) => {
+    
+    // Usar auto-paging do Stripe para processar TODAS as assinaturas sem limite de 100
+    for await (const sub of stripe.subscriptions.list({
+      status: 'active',
+      expand: ['data.items.data.price'],
+    })) {
       const price = sub.items.data[0].price
       const amount = price.unit_amount || 0
       const interval = price.recurring?.interval
@@ -169,7 +159,8 @@ export async function getAdminDashboardStats() {
       } else if (interval === 'year') {
         mrr += amount / 12
       }
-    })
+    }
+
     mrr = mrr / 100 // Converter de centavos para Reais (unidade principal)
 
     // 2. Métricas de Usuários (Supabase)
@@ -224,10 +215,7 @@ export async function broadcastNotificationAction(content: string, title?: strin
     if (auth.error) return { error: auth.error }
 
     // 2. Inserir usando o Service Role Key
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+
 
     const { error } = await supabaseAdmin.from('notifications').insert({
       content,

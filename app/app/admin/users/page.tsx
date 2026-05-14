@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getAdminDashboardStats } from '../actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DollarSign, Users, TrendingUp, Clock } from 'lucide-react'
@@ -32,10 +32,7 @@ export default async function AdminUsersPage() {
   const stats = await getAdminDashboardStats()
 
   // 3. Buscar usuários e perfis usando Service Role Key
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+
 
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers()
   if (authError) {

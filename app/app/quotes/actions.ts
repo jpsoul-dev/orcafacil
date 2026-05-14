@@ -54,93 +54,33 @@ export async function saveQuote(data: QuoteInput) {
 
     const { id, items, ...quoteData } = validatedData
 
-    const quotePayload = {
-      ...quoteData,
-      user_id: user.id,
-    }
+    // Chamada atômica via RPC para garantir transacionalidade
+    const { data: result, error: rpcError } = await supabase.rpc('upsert_quote_with_items', {
+      p_quote_id: id || null,
+      p_customer_id: quoteData.customer_id || null,
+      p_title: quoteData.title || null,
+      p_status: quoteData.status || null,
+      p_subtotal: quoteData.subtotal,
+      p_total: quoteData.total,
+      p_valid_until: quoteData.valid_until || null,
+      p_discount_type: quoteData.discount_type || 'none',
+      p_discount_value: quoteData.discount_value || 0,
+      p_notes: quoteData.notes || null,
+      p_items: items,
+      p_user_id: user.id,
+      p_hash_id: id ? null : generateRandomHash()
+    })
 
-    let quoteId = id
-    let publicUuid = quoteData.public_uuid
-
-    if (id) {
-      // Modo edição
-      const { data: updatedQuote, error: quoteError } = await supabase
-        .from('quotes')
-        .update(quotePayload)
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .select('id, public_uuid')
-        .single()
-
-      if (quoteError || !updatedQuote) {
-        return {
-          success: false,
-          error: quoteError?.message || 'Erro ao atualizar orçamento',
-        }
-      }
-      quoteId = updatedQuote.id
-      publicUuid = updatedQuote.public_uuid
-
-      // Deletar itens antigos antes de inserir os novos
-      const { error: deleteError } = await supabase
-        .from('quote_items')
-        .delete()
-        .eq('quote_id', id)
-
-      if (deleteError) {
-        return {
-          success: false,
-          error: 'Erro ao atualizar itens do orçamento',
-        }
-      }
-    } else {
-      // Modo criação
-      const { data: newQuote, error: quoteError } = await supabase
-        .from('quotes')
-        .insert({
-          ...quotePayload,
-          hash_id: generateRandomHash(),
-        })
-        .select('id, public_uuid')
-        .single()
-
-      if (quoteError || !newQuote) {
-        return {
-          success: false,
-          error: quoteError?.message || 'Erro ao criar orçamento',
-        }
-      }
-      quoteId = newQuote.id
-      publicUuid = newQuote.public_uuid
-    }
-
-    if (items && items.length > 0) {
-      const insertItems = items.map((item: QuoteItemInput) => ({
-        ...item,
-        quote_id: quoteId,
-      }))
-
-      const { error: itemsError } = await supabase
-        .from('quote_items')
-        .insert(insertItems)
-
-      if (itemsError) {
-        console.error('Failed to insert items', itemsError)
-        
-        // ROLLBACK: Se falhar ao inserir itens em um novo orçamento, removemos o orçamento "vazio"
-        if (!id) {
-          await supabase.from('quotes').delete().eq('id', quoteId)
-        }
-        
-        return { 
-          success: false, 
-          error: 'Falha ao salvar os itens do orçamento. O orçamento não foi salvo corretamente.' 
-        }
+    if (rpcError || !result) {
+      console.error('Erro na RPC upsert_quote_with_items:', rpcError)
+      return {
+        success: false,
+        error: rpcError?.message || 'Erro ao processar orçamento no banco de dados',
       }
     }
 
     revalidatePath('/app/quotes')
-    return { success: true, public_uuid: publicUuid, id: quoteId }
+    return { success: true, public_uuid: result.public_uuid, id: result.id }
   } catch (error) {
     console.error('Error in saveQuote:', error)
     return { 
@@ -149,6 +89,7 @@ export async function saveQuote(data: QuoteInput) {
     }
   }
 }
+
 
 export async function deleteQuote(id: string) {
   try {

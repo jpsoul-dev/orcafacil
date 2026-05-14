@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
 import { stripe } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export type SetupNewUserResult =
   | { success: true; customerId: string; error?: never }
@@ -11,10 +11,7 @@ export async function setupNewUser(
   email: string
 ): Promise<SetupNewUserResult> {
   // Usamos o Service Role Key para ignorar RLS, pois o usuário ainda não confirmou o e-mail
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
+
 
   try {
     // 1. Verificar dados atuais do perfil para evitar sobrescrever o trial

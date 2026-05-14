@@ -50,10 +50,32 @@ export async function createCheckoutAction() {
 
   let sessionUrl: string | null = null
 
-    const priceId = process.env.STRIPE_PRICE_ID
-    if (!priceId) {
-      throw new Error('Configuração ausente: STRIPE_PRICE_ID não definida nas variáveis de ambiente.')
+  let priceId = process.env.STRIPE_PRICE_ID
+
+  // Fallback: Se não estiver no ENV, tenta buscar dinamicamente o primeiro preço ativo
+  if (!priceId) {
+    logger.info('STRIPE_PRICE_ID missing in ENV, searching Stripe for active price...')
+    try {
+      const products = await stripe.products.list({ active: true, limit: 1 })
+      const product = products.data[0]
+      if (product) {
+        const prices = await stripe.prices.list({
+          product: product.id,
+          active: true,
+          limit: 1,
+        })
+        priceId = prices.data[0]?.id
+      }
+    } catch (err) {
+      logger.error('Failed to search fallback price', err)
     }
+  }
+
+  if (!priceId) {
+    logger.error('No price ID found in ENV or Stripe')
+    // Em vez de lançar erro não tratado, redireciona para a página de preços com erro
+    redirect('/pricing?error=configuration_missing')
+  }
 
     try {
     const session = await stripe.checkout.sessions.create({

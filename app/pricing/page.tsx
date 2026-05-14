@@ -16,18 +16,28 @@ export default async function PricingPage() {
   }
 
   // Buscar os produtos e preços do Stripe
-  const products = await stripe.products.list({ active: true, limit: 1 })
-  const product = products.data[0]
-
+  let product = null
   let price = null
-  if (product) {
-    const prices = await stripe.prices.list({
-      product: product.id,
-      active: true,
-      limit: 1,
-    })
-    price = prices.data[0]
+
+  try {
+    const products = await stripe.products.list({ active: true, limit: 1 })
+    product = products.data[0]
+
+    if (product) {
+      const prices = await stripe.prices.list({
+        product: product.id,
+        active: true,
+        limit: 1,
+      })
+      price = prices.data[0]
+    }
+  } catch (error) {
+    console.error('Erro ao buscar dados do Stripe:', error)
   }
+
+  // Verifica se o sistema está configurado (pelo menos um preço no Stripe ou na Env)
+  const priceId = price?.id || process.env.STRIPE_PRICE_ID
+  const isConfigured = !!priceId
 
   const productName = product?.name || 'Plano Pro'
   const productDescription =
@@ -86,14 +96,20 @@ export default async function PricingPage() {
           </div>
 
           <form action={createCheckoutAction}>
-            {/* O ID do preço será pego de forma segura na server action */}
             <Button
               type="submit"
               size="lg"
+              disabled={!isConfigured}
               className="w-full text-lg font-bold h-14"
             >
-              Assinar Agora
+              {isConfigured ? 'Assinar Agora' : 'Indisponível'}
             </Button>
+            {!isConfigured && (
+              <p className="text-xs text-center text-destructive mt-2">
+                O sistema de pagamentos está em manutenção. Por favor, tente
+                mais tarde.
+              </p>
+            )}
           </form>
         </div>
       </div>

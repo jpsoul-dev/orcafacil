@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, ReactElement } from 'react'
+import { useState, useEffect, ReactElement, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -75,6 +75,7 @@ export function CustomerForm({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
+  const lastSearchedCep = useRef<string>('')
 
   const form = useForm<CustomerValues>({
     resolver: zodResolver(customerSchema),
@@ -132,27 +133,33 @@ export function CustomerForm({
   const handleSearchCEP = async () => {
     const currentCep = form.getValues('address_zip') || ''
     const cep = currentCep.replace(/\D/g, '')
-    if (cep.length === 8) {
-      setSearchingCEP(true)
-      try {
-        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
-        const data = await res.json()
-        if (!data.erro) {
-          form.setValue('address_street', data.logradouro)
-          form.setValue('address_neighborhood', data.bairro)
-          form.setValue('address_city', data.localidade)
-          form.setValue('address_state', data.uf)
-        } else {
-          toast.error('CEP não encontrado')
-        }
-      } catch (err) {
-        console.error(err)
-        toast.error('Erro ao buscar CEP')
-      } finally {
-        setSearchingCEP(false)
+
+    if (cep.length !== 8) {
+      if (cep.length > 0) toast.error('Digite um CEP válido')
+      return
+    }
+
+    if (searchingCEP || cep === lastSearchedCep.current) return
+
+    setSearchingCEP(true)
+    lastSearchedCep.current = cep
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      const data = await res.json()
+
+      if (!data.erro) {
+        form.setValue('address_street', data.logradouro)
+        form.setValue('address_neighborhood', data.bairro)
+        form.setValue('address_city', data.localidade)
+        form.setValue('address_state', data.uf)
+      } else {
+        toast.error('CEP não encontrado')
       }
-    } else {
-      toast.error('Digite um CEP válido')
+    } catch (_err) {
+      toast.error('Erro ao buscar CEP')
+    } finally {
+      setSearchingCEP(false)
     }
   }
 

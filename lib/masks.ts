@@ -25,11 +25,11 @@ export const maskCNPJAlphanumeric = (value: string) => {
   // Onde DV são números (mas na máscara permitimos digitar)
   
   return value
-    .replace(/^([a-zA-Z0-9]{2})([a-zA-Z0-9])/, '$1.$2')
-    .replace(/^([a-zA-Z0-9]{2})\.([a-zA-Z0-9]{3})([a-zA-Z0-9])/, '$1.$2.$3')
-    .replace(/^([a-zA-Z0-9]{2})\.([a-zA-Z0-9]{3})\.([a-zA-Z0-9]{3})([a-zA-Z0-9])/, '$1.$2.$3/$4')
-    .replace(/^([a-zA-Z0-9]{2})\.([a-zA-Z0-9]{3})\.([a-zA-Z0-9]{3})\/([a-zA-Z0-9]{4})([a-zA-Z0-9])/, '$1.$2.$3/$4-$5')
-    .replace(/(.. . .. . .. \/ .... - ..).+$/, '$1') // Limita tamanho
+    .replace(/^([A-Z0-9]{2})([A-Z0-9])/, '$1.$2')
+    .replace(/^([A-Z0-9]{2})\.([A-Z0-9]{3})([A-Z0-9])/, '$1.$2.$3')
+    .replace(/^([A-Z0-9]{2})\.([A-Z0-9]{3})\.([A-Z0-9]{3})([A-Z0-9])/, '$1.$2.$3/$4')
+    .replace(/^([A-Z0-9]{2})\.([A-Z0-9]{3})\.([A-Z0-9]{3})\/([A-Z0-9]{4})([A-Z0-9])/, '$1.$2.$3/$4-$5')
+    .replace(/^(.{2}\..{3}\..{3}\/.{4}-.{2}).+$/, '$1') // Limita tamanho
 }
 
 export const maskCPFCNPJ = (value: string) => {

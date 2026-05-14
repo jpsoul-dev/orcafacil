@@ -1,6 +1,6 @@
 'use client'
- 
-import React, { useState, useMemo, useEffect } from 'react'
+
+import React, { useState, useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table'
 import { columns, Quote } from './columns'
 import { Button } from '@/components/ui/button'
@@ -18,25 +18,19 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
- 
+
 interface QuotesClientProps {
   initialQuotes: Quote[]
 }
- 
+
 export function QuotesClient({ initialQuotes }: QuotesClientProps) {
   const [search, setSearch] = useState('')
   const [statusTab, setStatusTab] = useState<'active' | 'draft'>('active')
-  const [mounted, setMounted] = useState(false)
-  const [date, setDate] = useState<DateRange | undefined>({
+  const [date, setDate] = useState<DateRange | undefined>(() => ({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
-  })
- 
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0)
-    return () => clearTimeout(timer)
-  }, [])
- 
+  }))
+
   const filteredQuotes = useMemo(() => {
     return initialQuotes.filter((quote) => {
       const isDraft = quote.status === 'draft'
@@ -52,26 +46,24 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
         )
           return false
       }
- 
+
       if (search) {
         const searchLower = search.toLowerCase()
         const customerName = quote.customers?.name?.toLowerCase() || ''
         const title = quote.title?.toLowerCase() || ''
         const hashId = quote.hash_id?.toLowerCase() || ''
- 
+
         return (
           customerName.includes(searchLower) ||
           title.includes(searchLower) ||
           hashId.includes(searchLower)
         )
       }
- 
+
       return true
     })
   }, [initialQuotes, date, search, statusTab])
- 
-  if (!mounted) return null
- 
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -91,7 +83,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           </Link>
         </div>
       </div>
- 
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-1 items-center gap-2 max-w-md relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -102,7 +94,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
- 
+
         <div className="flex items-center gap-2">
           {statusTab === 'active' && (
             <DatePickerWithRange date={date} setDate={setDate} />
@@ -129,7 +121,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
           </Tabs>
         </div>
       </div>
- 
+
       {filteredQuotes && filteredQuotes.length > 0 ? (
         <DataTable columns={columns} data={filteredQuotes} />
       ) : (

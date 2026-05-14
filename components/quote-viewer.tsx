@@ -62,6 +62,7 @@ export interface QuoteItem {
   quantity: number
   unit_price: number
   subtotal: number
+  unit_measure?: string
 }
 
 export interface Customer {
@@ -158,13 +159,6 @@ const STATUS_MAP: Record<
   },
 }
 
-export interface QuoteItem {
-  item_name: string
-  quantity: number
-  unit_price: number
-  subtotal: number
-  unit_measure?: string
-}
 
 export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
@@ -210,7 +204,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
       } else {
         toast.success(`Status alterado para ${STATUS_MAP[newStatus].label}`)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Ocorreu um erro ao atualizar o status.')
       setCurrentStatus(previousStatus)
     } finally {
@@ -235,7 +229,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
             : 'Orçamento rejeitado',
         )
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Ocorreu um erro ao processar sua solicitação.')
       setCurrentStatus(previousStatus)
     } finally {
@@ -252,7 +246,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
     try {
       await navigator.clipboard.writeText(url)
       toast.success('Link do orçamento copiado!')
-    } catch (err) {
+    } catch (_err) {
       toast.error('Não foi possível copiar o link' + url)
     }
   }

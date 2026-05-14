@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -49,6 +49,8 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
   const [logoPreview, setLogoPreview] = useState<string | null>(
     initialData?.logo_url || null,
   )
+  const [searchingCEP, setSearchingCEP] = useState(false)
+  const lastSearchedCep = useRef<string>('')
 
   const form = useForm<SettingsValues>({
     resolver: zodResolver(settingsSchema),
@@ -100,19 +102,29 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
 
   const checkCEP = async (e: React.FocusEvent<HTMLInputElement>) => {
     const cep = e.target.value.replace(/\D/g, '')
-    if (cep.length === 8) {
-      try {
-        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
-        const data = await res.json()
-        if (!data.erro) {
-          form.setValue('address_street', data.logradouro)
-          form.setValue('address_neighborhood', data.bairro)
-          form.setValue('address_city', data.localidade)
-          form.setValue('address_state', data.uf)
-        }
-      } catch (err) {
-        console.error(err)
+
+    if (cep.length !== 8) return
+    if (searchingCEP || cep === lastSearchedCep.current) return
+
+    setSearchingCEP(true)
+    lastSearchedCep.current = cep
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      const data = await res.json()
+      if (!data.erro) {
+        form.setValue('address_street', data.logradouro)
+        form.setValue('address_neighborhood', data.bairro)
+        form.setValue('address_city', data.localidade)
+        form.setValue('address_state', data.uf)
+      } else {
+        toast.error('CEP não encontrado')
       }
+    } catch (_err) {
+      console.error(_err)
+      toast.error('Erro ao buscar CEP')
+    } finally {
+      setSearchingCEP(false)
     }
   }
 
@@ -227,13 +239,20 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
               <Label htmlFor="address_zip" className="font-medium text-sm">
                 CEP
               </Label>
-              <Input
-                id="address_zip"
-                {...form.register('address_zip')}
-                placeholder="00000-000"
-                onBlur={checkCEP}
-                className="h-10"
-              />
+              <div className="relative">
+                <Input
+                  id="address_zip"
+                  {...form.register('address_zip')}
+                  placeholder="00000-000"
+                  onBlur={checkCEP}
+                  className="h-10 pr-10"
+                />
+                {searchingCEP && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="address_street" className="font-medium text-sm">

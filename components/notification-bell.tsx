@@ -1,7 +1,7 @@
 'use client'
 
 import { Bell } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -39,13 +39,16 @@ interface RawNotification {
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const supabase = createClient()
+  
+  // Memoize o cliente supabase para evitar recriação a cada render
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchNotifications = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Buscar notificações e o status de leitura do usuário logado
+    // Buscar as 10 notificações mais recentes
+    // RLS em notification_reads garante que só veremos nossas próprias marcações de leitura
     const { data, error } = await supabase
       .from('notifications')
       .select(`
@@ -56,7 +59,6 @@ export function NotificationBell() {
         type,
         notification_reads(read_at)
       `)
-      .eq('notification_reads.user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10)
 
@@ -81,15 +83,14 @@ export function NotificationBell() {
   }, [supabase])
 
   useEffect(() => {
-    const initialize = async () => {
+    const init = async () => {
       await fetchNotifications()
     }
-    
-    initialize()
+    init()
 
-    // Inscrição Realtime para novas notificações
+    // Canal unificado para notificações e status de leitura
     const channel = supabase
-      .channel('global-notifications')
+      .channel('notification-updates')
       .on('postgres_changes', { 
         event: 'INSERT', 
         table: 'notifications', 
@@ -98,10 +99,33 @@ export function NotificationBell() {
         fetchNotifications()
         toast.info('Nova notificação recebida!')
       })
+      .on('postgres_changes', { 
+        event: '*', 
+        table: 'notifications', 
+        schema: 'public' 
+      }, (payload) => {
+        if (payload.eventType !== 'INSERT') {
+          fetchNotifications()
+        }
+      })
+      .on('postgres_changes', {
+        event: '*', 
+        table: 'notification_reads',
+        schema: 'public'
+      }, () => {
+        // Atualiza quando o status de leitura muda (em outro dispositivo, por exemplo)
+        fetchNotifications()
+      })
       .subscribe()
+
+    // Polling de segurança a cada 2 minutos
+    const interval = setInterval(() => {
+      fetchNotifications()
+    }, 1000 * 60 * 2)
 
     return () => {
       supabase.removeChannel(channel)
+      clearInterval(interval)
     }
   }, [fetchNotifications, supabase])
 

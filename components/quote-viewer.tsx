@@ -36,7 +36,7 @@ import { Separator } from '@/components/ui/separator'
 import {
   updateQuoteStatus,
   updatePublicQuoteStatus,
-} from '@/app/app/quotes/[id]/status-actions'
+} from '@/app/app/quotes/actions'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -196,6 +196,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
     const previousStatus = currentStatus
     setIsUpdating(true)
     setCurrentStatus(newStatus)
+    console.log('CLIENT: Calling updateQuoteStatus with:', { id: quote.id, newStatus })
     try {
       const result = await updateQuoteStatus(quote.id, newStatus)
       if (result.error) {
@@ -204,8 +205,10 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
       } else {
         toast.success(`Status alterado para ${STATUS_MAP[newStatus].label}`)
       }
-    } catch (_error) {
-      toast.error('Ocorreu um erro ao atualizar o status.')
+    } catch (error) {
+      console.error('CLIENT ERROR in updateQuoteStatus:', error)
+      const message = error instanceof Error ? error.message : 'Erro desconhecido'
+      toast.error('Ocorreu um erro ao atualizar o status: ' + message)
       setCurrentStatus(previousStatus)
     } finally {
       setIsUpdating(false)

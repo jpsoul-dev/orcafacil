@@ -3,36 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateRandomHash } from '@/lib/hashids'
-import { z } from 'zod'
 
-const quoteItemSchema = z.object({
-  catalog_item_id: z.string().optional().nullable(),
-  item_name: z.string().min(1, 'Nome do item obrigatório'),
-  quantity: z.coerce.number().min(0.01),
-  unit_price: z.coerce.number().min(0),
-  subtotal: z.number(),
-  unit_measure: z.string().optional().nullable(),
-})
-
-const quoteSchema = z.object({
-  id: z.string().optional(),
-  public_uuid: z.string().optional(),
-  customer_id: z.string().optional().nullable(),
-  title: z.string().optional().nullable(),
-  status: z.enum(['draft', 'open', 'accepted', 'rejected', 'expired', 'vencido']).optional(),
-  subtotal: z.number(),
-  total: z.number(),
-  valid_until: z.string().optional().nullable(),
-  discount_type: z.enum(['percentage', 'fixed', 'none']).optional(),
-  discount_value: z.number().optional(),
-  tax_value: z.number().optional(),
-  shipping_value: z.number().optional(),
-  notes: z.string().optional().nullable(),
-  items: z.array(quoteItemSchema),
-})
-
-export type QuoteInput = z.infer<typeof quoteSchema>
-export type QuoteItemInput = z.infer<typeof quoteItemSchema>
+import { 
+  statusSchema, 
+  quoteSchema, 
+  type QuoteInput 
+} from './schemas'
 
 
 export async function saveQuote(data: QuoteInput) {
@@ -121,6 +97,88 @@ export async function deleteQuote(id: string) {
   } catch (error) {
     console.error('Error deleting quote:', error)
     return { success: false, error: 'Erro interno ao deletar orçamento' }
+  }
+}
+
+export async function updateQuoteStatus(id: string, status: string) {
+  console.log('SERVER: updateQuoteStatus started', { id, status })
+  try {
+    const supabase = await createClient()
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !authData?.user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    const user = authData.user
+
+    // Validação com Zod
+    const validation = statusSchema.safeParse(status)
+    if (!validation.success) {
+      return { success: false, error: 'Status inválido' }
+    }
+
+    // Tenta atualizar por ID (UUID) ou Hash ID se necessário
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    
+    let query = supabase
+      .from('quotes')
+      .update({ status: validation.data })
+      .eq('user_id', user.id)
+
+    if (isUuid) {
+      query = query.eq('id', id)
+    } else {
+      query = query.eq('hash_id', id)
+    }
+
+    const { error } = await query
+
+    if (error) {
+      console.error('Database error in updateQuoteStatus:', error)
+      return { success: false, error: error.message }
+    }
+
+    try {
+      revalidatePath(`/app/quotes/${id}`)
+      revalidatePath('/app/quotes')
+    } catch (revalidateError) {
+      console.warn('Revalidation failed:', revalidateError)
+    }
+    return { success: true }
+  } catch (error) {
+    console.error('CRITICAL: Error updating quote status:', error)
+    return { success: false, error: 'Erro interno ao atualizar status do orçamento' }
+  }
+}
+
+export async function updatePublicQuoteStatus(uuid: string, status: string) {
+  try {
+    const supabase = await createClient()
+
+    // Validar se o status é permitido para o cliente (público)
+    if (!['accepted', 'rejected'].includes(status)) {
+      return { success: false, error: 'Ação não permitida para o link público' }
+    }
+
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status })
+      .eq('public_uuid', uuid)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    try {
+      revalidatePath(`/quote/${uuid}`)
+    } catch (revalidateError) {
+      console.warn('Public revalidation failed:', revalidateError)
+    }
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating public quote status:', error)
+    return { success: false, error: 'Erro interno ao processar sua resposta' }
   }
 }
 

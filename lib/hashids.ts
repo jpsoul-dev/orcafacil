@@ -11,9 +11,11 @@ export const decodeId = (hash: string) => hashids.decode(hash)[0] as number
 
 export const generateRandomHash = () => {
   const chars = ALPHABET
+  const bytes = new Uint8Array(MIN_LENGTH)
+  crypto.getRandomValues(bytes)
   let result = ''
   for (let i = 0; i < MIN_LENGTH; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+    result += chars.charAt(bytes[i] % chars.length)
   }
   return result
 }

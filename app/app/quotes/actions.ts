@@ -30,24 +30,42 @@ export async function saveQuote(data: QuoteInput) {
 
     const { id, items, ...quoteData } = validatedData
 
-    // Chamada atômica via RPC para garantir transacionalidade
-    const { data: result, error: rpcError } = await supabase.rpc('upsert_quote_with_items', {
-      p_quote_id: id || null,
-      p_customer_id: quoteData.customer_id || null,
-      p_title: quoteData.title || null,
-      p_status: quoteData.status || null,
-      p_subtotal: quoteData.subtotal,
-      p_total: quoteData.total,
-      p_valid_until: quoteData.valid_until || null,
-      p_discount_type: quoteData.discount_type || 'none',
-      p_discount_value: quoteData.discount_value || 0,
-      p_notes: quoteData.notes || null,
-      p_items: items,
-      p_user_id: user.id,
-      p_hash_id: id ? null : generateRandomHash()
-    })
+    let attempts = 0
+    const MAX_ATTEMPTS = 3
 
-    if (rpcError || !result) {
+    while (attempts < MAX_ATTEMPTS) {
+      const currentHashId = id ? null : generateRandomHash()
+
+      // Chamada atômica via RPC para garantir transacionalidade
+      const { data: result, error: rpcError } = await supabase.rpc('upsert_quote_with_items', {
+        p_quote_id: id || null,
+        p_customer_id: quoteData.customer_id || null,
+        p_title: quoteData.title || null,
+        p_status: quoteData.status || null,
+        p_subtotal: quoteData.subtotal,
+        p_total: quoteData.total,
+        p_valid_until: quoteData.valid_until || null,
+        p_discount_type: quoteData.discount_type || 'none',
+        p_discount_value: quoteData.discount_value || 0,
+        p_notes: quoteData.notes || null,
+        p_items: items,
+        p_user_id: user.id,
+        p_hash_id: currentHashId
+      })
+
+      if (!rpcError && result) {
+        revalidatePath('/app/quotes')
+        return { success: true, public_uuid: result.public_uuid, id: result.id }
+      }
+
+      // Se o erro for de unicidade (código 23505) e estamos criando um novo (id é null)
+      if (rpcError?.code === '23505' && !id) {
+        attempts++
+        console.warn(`Colisão de hash_id detectada. Tentativa ${attempts} de ${MAX_ATTEMPTS}...`)
+        continue
+      }
+
+      // Se for outro erro ou estourou as tentativas
       console.error('Erro na RPC upsert_quote_with_items:', rpcError)
       return {
         success: false,
@@ -55,8 +73,11 @@ export async function saveQuote(data: QuoteInput) {
       }
     }
 
-    revalidatePath('/app/quotes')
-    return { success: true, public_uuid: result.public_uuid, id: result.id }
+    console.error('Falha ao gerar hash_id único após 3 tentativas.')
+    return { 
+      success: false, 
+      error: 'Não foi possível gerar um identificador único para o orçamento após várias tentativas. Por favor, tente novamente.' 
+    }
   } catch (error) {
     console.error('Error in saveQuote:', error)
     return { 

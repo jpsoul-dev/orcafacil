@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table'
-import { columns, Quote } from './columns'
+import { columns } from './columns'
+import type { Quote } from '@/types'
 import { Button } from '@/components/ui/button'
 import { List, Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -19,11 +20,11 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 
-interface QuotesClientProps {
+interface QuotesListProps {
   initialQuotes: Quote[]
 }
 
-export function QuotesClient({ initialQuotes }: QuotesClientProps) {
+export function QuotesList({ initialQuotes }: QuotesListProps) {
   const [search, setSearch] = useState('')
   const [statusTab, setStatusTab] = useState<'active' | 'draft'>('active')
   const [date, setDate] = useState<DateRange | undefined>(() => ({
@@ -37,6 +38,7 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
       if (statusTab === 'active' && isDraft) return false
       if (statusTab === 'draft' && !isDraft) return false
       if (statusTab === 'active' && date?.from && date?.to) {
+        if (!quote.created_at) return false
         const quoteDate = parseISO(quote.created_at)
         if (
           !isWithinInterval(quoteDate, {
@@ -69,15 +71,15 @@ export function QuotesClient({ initialQuotes }: QuotesClientProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-            Orçamentos em andamento
+            Meus orçamentos
           </h2>
           <p className="text-slate-500 text-sm mt-1">
-            Acompanhe a situação de seus orçamentos.
+            Acompanhe seus orçamentos em andamento.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/app/quotes/new">
-            <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg shadow-sm">
+            <Button className="gap-2 font-bold bg-primary hover:bg-slate-800 text-white rounded-md shadow-sm">
               <Plus className="h-4 w-4" /> Criar Orçamento
             </Button>
           </Link>

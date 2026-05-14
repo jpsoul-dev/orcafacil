@@ -5,18 +5,7 @@ import { ArrowUpDown, Pencil, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-
-export type Quote = {
-  id: string
-  public_uuid: string
-  hash_id: string
-  title: string
-  total: number
-  valid_until: string | null
-  created_at: string
-  status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired' | 'vencido'
-  customers?: { name: string } | null
-}
+import type { Quote } from '@/types'
 
 const brl = (val: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(

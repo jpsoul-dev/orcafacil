@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { QuotesClient } from './quotes-client'
+import { QuotesList } from './QuotesList'
 
 export default async function QuotesPage() {
   const supabase = await createClient()
@@ -24,5 +24,5 @@ export default async function QuotesPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  return <QuotesClient initialQuotes={quotes || []} />
+  return <QuotesList initialQuotes={quotes || []} />
 }

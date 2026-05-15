@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateRandomHash } from '@/lib/hashids'
+import { logger } from '@/lib/logger'
 
 import { 
   statusSchema, 
@@ -61,25 +62,25 @@ export async function saveQuote(data: QuoteInput) {
       // Se o erro for de unicidade (código 23505) e estamos criando um novo (id é null)
       if (rpcError?.code === '23505' && !id) {
         attempts++
-        console.warn(`Colisão de hash_id detectada. Tentativa ${attempts} de ${MAX_ATTEMPTS}...`)
+        logger.warn(`Colisão de hash_id detectada. Tentativa ${attempts} de ${MAX_ATTEMPTS}...`)
         continue
       }
 
       // Se for outro erro ou estourou as tentativas
-      console.error('Erro na RPC upsert_quote_with_items:', rpcError)
+      logger.error('Erro na RPC upsert_quote_with_items:', rpcError)
       return {
         success: false,
         error: rpcError?.message || 'Erro ao processar orçamento no banco de dados',
       }
     }
 
-    console.error('Falha ao gerar hash_id único após 3 tentativas.')
+    logger.error('Falha ao gerar hash_id único após 3 tentativas.')
     return { 
       success: false, 
       error: 'Não foi possível gerar um identificador único para o orçamento após várias tentativas. Por favor, tente novamente.' 
     }
   } catch (error) {
-    console.error('Error in saveQuote:', error)
+    logger.error('Error in saveQuote:', error)
     return { 
       success: false, 
       error: 'Ocorreu um erro inesperado ao salvar o orçamento.' 
@@ -116,13 +117,13 @@ export async function deleteQuote(id: string) {
     revalidatePath('/app/quotes')
     return { success: true }
   } catch (error) {
-    console.error('Error deleting quote:', error)
+    logger.error('Error deleting quote:', error)
     return { success: false, error: 'Erro interno ao deletar orçamento' }
   }
 }
 
 export async function updateQuoteStatus(id: string, status: string) {
-  console.log('SERVER: updateQuoteStatus started', { id, status })
+  logger.info('SERVER: updateQuoteStatus started', { id, status })
   try {
     const supabase = await createClient()
     const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -156,7 +157,7 @@ export async function updateQuoteStatus(id: string, status: string) {
     const { error } = await query
 
     if (error) {
-      console.error('Database error in updateQuoteStatus:', error)
+      logger.error('Database error in updateQuoteStatus:', error)
       return { success: false, error: error.message }
     }
 
@@ -164,11 +165,11 @@ export async function updateQuoteStatus(id: string, status: string) {
       revalidatePath(`/app/quotes/${id}`)
       revalidatePath('/app/quotes')
     } catch (revalidateError) {
-      console.warn('Revalidation failed:', revalidateError)
+      logger.warn('Revalidation failed:', revalidateError)
     }
     return { success: true }
   } catch (error) {
-    console.error('CRITICAL: Error updating quote status:', error)
+    logger.error('CRITICAL: Error updating quote status:', error)
     return { success: false, error: 'Erro interno ao atualizar status do orçamento' }
   }
 }
@@ -194,13 +195,62 @@ export async function updatePublicQuoteStatus(uuid: string, status: string) {
     try {
       revalidatePath(`/quote/${uuid}`)
     } catch (revalidateError) {
-      console.warn('Public revalidation failed:', revalidateError)
+      logger.warn('Public revalidation failed:', revalidateError)
     }
     return { success: true }
-  } catch (error) {
-    console.error('Error updating public quote status:', error)
+} catch (error) {
+    logger.error('Error updating public quote status:', error)
     return { success: false, error: 'Erro interno ao processar sua resposta' }
   }
 }
 
+export async function reopenQuote(id: string, validUntil: string) {
+  try {
+    const supabase = await createClient()
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !authData?.user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    const user = authData.user
+
+    // Validação mínima de data
+    if (!validUntil || typeof validUntil !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(validUntil)) {
+      return { success: false, error: 'Data de validade inválida' }
+    }
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    
+    let query = supabase
+      .from('quotes')
+      .update({ status: 'open', valid_until: validUntil })
+      .eq('user_id', user.id)
+      .eq('status', 'expired') // Extra safeguard
+
+    if (isUuid) {
+      query = query.eq('id', id)
+    } else {
+      query = query.eq('hash_id', id)
+    }
+
+    const { error } = await query
+
+    if (error) {
+      logger.error('Database error in reopenQuote:', error)
+      return { success: false, error: error.message }
+    }
+
+    try {
+      revalidatePath(`/app/quotes/${id}`)
+      revalidatePath('/app/quotes')
+    } catch (revalidateError) {
+      logger.warn('Revalidation failed:', revalidateError)
+    }
+    return { success: true }
+  } catch (error) {
+    logger.error('CRITICAL: Error reopening quote:', error)
+    return { success: false, error: 'Erro interno ao reabrir o orçamento' }
+  }
+}
 

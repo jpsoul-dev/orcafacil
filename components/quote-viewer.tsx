@@ -22,6 +22,7 @@ import {
   Phone,
   Mail,
   MessageCircle,
+  RotateCcw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -48,6 +49,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
 
 export type QuoteStatus =
   | 'draft'
@@ -163,6 +165,7 @@ const STATUS_MAP: Record<
 export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isReopenOpen, setIsReopenOpen] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -308,6 +311,16 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
                       ))}
                   </SelectContent>
                 </Select>
+                {currentStatus === 'expired' && (
+                  <Button
+                    onClick={() => setIsReopenOpen(true)}
+                    size="sm"
+                    className="h-9 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reabrir Orçamento
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -662,6 +675,13 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
           </span>
         </div>
       </div>
+
+      <ReopenQuoteDialog
+        quoteId={quote.id}
+        open={isReopenOpen}
+        onOpenChange={setIsReopenOpen}
+        onSuccess={() => setCurrentStatus('open')}
+      />
     </div>
   )
 }

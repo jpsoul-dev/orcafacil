@@ -6,6 +6,15 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import type { Quote } from '@/types'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { MoreHorizontal, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
+import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
 
 const brl = (val: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
@@ -113,38 +122,63 @@ export const columns: ColumnDef<Quote>[] = [
   {
     id: 'actions',
     header: '',
-    cell: ({ row }) => {
-      const id = row.original.id
-      const isDraft = row.original.status === 'draft'
+    cell: function ActionCell({ row }) {
+      const quote = row.original
+      const isDraft = quote.status === 'draft'
+      const isExpired = quote.status === 'expired'
+      const [reopenOpen, setReopenOpen] = useState(false)
 
       return (
         <div className="flex items-center justify-end gap-1">
-          {!isDraft && (
-            <Link href={`/app/quotes/${id}`} target="_blank">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100"
-                title="Ver Detalhes"
-              >
-                <Eye className="h-4 w-4" />
-                <span className="sr-only">Ver orçameto</span>
-              </Button>
-            </Link>
-          )}
-          {isDraft && (
-            <Link href={`/app/quotes/${id}/edit`}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                title="Editar Rascunho"
-              >
-                <Pencil className="h-4 w-4" />
-                <span className="sr-only">Editar Rascunho</span>
-              </Button>
-            </Link>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" className="h-8 w-8 p-0" />}
+            >
+              <span className="sr-only">Abrir menu</span>
+              <MoreHorizontal className="h-4 w-4 text-slate-700" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {!isDraft && (
+                <DropdownMenuItem
+                  render={
+                    <Link
+                      href={`/app/quotes/${quote.id}`}
+                      target="_blank"
+                      className="cursor-pointer flex items-center gap-2"
+                    />
+                  }
+                >
+                  <Eye className="h-4 w-4" /> Ver detalhes
+                </DropdownMenuItem>
+              )}
+              {isDraft && (
+                <DropdownMenuItem
+                  render={
+                    <Link
+                      href={`/app/quotes/${quote.id}/edit`}
+                      className="cursor-pointer flex items-center gap-2 text-amber-600 focus:text-amber-600"
+                    />
+                  }
+                >
+                  <Pencil className="h-4 w-4" /> Editar rascunho
+                </DropdownMenuItem>
+              )}
+              {isExpired && (
+                <DropdownMenuItem
+                  onClick={() => setReopenOpen(true)}
+                  className="cursor-pointer flex items-center gap-2 text-indigo-600 focus:text-indigo-600"
+                >
+                  <RotateCcw className="h-4 w-4" /> Reabrir orçamento
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <ReopenQuoteDialog
+            quoteId={quote.id}
+            open={reopenOpen}
+            onOpenChange={setReopenOpen}
+          />
         </div>
       )
     },

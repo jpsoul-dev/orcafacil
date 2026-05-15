@@ -199,7 +199,7 @@ export function AppSidebar({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   render={
-                    <form action={logout} className="w-full" />
+                    <form action={async () => { await logout() }} className="w-full" />
                   }
                 >
                   <button type="submit" className="flex w-full items-center gap-2 text-red-500 cursor-pointer hover:text-red-600">

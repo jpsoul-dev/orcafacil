@@ -17,12 +17,8 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'hash_id',
     header: 'Código',
     cell: ({ row }) => (
-      <Link
-        href={`/app/quotes/${row.original.id}`}
-        target="_blank"
-        className="font-mono text-sm font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md hover:bg-slate-200 transition-colors"
-      >
-        {row.original.hash_id}
+      <Link href={`/app/quotes/${row.original.id}`} target="_blank">
+        <Badge variant="secondary">{row.original.hash_id}</Badge>
       </Link>
     ),
   },
@@ -39,12 +35,9 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'customer',
     header: 'Cliente',
     cell: ({ row }) => {
-      const customerName = row.original.customers?.name
       return (
-        <div className="text-slate-600 font-medium">
-          {customerName || (
-            <span className="text-muted-foreground italic">Sem cliente</span>
-          )}
+        <div className="text-slate-00 font-medium">
+          {row.original.customers?.name}
         </div>
       )
     },
@@ -55,9 +48,9 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => {
       const dateStr = row.getValue('valid_until') as string | null
       if (!dateStr) return <span className="text-slate-400">-</span>
-      const date = new Date(dateStr + 'T00:00:00') // Add time to avoid TZ shifts
+      const date = new Date(dateStr + 'T00:00:00')
       return (
-        <div className="text-slate-600">{date.toLocaleDateString('pt-BR')}</div>
+        <div className="text-slate-800">{date.toLocaleDateString('pt-BR')}</div>
       )
     },
   },
@@ -70,7 +63,7 @@ export const columns: ColumnDef<Quote>[] = [
           className="-ml-4 hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Data
+          Data cadastro
           <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />
         </Button>
       )
@@ -78,9 +71,7 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => {
       const date = new Date(row.getValue('created_at'))
       return (
-        <div className="text-muted-foreground">
-          {date.toLocaleDateString('pt-BR')}
-        </div>
+        <div className="text-slate-800">{date.toLocaleDateString('pt-BR')}</div>
       )
     },
   },
@@ -89,22 +80,20 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Valor Total',
     cell: ({ row }) => {
       const total = parseFloat(row.getValue('total'))
-      return <div className="font-semibold">{brl(total)}</div>
+      return <div className="font-semibold text-slate-800">{brl(total)}</div>
     },
   },
   {
     id: 'status',
-    header: 'Status',
+    header: 'Situação',
     cell: ({ row }) => {
       const status = row.original.status
-      const validUntil = row.original.valid_until
       const statusMap: Record<string, { label: string; className: string }> = {
         draft: { label: 'Rascunho', className: 'bg-slate-900 text-white' },
-        open: { label: 'Pendente', className: 'bg-indigo-900 text-white' },
+        open: { label: 'Em aberto', className: 'bg-indigo-900 text-white' },
         accepted: { label: 'Aprovado', className: 'bg-emerald-900 text-white' },
         rejected: { label: 'Rejeitado', className: 'bg-red-900 text-white' },
-        expired: { label: 'Expirado', className: 'bg-gray-950 text-white' },
-        vencido: { label: 'Vencido', className: 'bg-slate-900 text-white' },
+        expired: { label: 'Expirado', className: 'bg-slate-950 text-white' },
       }
 
       const config = statusMap[status] || {
@@ -112,20 +101,11 @@ export const columns: ColumnDef<Quote>[] = [
         className: 'bg-slate-500 text-white',
       }
 
-      // Se estiver aberto mas a validade passou, mostrar como expirado
-      let finalConfig = config
-      if (status === 'open' && validUntil) {
-        const validDate = new Date(validUntil + 'T23:59:59')
-        if (new Date() > validDate) {
-          finalConfig = statusMap.expired
-        }
-      }
-
       return (
         <Badge
-          className={`rounded-md px-3 py-0.5 text-[10px] font-bold border-none shadow-sm ${finalConfig.className}`}
+          className={`rounded-md px-3 py-0.5 text-xs font-bold border-none shadow-sm ${config.className}`}
         >
-          {finalConfig.label.toUpperCase()}
+          {config.label.toUpperCase()}
         </Badge>
       )
     },

@@ -31,7 +31,7 @@ export function DatePickerWithRange({
         <PopoverTrigger
           id="date"
           className={cn(
-            'w-[260px] inline-flex items-center justify-start text-left font-normal border border-slate-200 bg-white text-slate-600 h-9 rounded-lg px-3 py-2 text-sm hover:bg-slate-50 transition-colors cursor-pointer',
+            'w-[260px] inline-flex items-center justify-start text-left font-normal border border-slate-200 bg-white text-slate-600 h-10 rounded-lg px-3 py-2 text-sm hover:bg-slate-50 transition-colors cursor-pointer',
             !date && 'text-muted-foreground',
           )}
         >

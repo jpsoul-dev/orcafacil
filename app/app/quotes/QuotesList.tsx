@@ -67,7 +67,8 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
   }, [initialQuotes, date, search, statusTab])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 [&>*:first-child]:mb-12">
+      {/*Header*/}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -79,70 +80,69 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/app/quotes/new">
-            <Button className="gap-2 font-bold bg-primary hover:bg-slate-800 text-white rounded-md shadow-sm">
-              <Plus className="h-4 w-4" /> Criar Orçamento
+            <Button>
+              <Plus /> Criar Orçamento
             </Button>
           </Link>
         </div>
       </div>
 
+      {/*Action Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-1 items-center gap-2 max-w-md relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Buscar por cliente, título ou código..."
-            className="pl-9 h-10 bg-white border-slate-200"
+            className="pl-9 h-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {statusTab === 'active' && (
-            <DatePickerWithRange date={date} setDate={setDate} />
+            <DatePickerWithRange
+              date={date}
+              setDate={setDate}
+              className="h-10"
+            />
           )}
           <Tabs
             value={statusTab}
             onValueChange={(v) => setStatusTab(v as 'active' | 'draft')}
-            className="bg-slate-100 p-1 rounded-lg"
+            className="bg-slate-100 p-1 rounded-md"
           >
             <TabsList className="bg-transparent border-none p-0 h-8">
               <TabsTrigger
                 value="active"
                 className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4"
               >
-                Ativos
+                Em andamento
               </TabsTrigger>
               <TabsTrigger
                 value="draft"
                 className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4"
               >
-                Rascunhos
+                Rascunho
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </div>
 
+      {/*Quotes List*/}
       {filteredQuotes && filteredQuotes.length > 0 ? (
         <DataTable columns={columns} data={filteredQuotes} />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center shadow-sm">
+        <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-300 bg-white py-20 text-center shadow-sm">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 mb-4">
-            <List className="h-8 w-8 text-slate-300" />
+            <List className="h-8 w-8 text-slate-400" />
           </div>
           <p className="text-slate-500 text-sm mt-2 max-w-xs">
             {date?.from && date?.to
-              ? 'Não foram encontrados orçamentos no período selecionado.'
-              : 'Você ainda não possui orçamentos registrados.'}
+              ? 'Nenhum orçamento no período informado.'
+              : 'Você ainda não possui orçamentos.'}
           </p>
-          <div className="mt-8">
-            <Link href="/app/quotes/new">
-              <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg px-6 py-5">
-                <Plus className="h-5 w-5" /> Criar Orçamento
-              </Button>
-            </Link>
-          </div>
         </div>
       )}
     </div>

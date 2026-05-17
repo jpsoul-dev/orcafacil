@@ -15,6 +15,7 @@ import {
 import { MoreHorizontal, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
+import { QuoteStatusBadge } from '@/components/quote-status-badge'
 
 const brl = (val: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
@@ -97,26 +98,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Situação',
     cell: ({ row }) => {
       const status = row.original.status
-      const statusMap: Record<string, { label: string; className: string }> = {
-        draft: { label: 'Rascunho', className: 'bg-slate-900 text-white' },
-        open: { label: 'Em aberto', className: 'bg-indigo-900 text-white' },
-        accepted: { label: 'Aprovado', className: 'bg-emerald-900 text-white' },
-        rejected: { label: 'Rejeitado', className: 'bg-red-900 text-white' },
-        expired: { label: 'Expirado', className: 'bg-slate-950 text-white' },
-      }
-
-      const config = statusMap[status] || {
-        label: status,
-        className: 'bg-slate-500 text-white',
-      }
-
-      return (
-        <Badge
-          className={`rounded-md px-3 py-0.5 text-xs font-bold border-none shadow-sm ${config.className}`}
-        >
-          {config.label.toUpperCase()}
-        </Badge>
-      )
+      return <QuoteStatusBadge status={status} />
     },
   },
   {

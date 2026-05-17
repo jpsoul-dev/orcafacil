@@ -189,7 +189,7 @@ export async function getAdminDashboardStats() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     const { count: quotesCount, error: quotesError } = await supabaseAdmin
-      .from('quotes')
+      .from('vw_quotes')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', thirtyDaysAgo.toISOString())
 

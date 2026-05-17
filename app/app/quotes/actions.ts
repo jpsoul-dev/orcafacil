@@ -31,6 +31,23 @@ export async function saveQuote(data: QuoteInput) {
 
     const { id, items, ...quoteData } = validatedData
 
+    if (id) {
+      const { data: existingQuote } = await supabase
+        .from('vw_quotes')
+        .select('status')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (!existingQuote) {
+        return { success: false, error: 'Orçamento não encontrado' }
+      }
+
+      if (['expired', 'accepted', 'rejected'].includes(existingQuote.status)) {
+        return { success: false, error: 'Não é possível editar um orçamento expirado ou finalizado.' }
+      }
+    }
+
     let attempts = 0
     const MAX_ATTEMPTS = 3
 
@@ -142,6 +159,22 @@ export async function updateQuoteStatus(id: string, status: string) {
 
     // Tenta atualizar por ID (UUID) ou Hash ID se necessário
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+
+    let checkQuery = supabase.from('vw_quotes').select('status').eq('user_id', user.id)
+    if (isUuid) {
+      checkQuery = checkQuery.eq('id', id)
+    } else {
+      checkQuery = checkQuery.eq('hash_id', id)
+    }
+
+    const { data: existingQuote } = await checkQuery.single()
+    if (!existingQuote) {
+      return { success: false, error: 'Orçamento não encontrado' }
+    }
+
+    if (existingQuote.status === 'expired') {
+      return { success: false, error: 'Não é possível alterar o status de um orçamento expirado' }
+    }
     
     let query = supabase
       .from('quotes')
@@ -226,7 +259,7 @@ export async function reopenQuote(id: string, validUntil: string) {
       .from('quotes')
       .update({ status: 'open', valid_until: validUntil })
       .eq('user_id', user.id)
-      .eq('status', 'expired') // Extra safeguard
+      .in('status', ['open', 'expired']) // Allow reopening if it's open (but dynamically expired) or explicitly expired
 
     if (isUuid) {
       query = query.eq('id', id)

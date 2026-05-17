@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   const [{ data: quotesData }, { data: profile }] = await Promise.all(
     [
       supabase
-        .from('quotes')
+        .from('vw_quotes')
         .select('created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true }),

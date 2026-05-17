@@ -13,7 +13,7 @@ export default async function QuoteDetailsPage({
   // Tenta buscar por ID (UUID) ou por Hash ID
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
   
-  let query = supabase.from('quotes').select('public_uuid')
+  let query = supabase.from('vw_quotes').select('public_uuid')
   
   if (isUuid) {
     query = query.eq('id', id)

@@ -17,7 +17,7 @@ export default async function EditQuotePage({
 
   if (!isUuid) {
     const { data: quote } = await supabase
-      .from('quotes')
+      .from('vw_quotes')
       .select('id')
       .eq('hash_id', id)
       .single()

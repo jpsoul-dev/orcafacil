@@ -29,7 +29,7 @@ export default async function CustomerDetailsPage({
   }
 
   const { data: quotes } = await supabase
-    .from('quotes')
+    .from('vw_quotes')
     .select(
       `
       *,

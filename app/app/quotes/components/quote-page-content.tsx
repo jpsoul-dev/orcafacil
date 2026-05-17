@@ -32,7 +32,7 @@ export async function QuotePageContent({
 
   if (targetId) {
     const { data: quote } = await supabase
-      .from('quotes')
+      .from('vw_quotes')
       .select(
         `
         *,

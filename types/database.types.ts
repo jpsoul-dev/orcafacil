@@ -284,6 +284,13 @@ export type Database = {
             referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "vw_quotes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quotes: {
@@ -362,7 +369,83 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_quotes: {
+        Row: {
+          accepted_at: string | null
+          client_ip: string | null
+          client_ua: string | null
+          created_at: string | null
+          customer_id: string | null
+          discount_type: string | null
+          discount_value: number | null
+          hash_id: string | null
+          id: string | null
+          notes: string | null
+          original_status: string | null
+          payment_method: string | null
+          public_uuid: string | null
+          rejected_at: string | null
+          status: string | null
+          subtotal: number | null
+          title: string | null
+          total: number | null
+          user_id: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_ip?: string | null
+          client_ua?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          hash_id?: string | null
+          id?: string | null
+          notes?: string | null
+          original_status?: string | null
+          payment_method?: string | null
+          public_uuid?: string | null
+          rejected_at?: string | null
+          status?: never
+          subtotal?: number | null
+          title?: string | null
+          total?: number | null
+          user_id?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          client_ip?: string | null
+          client_ua?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          hash_id?: string | null
+          id?: string | null
+          notes?: string | null
+          original_status?: string | null
+          payment_method?: string | null
+          public_uuid?: string | null
+          rejected_at?: string | null
+          status?: never
+          subtotal?: number | null
+          title?: string | null
+          total?: number | null
+          user_id?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_public_quote: { Args: { p_uuid: string }; Returns: Json }

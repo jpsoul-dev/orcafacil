@@ -2,22 +2,41 @@
 trigger: always_on
 ---
 
-# TypeScript & Type Safety Rules
+# Diretrizes de Desenvolvimento e Qualidade de Código
 
-- **STRICTLY FORBIDDEN: `any` type.** Never use `any`.
-- If a type is unknown, use `unknown` and implement proper type guards.
-- If a type is complex, define an `interface` or `type` alias.
-- Prefer `Zod` schemas for runtime validation where applicable.
-- Ensure all Next.js Server Components and Actions are strictly typed, especially for `props` and `formAction` states.
+Este documento serve como a única fonte de verdade para os padrões de código, arquitetura, segurança e estilo deste projeto. Toda geração de código deve seguir rigorosamente as regras abaixo.
 
-# Language
+---
 
-- Sempre devolva as respostas, os passos e todas as informações em Portugues Brasil
+## 1. Tipagem e TypeScript (Strict Mode)
 
-#shadcn
+- **Proibido o uso de `any`:** O uso de `any` é estritamente proibido. Se um tipo for desconhecido temporariamente, utilize `unknown` e faça o Type Guard apropriado.
+- **Tipagem Explícita:** Tipar explicitamente retornos de funções complexas, hooks customizados e propriedades de componentes (`props`).
+- **Zod para Validação:** Utilize `zod` para validar dados de entrada (payloads de API, searchParams, formulários) e inferir tipos a partir dos schemas sempre que possível.
 
-- O shadcn está utilizando o Base UI (@base-ui/react) e não mais o radix, considere isso na hora de utilizar os componentes do shadcn.
+## 2. Segurança e Autorização (Security-First)
 
-- **Tailwind:** Use classes utilitárias do Tailwind CSS de forma limpa, utilizando bibliotecas como `clsx` e `tailwind-merge` (`cn()`) para composição condicional de classes.
-- **Numeros mágicos:** Não utilize numeros mágicos taxativos nas estilizações como por exemplo `h-[500px]` utilize os padrões do tailwind
-- **consitencia visual:** Mantenha a consistencia visual em toda a aplicação.
+- **Validação de Propriedade (Data Ownership):** Nunca confie apenas no ID enviado pelo cliente. Antes de qualquer operação de mutação (INSERT, UPDATE, DELETE) ou leitura de dados sensíveis, verifique no backend se o usuário autenticado é o real proprietário (owner) daqueles dados.
+- **Fail-Safe Defaults:** Se uma checagem de permissão falhar ou estourar um erro, a aplicação deve bloquear o acesso por padrão (bloqueio preventivo).
+- **Sanitização:** Garanta que inputs de usuários passem por validação antes de interagir com o banco de dados para evitar vulnerabilidades.
+
+## 3. Arquitetura Next.js 16 & React
+
+- **Server vs. Client Components:** Mantenha os componentes como Server Components (`page.tsx`, `layout.tsx`, etc.) por padrão. Adicione `"use client"` apenas na camada estrita onde a interatividade (estados, efeitos, eventos de clique) é estritamente necessária.
+- **Server Actions Seguras:** Ao criar Server Actions para mutações, trate-as como endpoints de API comuns: valide a sessão do usuário e os dados de entrada dentro da própria Action.
+- **Componentização Inteligente:** Evite arquivos gigantes. Se um bloco de código lógico ou visual se repetir, ou passar de 150 linhas, extraia-o para um subcomponente local ou um hook customizado.
+
+## 4. Reutilização de Código e DRY
+
+- **Aproveitamento de Recursos:** Antes de criar uma nova função utilitária ou hook, analise os arquivos existentes em `@/hooks`, `@/lib` e `@/utils`. Reutilize a lógica existente.
+- **Debounce e Otimizações:** Para inputs de busca ou disparos frequentes, utilize hooks de debounce reutilizáveis em vez de criar lógicas isoladas com `setTimeout`.
+
+## 5. Estilização (Tailwind CSS & shadcn/ui)
+
+- **Sem Números Mágicos (Magic Numbers):** É proibido o uso de valores arbitrários soltos para espaçamentos, cantos arredondados ou cores recorrentes (ex: `w-[321px]` ou `bg-[#f3f3f3]`). Utilize estritamente o sistema de design do Tailwind e as variáveis do tema (ex: `space-x-4`, `rounded-lg`, `bg-muted`).
+- **Componentes baseados em shadcn/ui:** Sempre verifique se o componente necessário (ex: Dialog, Button, Sheet, Dropdown) já está instalado em `@/components/ui`. Use a estrutura padrão do shadcn/ui e estenda-a usando a utilidade `cn(...)` para fusão de classes Tailwind de forma limpa.
+
+## 6. Clean Code e Legibilidade
+
+- **Nomes Autoexplicativos:** Variáveis e funções devem ter nomes que descrevem seu propósito (ex: `isUserAuthorized` em vez de `check`).
+- **Funções Pequenas:** Cada função ou bloco de código deve fazer focar em apenas uma responsabilidade (Single Responsibility Principle).

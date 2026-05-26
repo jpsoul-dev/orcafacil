@@ -57,7 +57,6 @@ export type QuoteStatus =
   | 'accepted'
   | 'rejected'
   | 'expired'
-  | 'vencido'
 
 export interface QuoteItem {
   item_name: string
@@ -115,10 +114,8 @@ export interface Quote {
   items: QuoteItem[]
 }
 
-const brl = (val: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-    val,
-  )
+import { formatBRL } from '@/lib/utils'
+const brl = formatBRL
 
 interface QuoteViewerProps {
   quote: Quote
@@ -150,14 +147,9 @@ const STATUS_MAP: Record<
     dot: 'bg-red-600',
   },
   expired: {
-    label: 'Expirado',
+    label: 'Vencido',
     color: 'bg-gray-100 text-gray-700 border-gray-200',
     dot: 'bg-gray-600',
-  },
-  vencido: {
-    label: 'Vencido',
-    color: 'bg-slate-100 text-slate-700 border-slate-200',
-    dot: 'bg-slate-500',
   },
 }
 
@@ -168,10 +160,7 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
   const [isReopenOpen, setIsReopenOpen] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentStatus(quote.status)
-    }, 0)
-    return () => clearTimeout(timer)
+    setCurrentStatus(quote.status)
   }, [quote.status])
 
   useEffect(() => {

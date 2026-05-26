@@ -4,7 +4,7 @@ O **Orca Fácil** é uma plataforma SaaS moderna e de alta performance projetada
 
 ---
 
-## 🛠️ Stack Tecnológica
+## Stack Tecnológica
 
 O projeto foi construído utilizando tecnologias modernas de nível empresarial, garantindo escalabilidade, segurança e excelente experiência do desenvolvedor:
 

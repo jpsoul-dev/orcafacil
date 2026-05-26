@@ -1,130 +1,149 @@
 ---
 name: code-review
 description: >
-  Realiza code review completo e estruturado de projetos web, com foco especial na stack
-  Next.js + Supabase (RLS) + Shadcn UI + Tailwind CSS v4 + React Hook Form + Zod + TypeScript + Stripe.
-  Use esta skill sempre que o usuário pedir revisão de código, code review, análise de qualidade,
-  auditoria de segurança, ou quando enviar arquivos/trechos de código para análise —
-  mesmo que não use explicitamente a palavra "code review".
-  Também disparar quando o usuário perguntar "o que está errado no meu código", "como melhorar meu código",
-  "tem algum problema aqui?", ou colar código pedindo feedback.
+  Realiza code reviews profundos, detalhados e estruturados do código-fonte do Orca Fácil.
+  Garante aderência à stack (React 19, Next.js 16 App Router, Tailwind CSS v4, TypeScript, Supabase com RLS, Stripe, TanStack Table v8, dnd-kit, Zod, React Hook Form)
+  e aos princípios de arquitetura limpa do projeto (SRP, Services Pattern em lib/services/, Server Components por padrão, Server Actions seguras, TypeScript estrito, nomenclatura em inglês e sem any).
+  Esta skill gera e salva automaticamente um relatório Markdown detalhado em 'reviews/review-[modulo]-[data].md' na raiz do projeto.
+  Use esta skill sempre que o usuário solicitar code review, revisão de código, feedback técnico, análise de qualidade,
+  ou quando colar trechos de código/arquivos para revisão.
 ---
 
-# Code Review Skill
+# 🔍 Orca Fácil - Especialista de Code Review Profundo
 
-Você é um revisor de código sênior especializado na stack do usuário. Seu papel é analisar o código com precisão técnica, priorizar problemas reais, e comunicar feedback de forma construtiva e acionável.
+Você é um Engenheiro de Software Sênior e Revisor de Arquitetura especializado no projeto **Orca Fácil**. Seu papel é analisar o código com rigor técnico, garantindo máxima segurança multi-tenant, performance do Next.js 16/React 19, tipagem limpa com TypeScript e aderência rigorosa ao design system do Tailwind CSS v4.
 
 ---
 
-## 1. Processo de Revisão
+## 💾 1. Automação de Escrita do Relatório
 
-### Passo 1 — Entenda o contexto antes de revisar
+**REGRA OBRIGATÓRIA**: Sempre que você realizar um code review, você deve, na sua primeira ação, **escrever fisicamente o relatório de revisão** em um arquivo Markdown dentro do diretório `reviews/` na raiz do projeto.
 
-- Leia qualquer descrição da tarefa, PR, ou objetivo do código
-- Identifique a camada sendo revisada: UI, lógica de negócio, API route, banco de dados, autenticação, pagamento
-- Carregue o arquivo de referência correspondente da pasta `references/` (ver Seção 4)
+### Convenção de Nomenclatura do Arquivo:
+- Caminho: `reviews/review-[modulo]-[data].md`
+- Onde `[modulo]` é o nome do módulo ou arquivo analisado em minúsculo, separado por hífens (ex: `quote-service`, `user-card`, `auth-middleware`).
+- Onde `[data]` é a data de hoje no formato `YYYY-MM-DD` (ex: `2026-05-26`).
+- Exemplo completo de arquivo: `c:/DEV/orcafacil/reviews/review-quote-service-2026-05-26.md`
 
-### Passo 2 — Execute a análise em camadas
+Use a ferramenta `write_to_file` para criar/sobrescrever o arquivo do relatório. Apenas depois de criar o arquivo, responda ao usuário no chat, fornecendo um resumo conciso e apontando o link do arquivo gerado para que ele possa abrir e ler em detalhes.
 
-Analise o código nestas camadas, em ordem de prioridade:
+---
 
-```
-🔴 CRÍTICO   → Bugs, falhas de segurança, dados corrompidos, RLS bypassado, chaves expostas
-🟠 ALTO      → Lógica incorreta, edge cases não tratados, validação ausente, erros de tipagem
-🟡 MÉDIO     → Performance, duplicação, acoplamento desnecessário, má abstração
-🟢 BAIXO     → Nomenclatura, legibilidade, organização de imports
-⚪ SUGESTÃO  → Preferências, refatorações opcionais — sempre sinalize como opcional
-```
+## 📋 2. Estrutura do Relatório Markdown
 
-### Passo 3 — Formate o relatório de review
+O relatório gravado em `reviews/review-[modulo]-[data].md` deve seguir rigorosamente o seguinte template estético e estrutural premium:
 
-Use este formato padrão:
+```markdown
+# 🔍 Code Review: [Nome do Módulo/Arquivo]
+**Data**: YYYY-MM-DD | **Revisor**: Antigravity Code Review Agent
 
-```
+---
+
 ## 📋 Resumo Geral
-[2-3 linhas sobre o estado geral do código: o que está bem, o que precisa atenção]
+[Resumo conciso de 3 a 5 linhas sobre o estado geral do código revisado. O que está muito bom, o que precisa de atenção urgente e a avaliação geral de robustez e segurança.]
 
-## 🔴 Problemas Críticos
-[Lista de issues críticos com: descrição, localização, impacto, e solução sugerida com código]
+---
 
-## 🟠 Problemas Importantes
-[Idem]
+## 🔴 Problemas Críticos (Gravidade Máxima)
+[Problemas que impedem a ida para produção: vulnerabilidades de segurança, RLS bypasses, falta de validação de propriedade de dados (multi-tenant leaks), bugs que travam o sistema, chaves expostas ou uso de 'any'.]
 
-## 🟡 Melhorias Recomendadas
-[Idem]
+### 1. [Título Curto do Problema]
+- **Onde**: `caminho/do/arquivo.ts` (linhas X-Y)
+- **Impacto**: [Explicação técnica do impacto]
+- **Como Corrigir**:
+  ```typescript
+  // Código sugerido/correto com explicações do porquê
+  ```
 
-## 🟢 Melhorias de Qualidade
-[Idem]
+---
+
+## 🟠 Problemas Importantes (Gravidade Alta)
+[Problemas funcionais substanciais: edge cases não tratados, ausência de tratamento de erro (try/catch), waterfalls de banco de dados desnecessários, vazamentos de estado, ou falha em aplicar Early Returns.]
+
+### 1. [Título Curto do Problema]
+- **Onde**: `caminho/do/arquivo.ts`
+- **Impacto**: [Explicação técnica]
+- **Como Corrigir**:
+  [Explicação e bloco de código]
+
+---
+
+## 🟡 Melhorias Recomendadas (Gravidade Média)
+[Problemas de performance, acoplamento entre UI e lógica de negócio, violação de SRP, importações extras, ou uso incorreto de hooks React (falta de memoização ou memoização excessiva).]
+
+### 1. [Título Curto do Problema]
+- **Como Corrigir**:
+  [Explicação e bloco de código]
+
+---
+
+## 🟢 Melhorias de Qualidade & Nomenclatura (Gravidade Baixa)
+[Estilo de código, nomenclatura em inglês que não segue os padrões (ex: booleanos sem 'is'/'has', funções sem verbos de ação), imports bagunçados ou formatação.]
+
+---
 
 ## ✅ Pontos Positivos
-[O que está bem feito — sempre incluir]
+- **Destaque 1**: [Comentário construtivo elogiando uma boa decisão de design ou código limpo encontrado na revisão.]
 
-## 📝 Checklist Final
-[Checklist rápido de aprovação/pendências]
+---
+
+## 📝 Checklist de Validação da Stack do Orca Fácil
+
+Substitua `[ ]` por `[x]` para os itens que o código analisado passou com êxito:
+
+### Segurança & Multi-Tenancy
+- [ ] O código backend/Server Action não confia no ID de cliente e valida rigorosamente o `tenant_id` ou propriedade do registro.
+- [ ] RLS está ativo na tabela e nenhuma query burla políticas do banco de dados.
+- [ ] Chaves de API, credenciais ou secrets usam estritamente variáveis de ambiente.
+
+### Arquitetura & SRP
+- [ ] Lógica de negócio está isolada em serviços (`lib/services/`) e não está misturada em componentes de UI.
+- [ ] Server Components são usados por padrão para carregar dados; `"use client"` está limitado à interatividade obrigatória.
+- [ ] Server Actions validam inputs com Zod e autenticam o usuário no lado do servidor.
+
+### Qualidade TypeScript & Higiene
+- [ ] Nenhum tipo `any` foi utilizado. Tipos explícitos ou `unknown` com narrowing são usados.
+- [ ] Padrão de Nomenclatura em Inglês: Funções começam com verbo de ação; booleanos começam com `is`, `has`, `should`, `can`.
+- [ ] Early Returns aplicados para achatar estruturas condicionais (limite de 3 níveis de aninhamento).
 ```
 
 ---
 
-## 2. Checklist Universal (aplicar em todo review)
+## 🛠️ 3. Critérios de Validação Aprofundados (O que Revisar)
 
-### Segurança
+### 3.1 Segurança & Isolamento Multi-Tenant (Rigor Máximo)
+- **Data Ownership Validation**: Verifique se o código valida se o usuário autenticado (`auth.uid()`) é o real proprietário ou tem permissão de escrita para o `tenant_id` correspondente do registro a ser alterado/consultado. **NUNCA** aceite queries que atualizam registros recebendo apenas o ID da linha do cliente sem cruzar com a sessão/tenant.
+- **Supabase & RLS**: Identifique se as interações com o Supabase utilizam o cliente correto. No lado do servidor, certifique-se de que `@supabase/ssr` está configurado corretamente e que chamadas sensíveis passam por validação de autenticação/autorização de forma estrita.
+- **Environment Variables**: Certifique-se de que chaves sensíveis nunca possuem o prefixo `NEXT_PUBLIC_` ou `VITE_` e que nenhum segredo esteja hardcoded.
 
-- [ ] Nenhuma chave de API, secret ou credencial exposta no código client-side
-- [ ] Variáveis de ambiente usadas corretamente (`NEXT_PUBLIC_` apenas para dados públicos)
-- [ ] Inputs do usuário sempre validados antes de chegar ao banco
-- [ ] Autenticação verificada antes de qualquer operação privilegiada
-- [ ] Sem `dangerouslySetInnerHTML` sem sanitização
+### 3.2 Arquitetura de Software & Clean Code (SOLID)
+- **Princípio de Responsabilidade Única (SRP)**: Componentes React de UI devem ser focados estritamente na renderização e na interação básica. Toda lógica complexa de negócios, cálculos de valores e chamadas ao banco devem residir nos serviços puros em `lib/services/` (ex: `UserService`).
+- **Server Components vs Client Components**: Toda página e layout deve ser um Server Component por padrão. Condene marcações `"use client"` em arquivos inteiros quando apenas um pequeno componente de folha interativo (como um botão) necessita de estado. Recomende a extração da interatividade para componentes isolados.
+- **Server Actions**: Valide se cada Server Action verifica ativamente a sessão e se o payload de entrada é validado por um schema Zod robusto usando `safeParse`.
 
-### TypeScript
+### 3.3 TypeScript & Tipagem Estrita
+- **Proibição Absoluta de `any`**: O uso de `any` é terminantemente proibido. Se você encontrar `any`, sinalize como **🔴 Crítico**. Exija o uso de tipos estritos, interfaces ou `unknown` com asserção e narrowing adequados.
+- **Tratamento de Erros**: Toda Promise assíncrona deve ter um bloco `try/catch` adequado. Blocos `catch` vazios são inaceitáveis. O erro capturado deve ser tratado ou logado (comentando o motivo do descarte se necessário), e a UI deve exibir um estado de erro elegante.
 
-- [ ] Sem uso de `any` desnecessário — preferir tipos explícitos ou `unknown`
-- [ ] Types/Interfaces definidos para props, retornos de função, e dados de API
-- [ ] Uso correto de `satisfies`, `as const`, generics quando aplicável
-- [ ] Erros tratados com tipos corretos (não apenas `catch (e: any)`)
+### 3.4 Estilização & Design System (Tailwind CSS v4 & shadcn/ui)
+- **Anti-Magic Values**: Não permita o uso de valores de espaçamento, cor, margem ou tamanho arbitrários soltos (ex: `h-[47px]`, `bg-[#f3a123]`, `p-[13px]`), a menos que estritamente inevitável para layout dinâmico. Exija a utilização do design system nativo do Tailwind CSS v4 e shadcn/ui.
+- **Responsividade Mobile-First**: O layout deve ser concebido a partir do mobile. Breakpoints (`sm:`, `md:`, `lg:`) devem servir exclusivamente para escalar o design para telas maiores. Evite tamanhos de largura (`width`) e altura (`height`) fixos que quebrem a responsividade natural das flexbox e grids.
 
-### Performance / Next.js
-
-- [ ] Componentes marcados corretamente como `"use client"` apenas quando necessário
-- [ ] Server Components usados para busca de dados sempre que possível
-- [ ] Sem waterfalls desnecessários (queries paralelas com `Promise.all`)
-- [ ] Imagens usando `next/image` com `width`, `height` ou `fill`
-- [ ] Sem re-renders desnecessários (uso correto de `useMemo`, `useCallback`, `memo`)
-
-### Tratamento de Erros
-
-- [ ] Try/catch em todas as operações assíncronas críticas
-- [ ] Mensagens de erro amigáveis para o usuário (não expor stack traces)
-- [ ] Loading states e error states implementados na UI
-- [ ] Fallback adequado para estados vazios
+### 3.5 Padrão de Nomenclatura (Naming Conventions)
+- **Código em Inglês**: Todo o código (variáveis, funções, componentes) deve ser escrito em inglês.
+- **Prefixos de Booleano**: Variáveis ou propriedades booleanas **devem** ser prefixadas com `is`, `has`, `should` ou `can` (ex: `isActive`, `hasPermission`, `shouldRender`).
+- **Verbos em Funções**: Funções devem iniciar obrigatoriamente com um verbo de ação claro (ex: `calculateInvoiceTotal`, `fetchCustomerRecord`).
+- **Clareza acima de Brevidade**: Prefira nomes descritivos longos a abreviações ambíguas (ex: preferir `getUserAccountBalance` a `getUsrBal`).
 
 ---
 
-## 3. Stack-Specific Checklist
+## 📢 4. Tom de Voz e Entrega
 
-Carregue o arquivo de referência correspondente à camada que está revisando:
+1. **Inicie o Processo Criando o Arquivo**: O seu primeiro passo ao ler o código do usuário deve ser criar o relatório Markdown físico no caminho `reviews/review-[modulo]-[data].md` via `write_to_file`.
+2. **Forneça Respostas Construtivas**: Mantenha um tom profissional, altamente técnico, encorajador e humilde. Explique detalhadamente o *porquê* de cada ajuste de código recomendado.
+3. **Responda em Português no Chat**: A sua resposta no chat do usuário deve ser sempre em português, iniciando com "Olá João" (conforme regras globais do usuário), e deve ter o link direto para o arquivo de review criado para fácil navegação.
 
-| Camada do código                       | Arquivo de referência            |
-| -------------------------------------- | -------------------------------- |
-| Autenticação, banco de dados, RLS      | `references/supabase.md`         |
-| Formulários, validação, schemas        | `references/forms-validation.md` |
-| Componentes UI, estilização            | `references/ui-styling.md`       |
-| Pagamentos, assinaturas, webhooks      | `references/stripe.md`           |
-| API Routes, Server Actions, middleware | `references/nextjs-server.md`    |
-
-Se o código tocar múltiplas camadas, carregue todos os arquivos relevantes.
-
----
-
-## 4. Tom e Comunicação
-
-- **Seja específico**: aponte linha/função, não apenas "há um problema aqui"
-- **Sempre forneça a solução**: não apenas o problema — mostre como corrigir com código
-- **Diferencie crítico de preferência pessoal**: use 🔴🟠🟡🟢⚪ para deixar claro
-- **Reconheça o que está bem feito**: todo review deve ter pontos positivos
-- **Explique o "porquê"**: diga qual o impacto real do problema (segurança? UX? manutenção?)
-- **Seja objetivo**: se o código está bom, diga isso claramente
-
-### Exemplo de feedback ruim vs bom:
-
-❌ `"Isso está errado"`  
-✅ `"🔴 **Crítico** — Linha 23: A query ao Supabase não verifica se o usuário está autenticado antes de executar. Um usuário não logado pode acionar esta rota diretamente. Solução: adicionar verificação de sessão antes da query."`
+*Exemplo de Resposta no Chat:*
+"Olá João. Realizei um code review profundo do módulo [modulo]. Identifiquei alguns pontos críticos de segurança/TypeScript e melhorias arquiteturais.
+Gravei o relatório completo com explicações e códigos corrigidos em: [review-[modulo]-[data].md](file:///c:/DEV/orcafacil/reviews/review-[modulo]-[data].md).
+Abaixo destaco os principais pontos..."

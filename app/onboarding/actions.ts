@@ -2,8 +2,17 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { onboardingSchema } from './schemas'
+import { logger } from '@/lib/logger'
 
-export async function saveOnboarding(data: { name: string; phone: string }) {
+export async function saveOnboarding(rawData: unknown) {
+  const validation = onboardingSchema.safeParse(rawData)
+  if (!validation.success) {
+    logger.warn('Tentativa de onboarding com dados inválidos:', validation.error.format())
+    return { error: 'Dados inválidos fornecidos' }
+  }
+
+  const { name, phone } = validation.data
   const supabase = await createClient()
   const {
     data: { user },
@@ -26,15 +35,16 @@ export async function saveOnboarding(data: { name: string; phone: string }) {
 
   const { error } = await supabase.from('companies').insert({
     user_id: user.id,
-    name: data.name,
-    phone: data.phone,
+    name,
+    phone,
   })
 
   if (error) {
-    console.error('Erro ao salvar onboarding:', error)
+    logger.error('Erro ao salvar onboarding:', error)
     return { error: 'Erro ao salvar os dados do negócio' }
   }
 
   revalidatePath('/', 'layout')
   return { success: true }
 }
+

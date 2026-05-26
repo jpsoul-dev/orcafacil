@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,13 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Loader2, Rocket, Store, MessageSquare, ArrowRight } from 'lucide-react'
 import { maskPhone } from '@/lib/masks'
 import { saveOnboarding } from './actions'
-
-const onboardingSchema = z.object({
-  name: z.string().min(3, 'O nome do negócio deve ter pelo menos 3 caracteres'),
-  phone: z.string().min(14, 'Informe um WhatsApp válido'),
-})
-
-type OnboardingValues = z.infer<typeof onboardingSchema>
+import { onboardingSchema, type OnboardingValues } from './schemas'
 
 export default function OnboardingPage() {
   const router = useRouter()

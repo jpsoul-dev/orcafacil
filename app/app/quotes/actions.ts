@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateRandomHash } from '@/lib/hashids'
 import { logger } from '@/lib/logger'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
 import { 
   statusSchema, 
@@ -209,14 +210,12 @@ export async function updateQuoteStatus(id: string, status: string) {
 
 export async function updatePublicQuoteStatus(uuid: string, status: string) {
   try {
-    const supabase = await createClient()
-
     // Validar se o status é permitido para o cliente (público)
     if (!['accepted', 'rejected'].includes(status)) {
       return { success: false, error: 'Ação não permitida para o link público' }
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('quotes')
       .update({ status })
       .eq('public_uuid', uuid)

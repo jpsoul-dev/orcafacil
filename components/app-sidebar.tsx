@@ -4,6 +4,7 @@ import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRig
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 import {
   Sidebar,
@@ -50,13 +51,38 @@ export function AppSidebar({
   user,
   isAdmin,
   hasPassword,
+  subscriptionStatus,
+  cancelAt,
+  trialEndsAt,
 }: {
   user: { name: string; email: string; avatar?: string }
   isAdmin?: boolean
   hasPassword: boolean
+  subscriptionStatus: string | null
+  cancelAt: string | null
+  trialEndsAt: string | null
 }) {
   const pathname = usePathname()
   const [isManageAccountOpen, setIsManageAccountOpen] = useState(false)
+
+  // Lógica de prazos e rótulos de assinatura
+  const now = new Date()
+  const cancelDate = cancelAt ? new Date(cancelAt) : null
+  const trialDate = trialEndsAt ? new Date(trialEndsAt) : null
+
+  let billingLabel = ""
+  let warningType: 'none' | 'trial' | 'cancel' = 'none'
+  let daysRemaining = 0
+
+  if (subscriptionStatus === 'trialing' && trialDate) {
+    daysRemaining = Math.max(0, Math.ceil((trialDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    billingLabel = `${daysRemaining}d`
+    warningType = 'trial'
+  } else if (cancelDate) {
+    daysRemaining = Math.max(0, Math.ceil((cancelDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    billingLabel = `${daysRemaining}d`
+    warningType = 'cancel'
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -125,7 +151,7 @@ export function AppSidebar({
                   </SidebarMenuItem>
                 )
               })}
-              
+
               {/* Admin Menu Item */}
               {isAdmin && (
                 <SidebarMenuItem key="AdminUsers">
@@ -165,7 +191,19 @@ export function AppSidebar({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs text-sidebar-foreground/50">{user.email}</span>
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <span className="truncate text-xs text-sidebar-foreground/50">{user.email}</span>
+                    {warningType !== 'none' && (
+                      <span className={cn(
+                        "text-xs font-extrabold px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider",
+                        warningType === 'trial'
+                          ? "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20"
+                          : "bg-amber-500/10 text-amber-500 dark:bg-amber-500/20"
+                      )}>
+                        {billingLabel}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <MoreVertical className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
               </DropdownMenuTrigger>
@@ -175,6 +213,27 @@ export function AppSidebar({
                 align="end"
                 sideOffset={4}
               >
+                <div className="px-3 py-2.5 border-b border-sidebar-border bg-sidebar-accent/30 rounded-t-md mb-1.5 group-data-[collapsible=icon]:hidden">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs uppercase font-bold text-sidebar-foreground/40 tracking-wider">Assinatura</span>
+                    {subscriptionStatus === 'active' && !cancelAt && (
+                      <span className="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 text-xs font-bold px-1.5 py-0.5 rounded-full">Pro</span>
+                    )}
+                    {subscriptionStatus === 'trialing' && (
+                      <span className="bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 text-xs font-bold px-1.5 py-0.5 rounded-full">Trial</span>
+                    )}
+                    {cancelAt && (
+                      <span className="bg-amber-500/10 text-amber-500 dark:bg-amber-500/20 text-xs font-bold px-1.5 py-0.5 rounded-full">Pendente</span>
+                    )}
+                  </div>
+                  <p className="text-xs font-semibold text-sidebar-foreground leading-normal">
+                    {cancelDate
+                      ? `Expira em: ${cancelDate.toLocaleDateString('pt-BR')}`
+                      : trialDate && subscriptionStatus === 'trialing'
+                        ? `Período grátis até: ${trialDate.toLocaleDateString('pt-BR')}`
+                        : "Renovação Automática"}
+                  </p>
+                </div>
                 <DropdownMenuItem
                   render={
                     <form action={createPortalAction} className="w-full" />
@@ -212,9 +271,9 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <ManageAccountModal 
-        open={isManageAccountOpen} 
-        onOpenChange={setIsManageAccountOpen} 
+      <ManageAccountModal
+        open={isManageAccountOpen}
+        onOpenChange={setIsManageAccountOpen}
         user={user}
         hasPasswordInitial={hasPassword}
       />

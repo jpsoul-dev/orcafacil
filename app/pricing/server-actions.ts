@@ -81,7 +81,6 @@ export async function createCheckoutAction() {
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: 'subscription',
-      payment_method_types: ['card'],
       line_items: [
         {
           price: priceId,
@@ -90,6 +89,9 @@ export async function createCheckoutAction() {
       ],
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/app?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pricing`,
+      metadata: {
+        supabase_user_id: user.id,
+      },
     })
 
     logger.info('Session created:', session.url)

@@ -6,8 +6,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
 import { QuotesChart } from './components/quotes-chart'
+import { stripe } from '@/lib/stripe'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -15,6 +21,47 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect('/login')
+  }
+
+  // Dupla Validação (Double Validation) se tiver session_id na URL do Stripe Checkout
+  const params = await searchParams
+  const sessionId = typeof params?.session_id === 'string' ? params.session_id : undefined
+  let shouldRedirect = false
+
+  if (sessionId) {
+    try {
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('subscription_status')
+        .eq('id', user.id)
+        .single()
+
+      if (currentProfile?.subscription_status !== 'active') {
+        const session = await stripe.checkout.sessions.retrieve(sessionId)
+        if (session.payment_status === 'paid' || session.status === 'complete') {
+          const { error: updateError } = await supabaseAdmin.rpc('update_profile_subscription', {
+            p_stripe_customer_id: session.customer as string,
+            p_subscription_status: 'active',
+            p_subscription_id: session.subscription as string,
+            p_cancel_at_period_end: false,
+          })
+
+          if (updateError) {
+            console.error('Erro ao atualizar banco de dados via RPC na dupla validação:', updateError)
+          } else {
+            shouldRedirect = true
+          }
+        }
+      } else {
+        shouldRedirect = true
+      }
+    } catch (err) {
+      console.error('Erro na dupla validação do Stripe Checkout:', err)
+    }
+
+    if (shouldRedirect) {
+      redirect('/app')
+    }
   }
 
   const now = new Date()

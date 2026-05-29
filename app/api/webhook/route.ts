@@ -53,6 +53,8 @@ export async function POST(req: Request) {
             p_stripe_customer_id: session.customer as string,
             p_subscription_status: 'active',
             p_subscription_id: session.subscription as string,
+            p_cancel_at_period_end: false,
+            p_cancel_at: null,
           })
 
           if (error) throw error
@@ -77,10 +79,16 @@ export async function POST(req: Request) {
           )
         }
 
+        const cancelAt = subscription.cancel_at
+          ? new Date(subscription.cancel_at * 1000).toISOString()
+          : null
+
         const { error } = await supabaseAdmin.rpc('update_profile_subscription', {
           p_stripe_customer_id: subscription.customer as string,
           p_subscription_status: statusValidation.data,
           p_subscription_id: subscription.id,
+          p_cancel_at_period_end: subscription.cancel_at_period_end || subscription.cancel_at !== null,
+          p_cancel_at: cancelAt,
         })
 
         if (error) throw error

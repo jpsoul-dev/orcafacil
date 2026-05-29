@@ -295,9 +295,6 @@ export type Database = {
       }
       quotes: {
         Row: {
-          accepted_at: string | null
-          client_ip: string | null
-          client_ua: string | null
           created_at: string | null
           customer_id: string | null
           discount_type: string | null
@@ -307,7 +304,6 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           public_uuid: string | null
-          rejected_at: string | null
           status: string
           subtotal: number
           title: string | null
@@ -316,9 +312,6 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
-          accepted_at?: string | null
-          client_ip?: string | null
-          client_ua?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
@@ -328,7 +321,6 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           public_uuid?: string | null
-          rejected_at?: string | null
           status?: string
           subtotal?: number
           title?: string | null
@@ -337,9 +329,6 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
-          accepted_at?: string | null
-          client_ip?: string | null
-          client_ua?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
@@ -349,7 +338,6 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           public_uuid?: string | null
-          rejected_at?: string | null
           status?: string
           subtotal?: number
           title?: string | null
@@ -371,9 +359,6 @@ export type Database = {
     Views: {
       vw_quotes: {
         Row: {
-          accepted_at: string | null
-          client_ip: string | null
-          client_ua: string | null
           created_at: string | null
           customer_id: string | null
           discount_type: string | null
@@ -384,7 +369,6 @@ export type Database = {
           original_status: string | null
           payment_method: string | null
           public_uuid: string | null
-          rejected_at: string | null
           status: string | null
           subtotal: number | null
           title: string | null
@@ -393,9 +377,6 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
-          accepted_at?: string | null
-          client_ip?: string | null
-          client_ua?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
@@ -406,7 +387,6 @@ export type Database = {
           original_status?: string | null
           payment_method?: string | null
           public_uuid?: string | null
-          rejected_at?: string | null
           status?: never
           subtotal?: number | null
           title?: string | null
@@ -415,9 +395,6 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
-          accepted_at?: string | null
-          client_ip?: string | null
-          client_ua?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
@@ -428,7 +405,6 @@ export type Database = {
           original_status?: string | null
           payment_method?: string | null
           public_uuid?: string | null
-          rejected_at?: string | null
           status?: never
           subtotal?: number | null
           title?: string | null

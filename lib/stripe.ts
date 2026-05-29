@@ -1,9 +1,12 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2026-04-22.dahlia',
-  appInfo: {
-    name: 'OrcaFacil',
-    version: '0.1.0',
-  },
-})
+export const stripe = new Stripe(
+  (process.env.STRIPE_SECRET_KEY || 'sk_test_mock_key_for_build_purposes_only') as string,
+  {
+    apiVersion: '2026-04-22.dahlia',
+    appInfo: {
+      name: 'OrcaFacil',
+      version: '0.1.0',
+    },
+  }
+)

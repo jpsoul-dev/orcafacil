@@ -69,7 +69,7 @@ export default function LoginPage() {
         <div className="relative z-10 space-y-10">
           <div className="space-y-4">
             <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight text-white">
-              Bem-vindo de volta ao seu painel.
+              Bem-vindo !.
             </h1>
             <p className="text-blue-100 text-xl max-w-md font-medium leading-relaxed">
               Continue simplificando suas vendas e encantando seus clientes com

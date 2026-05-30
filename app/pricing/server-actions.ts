@@ -5,7 +5,7 @@ import { stripe } from '../../lib/stripe'
 import { redirect } from 'next/navigation'
 import { logger } from '@/lib/logger'
 
-export async function createCheckoutAction() {
+export async function createCheckoutAction(formData?: FormData) {
   logger.info('createCheckoutAction called')
   const supabase = await createClient()
   const {
@@ -26,7 +26,7 @@ export async function createCheckoutAction() {
 
   let stripeCustomerId = profile?.stripe_customer_id
 
-  // AUTO-CORREÇÃO: Se não tiver o ID do Stripe, tenta criar agora (Lazy Creation)
+  // Lazy creation: if the Stripe customer is missing, create it now
   if (!stripeCustomerId) {
     logger.info(
       'Stripe customer missing, attempting lazy creation for user:',
@@ -50,34 +50,36 @@ export async function createCheckoutAction() {
 
   let sessionUrl: string | null = null
 
-  let priceId = process.env.STRIPE_PRICE_ID
+  // Extract the priceId sent by the form, with safe fallbacks
+  const selectedPriceId = formData ? (formData.get('priceId') as string | null) : null
+  let priceId = selectedPriceId || process.env.STRIPE_PRICE_ID
 
-  // Fallback: Se não estiver no ENV, tenta buscar dinamicamente o primeiro preço ativo
+  // Fallback: if not in FormData nor ENV, search the first active price for the configured product
   if (!priceId) {
-    logger.info('STRIPE_PRICE_ID missing in ENV, searching Stripe for active price...')
-    try {
-      const products = await stripe.products.list({ active: true, limit: 1 })
-      const product = products.data[0]
-      if (product) {
+    logger.info('priceId missing in FormData and ENV, searching Stripe fallback...')
+    const productId = process.env.STRIPE_PRODUCT_ID
+    if (productId) {
+      try {
         const prices = await stripe.prices.list({
-          product: product.id,
+          product: productId,
           active: true,
           limit: 1,
         })
         priceId = prices.data[0]?.id
+      } catch (err) {
+        logger.error('Failed to search fallback price', err)
       }
-    } catch (err) {
-      logger.error('Failed to search fallback price', err)
+    } else {
+      logger.error('STRIPE_PRODUCT_ID is missing in environment variables for fallback search')
     }
   }
 
   if (!priceId) {
-    logger.error('No price ID found in ENV or Stripe')
-    // Em vez de lançar erro não tratado, redireciona para a página de preços com erro
+    logger.error('No price ID found in FormData, ENV or Stripe fallback')
     redirect('/pricing?error=configuration_missing')
   }
 
-    try {
+  try {
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: 'subscription',
@@ -123,7 +125,7 @@ export async function createPortalAction() {
   let stripeCustomerId = profile?.stripe_customer_id
 
   if (!stripeCustomerId) {
-    // Tenta auto-correção também no portal
+    // Attempt lazy creation for the portal as well
     const { setupNewUser } = await import('../../lib/services/user-service')
     const result = await setupNewUser(user.id, user.email!)
 

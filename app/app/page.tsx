@@ -6,9 +6,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
 import { QuotesChart } from './components/quotes-chart'
-import { stripe } from '@/lib/stripe'
-import { supabaseAdmin } from '@/lib/supabase/admin'
 import { SubscriptionGuard } from '@/components/subscription-guard'
+import { reconcileStripeCheckout } from '@/lib/services/stripe-service'
+
+const TRIAL_DURATION_DAYS = 15
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -24,41 +25,21 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     redirect('/login')
   }
 
-  // Dupla Validação (Double Validation) se tiver session_id na URL do Stripe Checkout
+  // Double Validation: reconcile Stripe Checkout session if session_id is present in the URL
   const params = await searchParams
   const sessionId = typeof params?.session_id === 'string' ? params.session_id : undefined
-  let shouldRedirect = false
 
   if (sessionId) {
-    try {
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('subscription_status')
-        .eq('id', user.id)
-        .single()
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', user.id)
+      .single()
 
-      if (currentProfile?.subscription_status !== 'active') {
-        const session = await stripe.checkout.sessions.retrieve(sessionId)
-        if (session.payment_status === 'paid' || session.status === 'complete') {
-          const { error: updateError } = await supabaseAdmin.rpc('update_profile_subscription', {
-            p_stripe_customer_id: session.customer as string,
-            p_subscription_status: 'active',
-            p_subscription_id: session.subscription as string,
-            p_cancel_at_period_end: false,
-          })
-
-          if (updateError) {
-            console.error('Erro ao atualizar banco de dados via RPC na dupla validação:', updateError)
-          } else {
-            shouldRedirect = true
-          }
-        }
-      } else {
-        shouldRedirect = true
-      }
-    } catch (err) {
-      console.error('Erro na dupla validação do Stripe Checkout:', err)
-    }
+    const { shouldRedirect } = await reconcileStripeCheckout(
+      sessionId,
+      currentProfile?.subscription_status ?? null,
+    )
 
     if (shouldRedirect) {
       redirect('/app')
@@ -89,25 +70,25 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     'Usuário'
   const firstName = userName.split(' ')[0]
 
-  // Regras de negócio de assinatura e trial
+  // Subscription and trial business rules
   const isActive = profile?.subscription_status === 'active'
   const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : new Date()
   const timeRemaining = trialEndsAt.getTime() - now.getTime()
   const daysRemaining = Math.max(0, Math.ceil(timeRemaining / (1000 * 60 * 60 * 24)))
   
-  // O usuário só está em trial se o status for trialing E ainda tiver dias
+  // User is trialing only if status is trialing AND there are remaining days
   const isTrialing = profile?.subscription_status === 'trialing' && daysRemaining > 0
   const isExpired = !isActive && !isTrialing
   
-  const trialPercentage = Math.min(((15 - daysRemaining) / 15) * 100, 100)
+  const trialPercentage = Math.min(((TRIAL_DURATION_DAYS - daysRemaining) / TRIAL_DURATION_DAYS) * 100, 100)
   const isNearLimit = isTrialing && daysRemaining <= 3
 
   return (
     <div className="space-y-8">
-      {/* Banner de Boas-Vindas / Upgrade (Só aparece para quem NÃO tem assinatura ativa) */}
+      {/* Welcome / Upgrade Banner (only shown for users without an active subscription) */}
       {!isActive && (
         <Card className="relative overflow-hidden border-none shadow-xl bg-primary text-primary-foreground">
-          {/* Camada de Gradiente Sutil */}
+          {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-50" />
 
           <CardContent className="relative z-10 p-8 md:p-10">
@@ -128,7 +109,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                   <div className="flex items-center justify-between text-sm mb-2 font-medium">
                     <span className="opacity-90">Tempo Restante de Teste</span>
                     <span>
-                      {daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'} de 15
+                      {daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'} de {TRIAL_DURATION_DAYS}
                     </span>
                   </div>
                   <div className="h-3 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
@@ -182,14 +163,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             </div>
           </CardContent>
 
-          {/* Elemento Decorativo */}
+          {/* Decorative element */}
           <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none -mr-12 -mb-12">
             <FileText className="h-64 w-64 rotate-12" />
           </div>
         </Card>
       )}
 
-      {/* Gráfico de Orçamentos */}
+      {/* Quotes Chart */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

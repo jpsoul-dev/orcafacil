@@ -431,6 +431,8 @@ export type Database = {
           p_stripe_customer_id: string
           p_subscription_id: string
           p_subscription_status: string
+          p_cancel_at_period_end: boolean
+          p_cancel_at: string | null
         }
         Returns: undefined
       }

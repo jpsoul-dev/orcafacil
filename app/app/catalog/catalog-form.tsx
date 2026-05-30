@@ -11,6 +11,7 @@ import { maskCurrency } from '@/lib/masks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useSubscription } from '@/components/subscription-provider'
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,16 @@ export function CatalogForm({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const { isExpired, openUpgradeModal } = useSubscription()
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && isExpired) {
+      openUpgradeModal()
+      return
+    }
+    setOpen(newOpen)
+  }
+
   const form = useForm<CatalogValues>({
     resolver: zodResolver(catalogSchema) as Resolver<CatalogValues>,
     defaultValues: {
@@ -92,7 +103,7 @@ export function CatalogForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         nativeButton={true}
         render={

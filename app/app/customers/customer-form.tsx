@@ -11,6 +11,7 @@ import { maskCPF, maskCNPJ, maskPhone, maskCEP } from '@/lib/masks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useSubscription } from '@/components/subscription-provider'
 import {
   Select,
   SelectContent,
@@ -76,6 +77,16 @@ export function CustomerForm({
   const [loading, setLoading] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
   const lastSearchedCep = useRef<string>('')
+  
+  const { isExpired, openUpgradeModal } = useSubscription()
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && isExpired) {
+      openUpgradeModal()
+      return
+    }
+    setOpen(newOpen)
+  }
 
   const form = useForm<CustomerValues>({
     resolver: zodResolver(customerSchema),
@@ -164,7 +175,7 @@ export function CustomerForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         nativeButton={true}
         render={

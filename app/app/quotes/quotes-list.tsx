@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table'
 import { columns } from './columns'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import type { Quote } from '@/types'
 import { Button } from '@/components/ui/button'
 import { List, Plus } from 'lucide-react'
@@ -79,11 +80,13 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/app/quotes/new">
-            <Button>
-              <Plus /> Criar Orçamento
-            </Button>
-          </Link>
+          <SubscriptionGuard>
+            <Link href="/app/quotes/new">
+              <Button>
+                <Plus /> Criar Orçamento
+              </Button>
+            </Link>
+          </SubscriptionGuard>
         </div>
       </div>
 

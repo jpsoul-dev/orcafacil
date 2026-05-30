@@ -8,6 +8,7 @@ import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
 import { QuotesChart } from './components/quotes-chart'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -156,19 +157,17 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 shrink-0">
-                <Link
-                  href="/app/quotes/new"
-                  className={isExpired ? 'pointer-events-none' : ''}
-                >
-                  <Button
-                    disabled={isExpired}
-                    size="lg"
-                    className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold shadow-lg h-12 px-8"
-                  >
-                    <Plus className="mr-2 h-5 w-5" />
-                    Novo Orçamento
-                  </Button>
-                </Link>
+                <SubscriptionGuard showVisualDisabled={false}>
+                  <Link href="/app/quotes/new">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold shadow-lg h-12 px-8"
+                    >
+                      <Plus className="mr-2 h-5 w-5" />
+                      Novo Orçamento
+                    </Button>
+                  </Link>
+                </SubscriptionGuard>
                 <Link href="/pricing">
                   <Button
                     variant="outline"
@@ -204,14 +203,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {isActive && (
+            <SubscriptionGuard>
               <Link href="/app/quotes/new">
                 <Button size="sm">
                   <Plus className="mr-2 h-4 w-4" />
                   Novo
                 </Button>
               </Link>
-            )}
+            </SubscriptionGuard>
             <Link
               href="/app/quotes"
               className={cn(

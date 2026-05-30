@@ -11,6 +11,8 @@ import { AlertTriangle } from "lucide-react"
 
 import { redirect } from "next/navigation"
 import { NotificationBell } from "@/components/notification-bell"
+import { headers } from "next/headers"
+import { SubscriptionProvider } from "@/components/subscription-provider"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
@@ -35,45 +37,20 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     avatar: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || ''
   }
 
-  // Lógica de Paywall no Layout
+  // Get subscription status from Proxy header to prevent database duplicate queries
+  const headersList = await headers()
+  const isExpired = headersList.get('x-subscription-status') === 'trialing-expired'
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('subscription_status, trial_ends_at, is_admin, has_password, cancel_at')
     .eq('id', user?.id || '')
     .single()
 
-  const isActive = profile?.subscription_status === 'active'
-  const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : new Date()
-  const now = new Date()
-  const daysRemaining = Math.max(0, Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-  const isTrialing = profile?.subscription_status === 'trialing' && daysRemaining > 0
-  
-  const isExpired = !isActive && !isTrialing
   const isAdmin = profile?.is_admin === true
-  return (
-    <>
-      {isExpired && (
-        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border shadow-2xl rounded-xl max-w-md w-full p-8 text-center space-y-6 animate-in fade-in zoom-in duration-300">
-            <div className="mx-auto w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
-               <AlertTriangle className="w-8 h-8" />
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight">Tempo Esgotado</h2>
-            <p className="text-muted-foreground text-base">
-              Seu período de teste chegou ao fim ou sua assinatura foi cancelada. 
-              Para continuar criando e gerenciando seus orçamentos, você precisa assinar o plano Pro.
-            </p>
-            <div className="pt-4">
-              <Link href="/pricing">
-                <Button size="lg" className="w-full font-bold text-base h-12">
-                  Ver Planos e Assinar
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
 
+  return (
+    <SubscriptionProvider isExpired={isExpired}>
       <SidebarProvider>
         <AppSidebar 
           user={userData} 
@@ -82,6 +59,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           subscriptionStatus={profile?.subscription_status ?? null}
           cancelAt={profile?.cancel_at ?? null}
           trialEndsAt={profile?.trial_ends_at ?? null}
+          isExpired={isExpired}
         />
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4 print:hidden">
@@ -96,11 +74,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
           </header>
-          <div className={cn("flex flex-1 flex-col gap-4 p-4 lg:p-6", isExpired ? "pointer-events-none select-none blur-sm opacity-50" : "")}>
+          <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
             {children}
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </SubscriptionProvider>
   )
 }
+

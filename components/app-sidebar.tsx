@@ -54,6 +54,7 @@ export function AppSidebar({
   subscriptionStatus,
   cancelAt,
   trialEndsAt,
+  isExpired = false,
 }: {
   user: { name: string; email: string; avatar?: string }
   isAdmin?: boolean
@@ -61,6 +62,7 @@ export function AppSidebar({
   subscriptionStatus: string | null
   cancelAt: string | null
   trialEndsAt: string | null
+  isExpired?: boolean
 }) {
   const pathname = usePathname()
   const [isManageAccountOpen, setIsManageAccountOpen] = useState(false)
@@ -168,6 +170,24 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Banner de Upgrade Expirado */}
+        {isExpired && (
+          <div className="mx-2 my-2 p-4 rounded-xl gradient-primary text-white space-y-3 shadow-md group-data-[collapsible=icon]:hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-yellow-300 fill-yellow-300 shrink-0" />
+              <span className="font-extrabold text-[10px] tracking-wider uppercase">OrcaFácil Pro</span>
+            </div>
+            <p className="text-xs font-semibold text-white/95 leading-relaxed">
+              Sua avaliação expirou. Continue criando orçamentos profissionais.
+            </p>
+            <Link href="/pricing" className="block w-full">
+              <button className="w-full py-1.5 px-3 rounded-lg bg-white text-primary hover:bg-white/95 font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+                Ativar Minha Assinatura
+              </button>
+            </Link>
+          </div>
+        )}
       </SidebarContent>
 
       {/* Footer com usuário logado */}

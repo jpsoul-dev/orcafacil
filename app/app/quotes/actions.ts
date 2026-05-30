@@ -17,6 +17,7 @@ export async function saveQuote(data: QuoteInput) {
   try {
     const validation = quoteSchema.safeParse(data)
     if (!validation.success) {
+      logger.error('Validação de orçamento falhou:', validation.error.format())
       return { success: false, error: 'Dados do orçamento inválidos' }
     }
 

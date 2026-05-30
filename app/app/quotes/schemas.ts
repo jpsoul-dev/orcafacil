@@ -7,7 +7,7 @@ export const quoteItemSchema = z.object({
   item_name: z.string().min(1, 'Nome do item obrigatório'),
   quantity: z.coerce.number().min(0.01),
   unit_price: z.coerce.number().min(0),
-  subtotal: z.number(),
+  subtotal: z.coerce.number(),
   unit_measure: z.string().optional().nullable(),
 })
 
@@ -17,13 +17,13 @@ export const quoteSchema = z.object({
   customer_id: z.string().optional().nullable(),
   title: z.string().optional().nullable(),
   status: statusSchema.optional(),
-  subtotal: z.number(),
-  total: z.number(),
+  subtotal: z.coerce.number(),
+  total: z.coerce.number(),
   valid_until: z.string().optional().nullable(),
   discount_type: z.enum(['percentage', 'fixed', 'none']).optional(),
-  discount_value: z.number().optional(),
-  tax_value: z.number().optional(),
-  shipping_value: z.number().optional(),
+  discount_value: z.coerce.number().optional(),
+  tax_value: z.coerce.number().optional(),
+  shipping_value: z.coerce.number().optional(),
   notes: z.string().optional().nullable(),
   items: z.array(quoteItemSchema),
 })

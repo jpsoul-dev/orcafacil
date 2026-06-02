@@ -35,7 +35,6 @@ export async function updateSession(request: NextRequest) {
 
   const isPublicRoute =
     request.nextUrl.pathname === '/' ||
-    request.nextUrl.pathname.startsWith('/quote/') ||
     request.nextUrl.pathname === '/login' ||
     request.nextUrl.pathname === '/register' ||
     request.nextUrl.pathname === '/termos' ||

@@ -15,9 +15,6 @@ import {
 import { Button } from '@/components/ui/button'
 import {
   Printer,
-  CopyIcon,
-  CheckCircle2,
-  XCircle,
   Loader2,
   Phone,
   Mail,
@@ -36,7 +33,6 @@ import { useState, useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
 import {
   updateQuoteStatus,
-  updatePublicQuoteStatus,
 } from '@/app/app/quotes/actions'
 import {
   AlertDialog,
@@ -119,7 +115,6 @@ const brl = formatBRL
 
 interface QuoteViewerProps {
   quote: Quote
-  isAdmin?: boolean
 }
 
 const STATUS_MAP: Record<
@@ -154,7 +149,7 @@ const STATUS_MAP: Record<
 }
 
 
-export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
+export function QuoteViewer({ quote }: QuoteViewerProps) {
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isReopenOpen, setIsReopenOpen] = useState(false)
@@ -207,43 +202,8 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
     }
   }
 
-  const handlePublicStatusChange = async (newStatus: QuoteStatus | null) => {
-    if (!newStatus || isUpdating) return
-    const previousStatus = currentStatus
-    setIsUpdating(true)
-    setCurrentStatus(newStatus)
-    try {
-      const result = await updatePublicQuoteStatus(quote.public_uuid, newStatus)
-      if (result.error) {
-        toast.error('Erro ao atualizar orçamento: ' + result.error)
-        setCurrentStatus(previousStatus)
-      } else {
-        toast.success(
-          newStatus === 'accepted'
-            ? 'Orçamento aprovado'
-            : 'Orçamento rejeitado',
-        )
-      }
-    } catch (_error) {
-      toast.error('Ocorreu um erro ao processar sua solicitação.')
-      setCurrentStatus(previousStatus)
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
   const handlePrint = () => {
     window.print()
-  }
-
-  const handleCopyLink = async () => {
-    const url = `${window.location.origin}/quote/${quote.public_uuid}`
-    try {
-      await navigator.clipboard.writeText(url)
-      toast.success('Link do orçamento copiado!')
-    } catch (_err) {
-      toast.error('Não foi possível copiar o link' + url)
-    }
   }
 
   return (
@@ -252,160 +212,67 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
       <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 print:hidden mb-8">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {isAdmin && (
-              <div className="flex items-center gap-3">
-                <Select
-                  value={currentStatus}
-                  onValueChange={handleStatusChange}
-                  disabled={isUpdating}
+            <div className="flex items-center gap-3">
+              <Select
+                value={currentStatus}
+                onValueChange={handleStatusChange}
+                disabled={isUpdating}
+              >
+                <SelectTrigger
+                  className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}
                 >
-                  <SelectTrigger
-                    className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {isUpdating ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <div
-                          className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`}
-                        />
-                      )}
-                      <SelectValue>
-                        {STATUS_MAP[currentStatus]?.label}
-                      </SelectValue>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200">
-                    {Object.entries(STATUS_MAP)
-                      .filter(
-                        ([value]) =>
-                          (value !== 'expired' && value !== 'draft') ||
-                          value === currentStatus,
-                      )
-                      .map(([value, info]) => (
-                        <SelectItem
-                          key={value}
-                          value={value}
-                          className="py-2 focus:bg-slate-50"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`h-2 w-2 rounded-full ${info.dot}`}
-                            />
-                            <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">
-                              {info.label}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                {currentStatus === 'expired' && (
-                  <Button
-                    onClick={() => setIsReopenOpen(true)}
-                    size="sm"
-                    className="h-9 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Reabrir Orçamento
-                  </Button>
-                )}
-              </div>
-            )}
+                  <div className="flex items-center gap-2">
+                    {isUpdating ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <div
+                        className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`}
+                      />
+                    )}
+                    <SelectValue>
+                      {STATUS_MAP[currentStatus]?.label}
+                    </SelectValue>
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-200">
+                  {Object.entries(STATUS_MAP)
+                    .filter(
+                      ([value]) =>
+                        (value !== 'expired' && value !== 'draft') ||
+                        value === currentStatus,
+                    )
+                    .map(([value, info]) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="py-2 focus:bg-slate-50"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`h-2 w-2 rounded-full ${info.dot}`}
+                          />
+                          <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">
+                            {info.label}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {currentStatus === 'expired' && (
+                <Button
+                  onClick={() => setIsReopenOpen(true)}
+                  size="sm"
+                  className="h-9 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reabrir Orçamento
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {!isAdmin && currentStatus === 'open' && (
-              <>
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-9 gap-2 border-red-200 text-red-600 hover:bg-red-50 font-bold"
-                      >
-                        <XCircle className="h-4 w-4" /> Rejeitar
-                      </Button>
-                    }
-                  />
-                  <AlertDialogContent className="rounded-2xl border-slate-200">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">
-                        Rejeitar Orçamento?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription className="text-slate-500 font-medium">
-                        Tem certeza que deseja rejeitar este orçamento? Esta
-                        ação sinalizará à empresa que você não concorda com os
-                        termos propostos.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl font-bold">
-                        Voltar
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        disabled={isUpdating}
-                        onClick={() => handlePublicStatusChange('rejected')}
-                        className="rounded-xl bg-red-600 hover:bg-red-700 font-bold"
-                      >
-                        {isUpdating ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : null}
-                        Confirmar Rejeição
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <Button
-                        disabled={isUpdating}
-                        size="sm"
-                        className="h-9 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                      >
-                        {isUpdating ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4" />
-                        )}
-                        Aprovar
-                      </Button>
-                    }
-                  />
-                  <AlertDialogContent className="rounded-2xl border-slate-200">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-xl font-black text-slate-900 tracking-tight">
-                        Aprovar Orçamento?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription className="text-slate-500 font-medium">
-                        Ao aprovar, você confirma que está de acordo com os
-                        itens, valores e condições descritos neste orçamento.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="rounded-xl font-bold">
-                        Voltar
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        disabled={isUpdating}
-                        onClick={() => handlePublicStatusChange('accepted')}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 font-bold text-white"
-                      >
-                        {isUpdating ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : null}
-                        Confirmar Aprovação
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-              </>
-            )}
-
             <Button
               onClick={handlePrint}
               size="sm"
@@ -414,16 +281,6 @@ export function QuoteViewer({ quote, isAdmin = false }: QuoteViewerProps) {
               <Printer className="h-4 w-4" />
               Imprimir
             </Button>
-            {isAdmin && (
-              <Button
-                onClick={handleCopyLink}
-                variant="secondary"
-                size="sm"
-                className="h-9 gap-2 border-slate-200 font-bold hover:bg-blue-50"
-              >
-                <CopyIcon className="h-4 w-4" /> Link
-              </Button>
-            )}
           </div>
         </div>
       </div>

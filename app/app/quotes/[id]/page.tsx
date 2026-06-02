@@ -13,7 +13,7 @@ export default async function QuoteDetailsPage({
   // Tenta buscar por ID (UUID) ou por Hash ID
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
   
-  let query = supabase.from('vw_quotes').select('public_uuid')
+  let query = supabase.from('vw_quotes').select('id')
   
   if (isUuid) {
     query = query.eq('id', id)
@@ -27,8 +27,8 @@ export default async function QuoteDetailsPage({
     notFound()
   }
 
-  const { data: quote, error } = await supabase.rpc('get_public_quote', {
-    p_uuid: quoteMeta.public_uuid,
+  const { data: quote, error } = await supabase.rpc('get_quote_details', {
+    p_quote_id: quoteMeta.id,
   })
 
   if (error || !quote) {
@@ -37,5 +37,5 @@ export default async function QuoteDetailsPage({
   }
 
 
-  return <QuoteViewer quote={quote} isAdmin={true} />
+  return <QuoteViewer quote={quote} />
 }

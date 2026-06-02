@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateRandomHash } from '@/lib/hashids'
 import { logger } from '@/lib/logger'
-import { supabaseAdmin } from '@/lib/supabase/admin'
 
 import { 
   statusSchema, 
@@ -75,7 +74,7 @@ export async function saveQuote(data: QuoteInput) {
 
       if (!rpcError && result) {
         revalidatePath('/app/quotes')
-        return { success: true, public_uuid: result.public_uuid, id: result.id }
+        return { success: true, id: result.id }
       }
 
       // Se o erro for de unicidade (código 23505) e estamos criando um novo (id é null)
@@ -206,34 +205,6 @@ export async function updateQuoteStatus(id: string, status: string) {
   } catch (error) {
     logger.error('CRITICAL: Error updating quote status:', error)
     return { success: false, error: 'Erro interno ao atualizar status do orçamento' }
-  }
-}
-
-export async function updatePublicQuoteStatus(uuid: string, status: string) {
-  try {
-    // Validar se o status é permitido para o cliente (público)
-    if (!['accepted', 'rejected'].includes(status)) {
-      return { success: false, error: 'Ação não permitida para o link público' }
-    }
-
-    const { error } = await supabaseAdmin
-      .from('quotes')
-      .update({ status })
-      .eq('public_uuid', uuid)
-
-    if (error) {
-      return { success: false, error: error.message }
-    }
-
-    try {
-      revalidatePath(`/quote/${uuid}`)
-    } catch (revalidateError) {
-      logger.warn('Public revalidation failed:', revalidateError)
-    }
-    return { success: true }
-} catch (error) {
-    logger.error('Error updating public quote status:', error)
-    return { success: false, error: 'Erro interno ao processar sua resposta' }
   }
 }
 

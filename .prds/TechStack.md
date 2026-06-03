@@ -1,9 +1,3 @@
-# 🚀 Orca Fácil - Plataforma Inteligente de Orçamentos e Gestão
-
-O **Orca Fácil** é uma plataforma SaaS moderna e de alta performance projetada para simplificar a criação e gestão de orçamentos para prestadores de serviços e empresas. A aplicação automatiza fluxos de trabalho, gerencia clientes, catálogos de produtos e serviços e monitora o status de propostas comerciais.
-
----
-
 ## Stack Tecnológica
 
 O projeto foi construído utilizando tecnologias modernas de nível empresarial, garantindo escalabilidade, segurança e excelente experiência do desenvolvedor:
@@ -57,58 +51,3 @@ O projeto segue rigorosos princípios de **Clean Code**, **SOLID** e as melhores
     *   Booleans utilizam prefixos autoexplicativos como `is`, `has`, `should` ou `can` (ex: `isActive`, `hasPermission`).
     *   Funções sempre começam com verbos de ação claros (ex: `calculateTotals`, `fetchUserProfile`).
 *   **Fail Fast e Early Returns**: Funções tratam erros e desvios rapidamente no início de sua execução, reduzindo o aninhamento desnecessário de ifs (*Callback Hell* ou estruturas piramidais).
-
----
-## 🚀 Como Começar
-
-### Pré-requisitos
-Certifique-se de possuir instalado em sua máquina:
-*   [Node.js](https://nodejs.org/) (v18.x ou superior, recomendado v20+)
-*   [Stripe CLI](https://stripe.com/docs/stripe-cli) (para desenvolvimento local de pagamentos)
-
-### Instalação
-
-1.  Clone este repositório para o seu ambiente local:
-    ```bash
-    git clone https://github.com/seu-usuario/orca-facil.git
-    cd orca-facil
-    ```
-
-2.  Instale as dependências de desenvolvimento:
-    ```bash
-    npm install
-    ```
-
-3.  Configure suas variáveis de ambiente:
-    Crie um arquivo `.env.local` na raiz do projeto e configure as credenciais necessárias:
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=seu_supabase_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_supabase_anon_key
-    SUPABASE_SERVICE_ROLE_KEY=sua_supabase_service_role_key
-    STRIPE_SECRET_KEY=sua_stripe_secret_key
-    STRIPE_WEBHOOK_SECRET=seu_stripe_webhook_secret
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=sua_stripe_publishable_key
-    ```
-
-### Executando o Projeto
-
-*   **Iniciar servidor de desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
-    A aplicação estará disponível em `http://localhost:3000`.
-
-*   **Iniciar escuta de Webhooks do Stripe:**
-    Para sincronizar eventos locais do Stripe (como assinaturas confirmadas) com seu backend:
-    ```bash
-    npm run stripe:listen
-    ```
-
-*   **Sincronizar Tipos do Supabase:**
-    Gere os tipos do TypeScript baseados no banco de dados Supabase:
-    ```bash
-    npm run types
-    ```
-
----
-

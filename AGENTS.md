@@ -118,5 +118,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan:
+[plan.md](file:///c:/DEV/orcafacil/specs/001-budget-lifecycle-dashboard/plan.md)
 <!-- SPECKIT END -->

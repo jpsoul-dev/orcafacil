@@ -27,7 +27,7 @@ interface QuotesListProps {
 
 export function QuotesList({ initialQuotes }: QuotesListProps) {
   const [search, setSearch] = useState('')
-  const [statusTab, setStatusTab] = useState<'active' | 'draft'>('active')
+  const [statusTab, setStatusTab] = useState<string>('all')
   const [date, setDate] = useState<DateRange | undefined>(() => ({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -35,10 +35,13 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
 
   const filteredQuotes = useMemo(() => {
     return initialQuotes.filter((quote) => {
-      const isDraft = quote.status === 'draft'
-      if (statusTab === 'active' && isDraft) return false
-      if (statusTab === 'draft' && !isDraft) return false
-      if (statusTab === 'active' && date?.from && date?.to) {
+      // Filtrar por aba de situação
+      if (statusTab !== 'all' && quote.status !== statusTab) {
+        return false
+      }
+
+      // Filtrar por intervalo de data
+      if (date?.from && date?.to) {
         if (!quote.created_at) return false
         const quoteDate = parseISO(quote.created_at)
         if (
@@ -102,32 +105,36 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          {statusTab === 'active' && (
-            <DatePickerWithRange
-              date={date}
-              setDate={setDate}
-              className="h-10"
-            />
-          )}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <DatePickerWithRange
+            date={date}
+            setDate={setDate}
+            className="h-10"
+          />
           <Tabs
             value={statusTab}
-            onValueChange={(v) => setStatusTab(v as 'active' | 'draft')}
-            className="bg-slate-100 p-1 rounded-md"
+            onValueChange={setStatusTab}
+            className="w-full md:w-auto animate-in fade-in duration-200"
           >
-            <TabsList className="bg-transparent border-none p-0 h-8">
-              <TabsTrigger
-                value="active"
-                className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4"
-              >
-                Em andamento
-              </TabsTrigger>
-              <TabsTrigger
-                value="draft"
-                className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-4"
-              >
-                Rascunho
-              </TabsTrigger>
+            <TabsList className="flex flex-wrap md:flex-nowrap h-auto bg-slate-100 p-1 rounded-lg gap-1">
+              {[
+                { value: 'all', label: 'Todos' },
+                { value: 'draft', label: 'Rascunho' },
+                { value: 'pending', label: 'Pendente' },
+                { value: 'approved', label: 'Aprovado' },
+                { value: 'rejected', label: 'Rejeitado' },
+                { value: 'cancelled', label: 'Cancelado' },
+                { value: 'completed', label: 'Finalizado' },
+                { value: 'expired', label: 'Vencido' },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-3 py-1.5 rounded-md transition-all"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
           </Tabs>
         </div>

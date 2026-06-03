@@ -87,7 +87,7 @@ export function AppSidebar({
   }
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="print:hidden">
       {/* Logo */}
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <Link href="/app" className="flex items-center gap-2.5 group">

@@ -26,11 +26,17 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: 'hash_id',
     header: 'Código',
-    cell: ({ row }) => (
-      <Link href={`/app/quotes/${row.original.id}`} target="_blank">
-        <Badge variant="secondary">{row.original.hash_id}</Badge>
-      </Link>
-    ),
+    cell: ({ row }) => {
+      const isDraft = row.original.status === 'draft'
+      const targetUrl = isDraft 
+        ? `/app/quotes/${row.original.id}/edit`
+        : `/app/quotes/${row.original.id}`
+      return (
+        <Link href={targetUrl} target="_blank">
+          <Badge variant="secondary">{row.original.hash_id}</Badge>
+        </Link>
+      )
+    },
   },
   {
     accessorKey: 'title',
@@ -107,7 +113,7 @@ export const columns: ColumnDef<Quote>[] = [
     cell: function ActionCell({ row }) {
       const quote = row.original
       const isDraft = quote.status === 'draft'
-      const isExpired = quote.status === 'expired'
+      const canReopen = ['expired', 'rejected', 'cancelled'].includes(quote.status)
       const [reopenOpen, setReopenOpen] = useState(false)
 
       return (
@@ -145,7 +151,7 @@ export const columns: ColumnDef<Quote>[] = [
                   <Pencil className="h-4 w-4" /> Editar rascunho
                 </DropdownMenuItem>
               )}
-              {isExpired && (
+              {canReopen && (
                 <DropdownMenuItem
                   onClick={() => setReopenOpen(true)}
                   className="cursor-pointer flex items-center gap-2 text-indigo-600 focus:text-indigo-600"

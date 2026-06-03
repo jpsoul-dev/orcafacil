@@ -243,7 +243,7 @@ export function QuoteForm({
   }
 
   async function handleSave(
-    status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired',
+    status: 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'expired',
   ) {
     const isValid = await form.trigger()
     if (!isValid) {
@@ -923,7 +923,7 @@ export function QuoteForm({
         <Button
           type="button"
           disabled={loading || fields.length === 0}
-          onClick={() => handleSave('open')}
+          onClick={() => handleSave('pending')}
           className="h-11 px-8 rounded-xl font-bold bg-slate-950 hover:bg-slate-800 text-white shadow-lg shadow-slate-200"
         >
           {loading

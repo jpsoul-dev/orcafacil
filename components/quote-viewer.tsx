@@ -3,6 +3,7 @@
 import { parseISO, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
+import Link from 'next/link'
 import { maskPhone } from '@/lib/masks'
 import {
   Table,
@@ -12,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   Printer,
   Loader2,
@@ -20,6 +22,8 @@ import {
   Mail,
   MessageCircle,
   RotateCcw,
+  FileText,
+  Receipt,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -34,24 +38,25 @@ import { Separator } from '@/components/ui/separator'
 import {
   updateQuoteStatus,
 } from '@/app/app/quotes/actions'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+
 import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 
 export type QuoteStatus =
   | 'draft'
-  | 'open'
-  | 'accepted'
+  | 'pending'
+  | 'approved'
   | 'rejected'
+  | 'cancelled'
+  | 'completed'
   | 'expired'
 
 export interface QuoteItem {
@@ -108,6 +113,7 @@ export interface Quote {
   customer: Customer
   company: Company
   items: QuoteItem[]
+  cancellation_reason?: string | null
 }
 
 import { formatBRL } from '@/lib/utils'
@@ -115,6 +121,7 @@ const brl = formatBRL
 
 interface QuoteViewerProps {
   quote: Quote
+  receiptId?: string | null
 }
 
 const STATUS_MAP: Record<
@@ -126,20 +133,30 @@ const STATUS_MAP: Record<
     color: 'bg-slate-100 text-slate-700 border-slate-200',
     dot: 'bg-slate-400',
   },
-  open: {
+  pending: {
     label: 'Pendente',
     color: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     dot: 'bg-indigo-600',
   },
-  accepted: {
+  approved: {
     label: 'Aprovado',
     color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     dot: 'bg-emerald-600',
   },
   rejected: {
     label: 'Rejeitado',
+    color: 'bg-rose-100 text-rose-700 border-rose-200',
+    dot: 'bg-rose-600',
+  },
+  cancelled: {
+    label: 'Cancelado',
     color: 'bg-red-100 text-red-700 border-red-200',
     dot: 'bg-red-600',
+  },
+  completed: {
+    label: 'Finalizado',
+    color: 'bg-teal-100 text-teal-700 border-teal-200',
+    dot: 'bg-teal-600',
   },
   expired: {
     label: 'Vencido',
@@ -149,14 +166,19 @@ const STATUS_MAP: Record<
 }
 
 
-export function QuoteViewer({ quote }: QuoteViewerProps) {
+export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerProps) {
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isReopenOpen, setIsReopenOpen] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [cancellationReason, setCancellationReason] = useState('')
+  const [currentCancellationReason, setCurrentCancellationReason] = useState<string | null>(quote.cancellation_reason || null)
+  const [receiptId, setReceiptId] = useState<string | null>(initialReceiptId || null)
 
   useEffect(() => {
     setCurrentStatus(quote.status)
-  }, [quote.status])
+    setCurrentCancellationReason(quote.cancellation_reason || null)
+  }, [quote.status, quote.cancellation_reason])
 
   useEffect(() => {
     const originalTitle = document.title
@@ -180,10 +202,13 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
 
   const handleStatusChange = async (newStatus: QuoteStatus | null) => {
     if (!newStatus || isUpdating) return
+    if (newStatus === 'cancelled') {
+      setCancelDialogOpen(true)
+      return
+    }
     const previousStatus = currentStatus
     setIsUpdating(true)
     setCurrentStatus(newStatus)
-    console.log('CLIENT: Calling updateQuoteStatus with:', { id: quote.id, newStatus })
     try {
       const result = await updateQuoteStatus(quote.id, newStatus)
       if (result.error) {
@@ -196,6 +221,33 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
       console.error('CLIENT ERROR in updateQuoteStatus:', error)
       const message = error instanceof Error ? error.message : 'Erro desconhecido'
       toast.error('Ocorreu um erro ao atualizar o status: ' + message)
+      setCurrentStatus(previousStatus)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleConfirmCancel = async () => {
+    if (cancellationReason.trim().length < 5) {
+      toast.error('O motivo do cancelamento deve possuir no mínimo 5 caracteres.')
+      return
+    }
+    const previousStatus = currentStatus
+    setIsUpdating(true)
+    setCurrentStatus('cancelled')
+    setCancelDialogOpen(false)
+    try {
+      const result = await updateQuoteStatus(quote.id, 'cancelled', cancellationReason)
+      if (result.error) {
+        toast.error('Erro ao cancelar orçamento: ' + result.error)
+        setCurrentStatus(previousStatus)
+      } else {
+        toast.success('Orçamento cancelado com sucesso!')
+        setCurrentCancellationReason(cancellationReason)
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Ocorreu um erro ao tentar cancelar o orçamento.')
       setCurrentStatus(previousStatus)
     } finally {
       setIsUpdating(false)
@@ -215,8 +267,8 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
             <div className="flex items-center gap-3">
               <Select
                 value={currentStatus}
-                onValueChange={handleStatusChange}
-                disabled={isUpdating}
+                onValueChange={(val) => handleStatusChange(val as QuoteStatus)}
+                disabled={isUpdating || ['completed', 'expired', 'rejected', 'cancelled'].includes(currentStatus)}
               >
                 <SelectTrigger
                   className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}
@@ -236,11 +288,18 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-slate-200">
                   {Object.entries(STATUS_MAP)
-                    .filter(
-                      ([value]) =>
-                        (value !== 'expired' && value !== 'draft') ||
-                        value === currentStatus,
-                    )
+                    .filter(([value]) => {
+                      if (currentStatus === 'draft') {
+                        return ['draft', 'pending'].includes(value)
+                      }
+                      if (currentStatus === 'pending') {
+                        return ['pending', 'approved', 'rejected', 'cancelled'].includes(value)
+                      }
+                      if (currentStatus === 'approved') {
+                        return ['approved', 'completed', 'cancelled'].includes(value)
+                      }
+                      return value === currentStatus
+                    })
                     .map(([value, info]) => (
                       <SelectItem
                         key={value}
@@ -259,7 +318,7 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
                     ))}
                 </SelectContent>
               </Select>
-              {currentStatus === 'expired' && (
+              {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
                 <Button
                   onClick={() => setIsReopenOpen(true)}
                   size="sm"
@@ -268,6 +327,31 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
                   <RotateCcw className="h-4 w-4" />
                   Reabrir Orçamento
                 </Button>
+              )}
+              {currentStatus === 'completed' && (
+                receiptId ? (
+                  <Link
+                    href={`/app/quotes/${quote.id}/receipt`}
+                    className={cn(
+                      buttonVariants({ variant: 'default', size: 'sm' }),
+                      "h-9 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold"
+                    )}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Ver Recibo
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/app/quotes/${quote.id}/receipt/edit`}
+                    className={cn(
+                      buttonVariants({ variant: 'default', size: 'sm' }),
+                      "h-9 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold"
+                    )}
+                  >
+                    <Receipt className="h-4 w-4" />
+                    Gerar Recibo
+                  </Link>
+                )
               )}
             </div>
           </div>
@@ -385,6 +469,14 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
             </div>
           </div>
         </div>
+
+        {currentStatus === 'cancelled' && currentCancellationReason && (
+          <div className="mb-12 p-5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-sm flex flex-col gap-1 shadow-sm">
+            <span className="font-bold text-[11px] uppercase tracking-wider text-rose-600">Motivo do Cancelamento</span>
+            <p className="font-medium text-slate-700 italic">"{currentCancellationReason}"</p>
+          </div>
+        )}
+
         {/* ITEMS TABLE */}
         <div className="mb-12">
           <Table>
@@ -526,8 +618,62 @@ export function QuoteViewer({ quote }: QuoteViewerProps) {
         quoteId={quote.id}
         open={isReopenOpen}
         onOpenChange={setIsReopenOpen}
-        onSuccess={() => setCurrentStatus('open')}
+        onSuccess={() => {
+          setCurrentStatus('pending')
+          setCurrentCancellationReason(null)
+        }}
       />
+
+      {/* Dialog de Motivo de Cancelamento */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-xl bg-white border-slate-200">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-slate-900">Cancelar Orçamento</DialogTitle>
+            <DialogDescription className="text-slate-500">
+              Por favor, informe o motivo do cancelamento deste orçamento. Esta justificativa ficará registrada no documento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="reason" className="text-sm font-semibold text-slate-700">
+                Motivo do Cancelamento <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                id="reason"
+                placeholder="Ex: Cliente fechou com outro concorrente / Orçamento fora do limite planejado"
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                className="min-h-[100px] resize-none border-slate-200 rounded-lg focus:ring-slate-500"
+              />
+              <p className="text-[11px] text-slate-400">
+                O motivo deve possuir no mínimo 5 caracteres.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setCancelDialogOpen(false)
+                setCancellationReason('')
+              }}
+              className="rounded-lg"
+            >
+              Voltar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={cancellationReason.trim().length < 5}
+              onClick={handleConfirmCancel}
+              className="rounded-lg bg-red-600 hover:bg-red-700 text-white"
+            >
+              Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

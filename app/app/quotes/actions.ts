@@ -8,7 +8,8 @@ import { logger } from '@/lib/logger'
 import { 
   statusSchema, 
   quoteSchema, 
-  type QuoteInput 
+  type QuoteInput,
+  cancelQuoteSchema
 } from './schemas'
 
 
@@ -44,8 +45,8 @@ export async function saveQuote(data: QuoteInput) {
         return { success: false, error: 'Orçamento não encontrado' }
       }
 
-      if (['expired', 'accepted', 'rejected'].includes(existingQuote.status)) {
-        return { success: false, error: 'Não é possível editar um orçamento expirado ou finalizado.' }
+      if (['expired', 'approved', 'rejected', 'cancelled', 'completed'].includes(existingQuote.status)) {
+        return { success: false, error: 'Não é possível editar um orçamento expirado, cancelado ou finalizado.' }
       }
     }
 
@@ -122,6 +123,22 @@ export async function deleteQuote(id: string) {
       return { success: false, error: 'Usuário não autenticado' }
     }
 
+    // Busca o status atual antes de deletar
+    const { data: quote, error: fetchError } = await supabase
+      .from('quotes')
+      .select('status')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (fetchError || !quote) {
+      return { success: false, error: 'Orçamento não encontrado.' }
+    }
+
+    if (quote.status !== 'draft') {
+      return { success: false, error: 'Apenas rascunhos podem ser excluídos fisicamente.' }
+    }
+
     const { error } = await supabase
       .from('quotes')
       .delete()
@@ -140,8 +157,8 @@ export async function deleteQuote(id: string) {
   }
 }
 
-export async function updateQuoteStatus(id: string, status: string) {
-  logger.info('SERVER: updateQuoteStatus started', { id, status })
+export async function updateQuoteStatus(id: string, status: string, cancellationReason?: string) {
+  logger.info('SERVER: updateQuoteStatus started', { id, status, cancellationReason })
   try {
     const supabase = await createClient()
     const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -156,6 +173,22 @@ export async function updateQuoteStatus(id: string, status: string) {
     const validation = statusSchema.safeParse(status)
     if (!validation.success) {
       return { success: false, error: 'Status inválido' }
+    }
+
+    const validatedStatus = validation.data
+
+    // Validação específica de motivo de cancelamento
+    let validatedCancellationReason: string | null = null
+    if (validatedStatus === 'cancelled') {
+      const cancelValidation = cancelQuoteSchema.safeParse({
+        quoteId: id,
+        cancellationReason
+      })
+      if (!cancelValidation.success) {
+        const errorMsg = cancelValidation.error.issues[0]?.message || 'Motivo de cancelamento inválido'
+        return { success: false, error: errorMsg }
+      }
+      validatedCancellationReason = cancellationReason || null
     }
 
     // Tenta atualizar por ID (UUID) ou Hash ID se necessário
@@ -177,9 +210,14 @@ export async function updateQuoteStatus(id: string, status: string) {
       return { success: false, error: 'Não é possível alterar o status de um orçamento expirado' }
     }
     
+    const updatePayload: Record<string, any> = { status: validatedStatus }
+    if (validatedStatus === 'cancelled') {
+      updatePayload.cancellation_reason = validatedCancellationReason;
+    }
+
     let query = supabase
       .from('quotes')
-      .update({ status: validation.data })
+      .update(updatePayload)
       .eq('user_id', user.id)
 
     if (isUuid) {
@@ -228,9 +266,9 @@ export async function reopenQuote(id: string, validUntil: string) {
     
     let query = supabase
       .from('quotes')
-      .update({ status: 'open', valid_until: validUntil })
+      .update({ status: 'pending', valid_until: validUntil, cancellation_reason: null })
       .eq('user_id', user.id)
-      .in('status', ['open', 'expired']) // Allow reopening if it's open (but dynamically expired) or explicitly expired
+      .in('status', ['pending', 'rejected', 'cancelled'])
 
     if (isUuid) {
       query = query.eq('id', id)

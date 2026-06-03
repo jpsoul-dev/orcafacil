@@ -36,6 +36,14 @@ export default async function QuoteDetailsPage({
     notFound()
   }
 
+  // Verifica se o orçamento já possui recibo associado
+  const { data: receipt } = await supabase
+    .from('quote_receipts')
+    .select('id')
+    .eq('quote_id', quoteMeta.id)
+    .maybeSingle()
 
-  return <QuoteViewer quote={quote} />
+  const receiptId = receipt?.id || null
+
+  return <QuoteViewer quote={quote} receiptId={receiptId} />
 }

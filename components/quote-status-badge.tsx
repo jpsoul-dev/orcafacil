@@ -7,23 +7,31 @@ export const QUOTE_STATUS_MAP: Record<
 > = {
   draft: {
     label: 'Rascunho',
-    className: 'bg-slate-900 text-white hover:bg-slate-500',
+    className: 'bg-slate-700 text-white hover:bg-slate-600',
   },
-  open: {
-    label: 'Em aberto',
-    className: 'bg-indigo-900 text-white hover:bg-indigo-500',
+  pending: {
+    label: 'Pendente',
+    className: 'bg-indigo-700 text-white hover:bg-indigo-600',
   },
-  accepted: {
+  approved: {
     label: 'Aprovado',
-    className: 'bg-emerald-900 text-white hover:bg-emerald-500',
+    className: 'bg-emerald-700 text-white hover:bg-emerald-600',
   },
   rejected: {
     label: 'Rejeitado',
-    className: 'bg-red-900 text-white hover:bg-red-500',
+    className: 'bg-amber-700 text-white hover:bg-amber-600',
+  },
+  cancelled: {
+    label: 'Cancelado',
+    className: 'bg-red-700 text-white hover:bg-red-600',
+  },
+  completed: {
+    label: 'Finalizado',
+    className: 'bg-sky-700 text-white hover:bg-sky-600',
   },
   expired: {
-    label: 'Expirado',
-    className: 'bg-slate-950 text-white hover:bg-slate-500',
+    label: 'Vencido',
+    className: 'bg-slate-900 text-white hover:bg-slate-800',
   },
 }
 

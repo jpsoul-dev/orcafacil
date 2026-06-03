@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
 import { QuotesChart } from './components/quotes-chart'
+import { StatusPieChart } from './components/status-pie-chart'
+import { RevenueBarChart } from './components/revenue-bar-chart'
 import { SubscriptionGuard } from '@/components/subscription-guard'
 import { reconcileStripeCheckout } from '@/lib/services/stripe-service'
 
@@ -52,7 +54,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     [
       supabase
         .from('vw_quotes')
-        .select('created_at')
+        .select('created_at, status, total')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true }),
       supabase
@@ -170,23 +172,23 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </Card>
       )}
 
-      {/* Quotes Chart */}
-      <div className="space-y-4">
+      {/* Dashboard Section */}
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Desempenho de Orçamentos
+            <h2 className="text-lg font-bold tracking-tight text-slate-800">
+              Desempenho e Métricas
             </h2>
             {isActive && (
-              <p className="text-sm text-muted-foreground">
-                Olá, {firstName}! Bem-vindo de volta.
+              <p className="text-sm font-medium text-slate-500">
+                Olá, {firstName}! Bem-vindo de volta ao seu painel.
               </p>
             )}
           </div>
           <div className="flex items-center gap-2">
             <SubscriptionGuard>
               <Link href="/app/quotes/new">
-                <Button size="sm">
+                <Button size="sm" className="font-bold">
                   <Plus className="mr-2 h-4 w-4" />
                   Novo
                 </Button>
@@ -196,14 +198,26 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               href="/app/quotes"
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'sm' }),
-                'text-muted-foreground hover:text-primary',
+                'text-slate-500 font-bold hover:text-primary',
               )}
             >
               Ver todos <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
         </div>
-        <QuotesChart quotes={quotesData || []} />
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <QuotesChart quotes={quotesData || []} />
+          </div>
+          <div className="lg:col-span-1">
+            <StatusPieChart quotes={quotesData || []} />
+          </div>
+          <div className="lg:col-span-3">
+            <RevenueBarChart quotes={quotesData || []} />
+          </div>
+        </div>
       </div>
     </div>
   )

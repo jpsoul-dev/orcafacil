@@ -1,35 +1,34 @@
-# Lista de Verificação de Qualidade da Especificação: Melhorias no Ciclo de Vida de Orçamentos, Dashboard Administrativo e Recibos
+# Specification Quality Checklist: Melhorias no Ciclo de Vida de Orçamentos, Dashboard Administrativo, Recibos e UI/UX (Linear Style)
 
-**Propósito**: Validar a completude e qualidade da especificação antes de prosseguir para o planejamento
-**Criado**: 2026-06-03
-**Funcionalidade**: [spec.md](../spec.md)
+**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Created**: 2026-06-03
+**Feature**: [spec.md](../spec.md)
 
-## Qualidade do Conteúdo
+## Content Quality
 
-- [x] Sem detalhes de implementação (linguagens, frameworks, APIs)
-- [x] Focado no valor para o usuário e necessidades do negócio
-- [x] Escrito para partes interessadas não técnicas
-- [x] Todas as seções obrigatórias preenchidas
+- [x] No implementation details (languages, frameworks, APIs)
+- [x] Focused on user value and business needs
+- [x] Written for non-technical stakeholders
+- [x] All mandatory sections completed
 
-## Completude dos Requisitos
+## Requirement Completeness
 
-- [x] Não restam marcadores [NEEDS CLARIFICATION] (necessita esclarecimento)
-- [x] Os requisitos são testáveis e inequívocos
-- [x] Os critérios de sucesso são mensuráveis
-- [x] Os critérios de sucesso são independentes de tecnologia (sem detalhes de implementação)
-- [x] Todos os cenários de aceitação estão definidos
-- [x] Casos de borda identificados
-- [x] Escopo claramente delimitado
-- [x] Dependências e suposições identificadas
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
+- [x] Success criteria are measurable
+- [x] Success criteria are technology-agnostic (no implementation details)
+- [x] All acceptance scenarios are defined
+- [x] Edge cases are identified
+- [x] Scope is clearly bounded
+- [x] Dependencies and assumptions identified
 
-## Prontidão da Funcionalidade
+## Feature Readiness
 
-- [x] Todos os requisitos funcionais possuem critérios de aceitação claros
-- [x] Os cenários de usuário cobrem os fluxos primários
-- [x] A funcionalidade atende aos resultados mensuráveis definidos nos Critérios de Sucesso
-- [x] Nenhum detalhe de implementação vaza para a especificação
+- [x] All functional requirements have clear acceptance criteria
+- [x] User scenarios cover primary flows
+- [x] Feature meets measurable outcomes defined in Success Criteria
+- [x] No implementation details leak into specification
 
-## Observações
+## Notes
 
-- Todas as perguntas de esclarecimento do usuário foram respondidas e incorporadas na especificação.
-- A especificação está completa e validada com qualidade de negócio de 100%.
+- Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`

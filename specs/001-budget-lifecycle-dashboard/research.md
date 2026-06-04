@@ -1,6 +1,6 @@
-# Research: Ciclo de Vida de Orçamentos, Gráficos Recharts e Emissão de Recibos
+# Research: Ciclo de Vida de Orçamentos, Gráficos Recharts, Emissão de Recibos e UI/UX (Linear Style)
 
-Este documento consolida as pesquisas, decisões de engenharia e racionais técnicos para a implementação das melhorias de fluxo comercial no Orça Fácil.
+Este documento consolida as pesquisas, decisões de engenharia e racionais técnicos para a implementação das melhorias de fluxo comercial e estética visual no Orça Fácil.
 
 ---
 
@@ -19,9 +19,6 @@ Criar um script de migração SQL (`supabase/migrations/20260603000000_budget_li
 *   **Integridade**: A relação 1:1 (`quote_id uuid UNIQUE REFERENCES public.quotes(id) ON DELETE CASCADE`) garante que cada orçamento finalizado possua no máximo um único recibo de quitação associado, prevenindo duplicidade de faturamento.
 *   **Histórico e Auditoria**: Manter o motivo de cancelamento armazenado no banco de dados resolve o requisito de consulta posterior pelo prestador sobre por que o cliente desistiu do serviço após aprovação.
 
-### Alternativas Consideradas
-*   *Armazenar dados de recibo no próprio orçamento*: Rejeitado porque o recibo possui ciclo de vida próprio e atributos que não cabem na modelagem do orçamento (ex: data de recebimento, descrição customizada de serviços prestados, numeração própria sequencial).
-
 ---
 
 ## 2. Numeração Sequencial dos Recibos
@@ -33,9 +30,6 @@ SELECT COALESCE(COUNT(*), 0) + 1 FROM public.quote_receipts WHERE user_id = p_us
 ```
 Isso garante uma numeração incremental contínua para cada empresa separadamente.
 
-### Racionais
-*   Garante uma numeração comercial profissional sem necessitar de geradores complexos de IDs em cluster. A contagem por `user_id` garante que cada empresa tenha sua própria sequência iniciando do 1.
-
 ---
 
 ## 3. Visualizações Analíticas no Painel do Prestador (Recharts)
@@ -46,9 +40,6 @@ Aprimorar o componente de dashboard em `app/app/page.tsx` para apresentar 3 vis�
 2.  **Gráfico de Pizza/Rosca (`StatusPieChart`)**: Criar um componente Shadcn/Recharts que mostra a distribuição percentual e volumétrica de orçamentos agrupados por `status`.
 3.  **Gráfico de Barras (`RevenueBarChart`)**: Criar um gráfico de barras que mostra o faturamento mensal faturado, baseado na soma de `total` dos orçamentos com status `completed` agrupados por mês.
 
-### Racionais
-*   **Reuso e Performance**: A biblioteca Recharts já está instalada e configurada no projeto. O agrupamento será feito através de queries seguras que consolidam os dados de `quotes` no servidor, enviando apenas a lista otimizada para o client, reduzindo o tráfego de rede e consumo de bundle no frontend.
-
 ---
 
 ## 4. Geração de PDF e Impressão Direta (Print CSS)
@@ -56,7 +47,21 @@ Aprimorar o componente de dashboard em `app/app/page.tsx` para apresentar 3 vis�
 ### Decisão
 Utilizar o mecanismo nativo de impressão do navegador (`window.print()`) customizado com classes CSS de mídia do Tailwind v4 (`print:hidden`, `print:shadow-none`, `print:p-0`). 
 
-### Racionais
-*   **Fidelidade Visual**: O navegador renderiza a página HTML exatamente como o design system foi concebido.
-*   **Performance**: Elimina a necessidade de instalar bibliotecas pesadas e problemáticas de renderização de PDF no lado do cliente (como `jspdf` ou `html2canvas`), que aumentam o tamanho do bundle JavaScript e causam distorções de fontes.
-*   **Layout Limpo**: Ao acionar a impressão, os menus laterais de navegação, a barra de ações superior, o rodapé do sistema e os botões de ação do recibo/orçamento serão ocultados, mantendo na folha de impressão apenas a área de papel limpa do recibo/orçamento e as assinaturas.
+---
+
+## 5. UI/UX: Estilo Linear App e Responsividade da Sidebar
+
+### Decisão
+*   **Melhoria na Sidebar**: Adicionar o seletor utilitário `group-data-[collapsible=icon]:hidden` em todos os elementos secundários de texto da sidebar desktop (`SidebarGroupLabel`, `span` e `ChevronRight` nos botões ativos) para que no colapso de ícones nenhum texto residual ou chevrons quebrem a proporção do botão. No mobile, a sidebar entra automaticamente em formato drawer através do `SidebarProvider` e do gatilho `SidebarTrigger` que se posiciona no header da aplicação.
+*   **Visual Linear**: Utilizar as classes base do tema shadcn e o Tailwind CSS v4 para aplicar bordas suaves (`border-border/60`), fundos escurecidos discretos e cantos arredondados premium nos cartões e inputs.
+*   **Filtros por Abas (Tabs)**: Redesenhar a interface de abas na listagem de orçamentos para manter um layout de linha única com rolagem horizontal no mobile (`overflow-x-auto flex-nowrap scrollbar-none`) ao invés de quebrar linhas (wrap), apresentando contadores dinâmicos da quantidade de orçamentos em cada status (ex: `Todos (12)`, `Pendente (3)`).
+
+---
+
+## 6. Configuração PWA no Next.js (App Router)
+
+### Decisão
+*   Implementar o manifesto dinâmico através do arquivo `app/app/manifest.ts` estendendo a classe `MetadataRoute.Manifest` do Next.js.
+*   Adicionar o ícone oficial da aplicação em formato SVG no diretório `public/icon.svg` composto por um raio com gradiente indigo-cyan de cantos arredondados, que servirá como ícone instalável e favicon do PWA.
+*   Declarar as meta-tags do PWA (theme-color, apple-touch-icon, apple-mobile-web-app-capable) no layout principal da aplicação.
+*   Essa abordagem garante a conformidade com as regras de PWA do Chrome/Safari sem sobrecarregar o build com service workers redundantes para offline caching complexo em uma aplicação de gestão autenticada de orçamentos.

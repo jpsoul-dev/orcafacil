@@ -1,4 +1,4 @@
-# Implementation Plan: Melhorias no Ciclo de Vida de Orçamentos, Dashboard Administrativo e Recibos
+# Implementation Plan: Melhorias no Ciclo de Vida de Orçamentos, Dashboard Administrativo, Recibos e UI/UX (Linear Style)
 
 **Branch**: `001-budget-lifecycle-dashboard` | **Date**: 2026-06-03 | **Spec**: [spec.md](./spec.md)
 
@@ -6,13 +6,19 @@
 
 ## Summary
 
-O objetivo desta funcionalidade é aprimorar o fluxo operacional de orçamentos no Orça Fácil, expandindo o ciclo de vida dos orçamentos, implementando um painel analítico gerencial e permitindo a emissão de recibos físicos/PDF para orçamentos finalizados. 
+O objetivo desta funcionalidade é aprimorar o fluxo operacional e estético de orçamentos no Orça Fácil. Isso engloba estender o ciclo de vida dos orçamentos, criar um painel analítico gerencial para o negócio, habilitar a emissão e impressão de recibos de quitação e aplicar um conjunto robusto de melhorias visuais e de usabilidade (UI/UX) inspiradas no design premium do Linear App, incluindo suporte PWA.
 
 A abordagem técnica consiste em:
 1.  **Banco de Dados**: Alterar o schema da tabela `quotes` (adicionar `cancellation_reason`, ajustar a check constraint de status e migrar status legados) e criar a tabela `quote_receipts` com políticas de RLS ativas para isolamento multi-tenant.
-2.  **Serviços (SRP)**: Implementar a lógica de negócio de recibos em `lib/services/receipt-service.ts` e de orçamentos em `lib/services/quote-service.ts` (ou estender em `app/app/quotes/actions.ts`).
-3.  **UI & Dashboard**: Aprimorar o painel em `app/app/page.tsx` utilizando Recharts para exibir gráficos de linha (novos orçamentos), rosca (distribuição por status) e barras (faturamento mensal).
-4.  **Recibos**: Implementar formulário de emissão/edição e layout de impressão otimizado com print-CSS.
+2.  **Serviços (SRP)**: Implementar a lógica de negócio de recibos em `lib/services/receipt-service.ts` e de orçamentos em `lib/services/quote-service.ts`.
+3.  **UI/UX (Linear Style & Responsividade)**:
+    *   **Sidebar**: Ajustar o componente de menu lateral para ocultar rótulos e botões adicionais no colapso de ícones desktop e se comportar adequadamente no mobile.
+    *   **Settings**: Alinhar visualmente os campos de formulário de endereço com o cadastro de clientes em um grid de 12 colunas e usar componentes unificados.
+    *   **Customers**: Unificar o uso de badges indicadores de situação usando o componente centralizado.
+    *   **Filtros**: Redesenhar os filtros de status na listagem geral para utilizar Tabs organizadas em linha com scroll horizontal, exibindo contadores de status.
+    *   **Ações**: Estender o menu de ações de cada orçamento na listagem para incluir ações contextuais (imprimir, mudar status, reabrir, excluir e gerar recibo).
+4.  **PWA**: Criar o manifest dinâmico e o ícone vetorial correspondente para habilitar a instalabilidade básica e performance fluida no mobile.
+5.  **Impressão & Recibos**: Desenhar a folha de recibo e otimizar as telas de visualização para impressão/PDF removendo elementos administrativos com print-CSS.
 
 ## Technical Context
 
@@ -24,16 +30,16 @@ A abordagem técnica consiste em:
 
 **Testing**: Validação pontual através de testes funcionais manuais e validação de contratos Zod nas Server Actions
 
-**Target Platform**: Navegadores Web Modernos (Responsivo / Mobile-First)
+**Target Platform**: Navegadores Web Modernos (Responsivo / Mobile-First / PWA)
 
 **Project Type**: Aplicativo Web Fullstack
 
-**Performance Goals**: Carregamento do Painel Administrativo em < 2 segundos; transições de status e gravação de recibos em < 3 segundos.
+**Performance Goals**: Carregamento do Painel Administrativo em < 2 segundos; transições de status e gravação de recibos em < 3 segundos; responsividade fluida sem quebras de layout.
 
 **Constraints**:
 *   Segurança multi-tenant estrita (RLS).
 *   Visualizações, orçamentos e recibos restritos a usuários autenticados proprietários do tenant.
-*   Ausência de assinaturas eletrônicas complexas e de compartilhamento de links públicos sem autenticação.
+*   Conformidade com os padrões estéticos do Linear App (minimalismo, neutralidade de cores, cantos arredondados, contrastes elegantes).
 
 ## Constitution Check
 
@@ -48,7 +54,7 @@ A abordagem técnica consiste em:
 4.  **Princípio IV: Tipagem TypeScript Estrita e Nomenclatura em Inglês**:
     *   *Check*: Proibido o uso de `any`. Todos os tipos devem ser declarados com interfaces ou tipos inferidos do Zod. O código de serviços e actions de recibos deve ser escrito em Inglês.
 5.  **Princípio V: Tratamento de Erros e Mobile-First**:
-    *   *Check*: Validações iniciais nas Server Actions com early returns. Estilização do recibo e gráficos mobile-first usando Grid e Flexbox nativos.
+    *   *Check*: Validações iniciais nas Server Actions com early returns. Estilização do recibo, gráficos e sidebar mobile-first usando Grid e Flexbox nativos, além de CSS `@media print` adequado.
 
 ## Project Structure
 
@@ -70,8 +76,7 @@ specs/001-budget-lifecycle-dashboard/
 ```text
 app/
 ├── app/
-│   ├── admin/
-│   │   └── page.tsx         # [MODIFY] Dashboard do super-admin da plataforma (inalterado)
+│   ├── manifest.ts          # [NEW] Arquivo de manifest dinâmico do PWA
 │   ├── quotes/
 │   │   ├── [id]/
 │   │   │   ├── receipt/
@@ -80,20 +85,28 @@ app/
 │   │   │   │       └── page.tsx # [NEW] Formulário de criação/edição do recibo
 │   │   │   └── page.tsx      # [MODIFY] Exibir botão de recibo se status === 'completed'
 │   │   ├── actions.ts        # [MODIFY] Atualizar saveQuote, updateQuoteStatus e deletar se draft
-│   │   ├── columns.tsx      # [MODIFY] Atualizar badges de status e ações do rascunho
-│   │   ├── quotes-list.tsx  # [MODIFY] Filtros de situação por tab ou select
+│   │   ├── columns.tsx      # [MODIFY] Atualizar menu de ações contextuais de orçamentos
+│   │   ├── quotes-list.tsx  # [MODIFY] Filtros de status por abas (scroll horizontal e contadores)
 │   │   └── schemas.ts        # [MODIFY] Novos enums de status e schemas do recibo
-│   ├── page.tsx             # [MODIFY] Dashboard do Prestador ( Pizza, Barras e Linhas Recharts)
+│   ├── settings/
+│   │   └── settings-form.tsx # [MODIFY] Reestruturar formulário de endereço da empresa (alinhamento customer)
+│   ├── customers/
+│   │   └── [id]/
+│   │       └── customer-quotes-client.tsx # [MODIFY] Usar QuoteStatusBadge centralizado
+│   ├── page.tsx             # [MODIFY] Dashboard do Prestador (Pizza, Barras e Linhas Recharts)
 │   └── components/
 │       ├── quotes-chart.tsx # [MODIFY] Atualizado para novos status e lógica de contagem
 │       ├── status-pie-chart.tsx # [NEW] Gráfico de pizza de distribuição por status
 │       └── revenue-bar-chart.tsx # [NEW] Gráfico de barras de faturamento por mês
 components/
+├── app-sidebar.tsx          # [MODIFY] Ocultar rótulos/chevrons ao recolher sidebar no desktop
 ├── quote-status-badge.tsx   # [MODIFY] Mapear novos badges (pending, approved, rejected, cancelled, completed)
 lib/
 ├── services/
 │   ├── receipt-service.ts   # [NEW] Serviço de banco de dados para recibos
 │   └── quote-service.ts     # [NEW/MODIFY] Lógica de negócio de transições de status
+public/
+├── icon.svg                 # [NEW] Ícone vetorial da marca (raio com gradiente) para o PWA
 supabase/
 └── migrations/
     └── 20260603000000_budget_lifecycle_improvements.sql # [NEW] Migration de alteração do schema e RLS

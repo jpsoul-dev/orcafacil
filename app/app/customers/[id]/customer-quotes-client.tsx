@@ -4,7 +4,7 @@ import { DataTable } from '@/components/ui/data-table'
 import { ColumnDef } from '@tanstack/react-table'
 import { FileText } from 'lucide-react'
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
+import { QuoteStatusBadge } from '@/components/quote-status-badge'
 
 type Quote = {
   id: string
@@ -13,7 +13,7 @@ type Quote = {
   total: number
   valid_until: string | null
   created_at: string
-  status: 'draft' | 'open' | 'accepted' | 'rejected' | 'expired' | 'vencido'
+  status: string
 }
 
 const brl = (val: number) =>
@@ -44,36 +44,25 @@ const columns: ColumnDef<Quote>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const status = row.original.status
-      const statusMap: Record<string, { label: string; className: string }> = {
-        draft: { label: 'Rascunho', className: 'bg-slate-900 text-white' },
-        open: { label: 'Pendente', className: 'bg-indigo-900 text-white' },
-        accepted: { label: 'Aprovado', className: 'bg-emerald-900 text-white' },
-        rejected: { label: 'Rejeitado', className: 'bg-red-900 text-white' },
-        expired: { label: 'Expirado', className: 'bg-gray-950 text-white' },
-        vencido: { label: 'Vencido', className: 'bg-slate-900 text-white' },
+      let status = row.original.status
+
+      // Map old statuses if they occur, or if status needs adjusting
+      if (status === 'open') {
+        status = 'pending'
+      } else if (status === 'accepted') {
+        status = 'approved'
+      } else if (status === 'vencido') {
+        status = 'expired'
       }
 
-      const config = statusMap[status] || {
-        label: status,
-        className: 'bg-slate-500 text-white',
-      }
-
-      // Custom check for expired if open
-      let finalConfig = config
-      if (status === 'open' && row.original.valid_until) {
+      // Check if expired if it's pending (open)
+      if (status === 'pending' && row.original.valid_until) {
         if (new Date() > new Date(row.original.valid_until)) {
-          finalConfig = statusMap.expired
+          status = 'expired'
         }
       }
 
-      return (
-        <Badge
-          className={`rounded-md px-3 py-0.5 text-[11px] font-bold border-none shadow-sm ${finalConfig.className}`}
-        >
-          {finalConfig.label}
-        </Badge>
-      )
+      return <QuoteStatusBadge status={status} />
     },
   },
   {

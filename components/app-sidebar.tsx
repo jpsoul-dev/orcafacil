@@ -104,7 +104,7 @@ export function AppSidebar({
       <SidebarContent className="px-2 py-3">
         {/* Menu Principal */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-2 mb-1">
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-2 mb-1 group-data-[collapsible=icon]:hidden">
             Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -119,8 +119,8 @@ export function AppSidebar({
                       className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.title}</span>
-                      {active && <ChevronRight className="ml-auto h-3 w-3 opacity-60" />}
+                      <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                      {active && <ChevronRight className="ml-auto h-3 w-3 opacity-60 group-data-[collapsible=icon]:hidden" />}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -133,7 +133,7 @@ export function AppSidebar({
 
         {/* Configurações */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-2 mb-1">
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-semibold px-2 mb-1 group-data-[collapsible=icon]:hidden">
             Sistema
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -148,7 +148,7 @@ export function AppSidebar({
                       className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.title}</span>
+                      <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -163,7 +163,7 @@ export function AppSidebar({
                     className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium mt-1"
                   >
                     <Users className="h-4 w-4 shrink-0" />
-                    <span>Usuários (Admin)</span>
+                    <span className="group-data-[collapsible=icon]:hidden font-medium">Usuários (Admin)</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}

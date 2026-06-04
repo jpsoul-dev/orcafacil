@@ -1,18 +1,26 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCompanySettings } from './actions'
+import { maskCEP } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
-import { ImageIcon, Building2, MapPin, Loader2, Upload } from 'lucide-react'
+import { ImageIcon, Building2, MapPin, Loader2, Upload, Search } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const settingsSchema = z.object({
   name: z.string().min(1, 'Nome da empresa é obrigatório'),
@@ -100,10 +108,15 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
     }
   }
 
-  const checkCEP = async (e: React.FocusEvent<HTMLInputElement>) => {
-    const cep = e.target.value.replace(/\D/g, '')
+  const handleSearchCEP = async () => {
+    const currentCep = form.getValues('address_zip') || ''
+    const cep = currentCep.replace(/\D/g, '')
 
-    if (cep.length !== 8) return
+    if (cep.length !== 8) {
+      if (cep.length > 0) toast.error('Digite um CEP válido')
+      return
+    }
+
     if (searchingCEP || cep === lastSearchedCep.current) return
 
     setSearchingCEP(true)
@@ -112,6 +125,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
       const data = await res.json()
+
       if (!data.erro) {
         form.setValue('address_street', data.logradouro)
         form.setValue('address_neighborhood', data.bairro)
@@ -121,7 +135,6 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
         toast.error('CEP não encontrado')
       }
     } catch (_err) {
-      console.error(_err)
       toast.error('Erro ao buscar CEP')
     } finally {
       setSearchingCEP(false)
@@ -234,92 +247,155 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="px-6 pb-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="address_zip" className="font-medium text-sm">
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 sm:col-span-4 space-y-1.5">
+              <Label htmlFor="address_zip" className="font-bold text-sm text-slate-800">
                 CEP
               </Label>
               <div className="relative">
-                <Input
-                  id="address_zip"
-                  {...form.register('address_zip')}
-                  placeholder="00000-000"
-                  onBlur={checkCEP}
-                  className="h-10 pr-10"
+                <Controller
+                  name="address_zip"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Input
+                      id="address_zip"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(maskCEP(e.target.value))
+                      }
+                      onBlur={handleSearchCEP}
+                      placeholder="00000-000"
+                      className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums pr-8"
+                      maxLength={9}
+                    />
+                  )}
                 />
-                {searchingCEP && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  </div>
+                {searchingCEP ? (
+                  <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
+                ) : (
+                  <Search
+                    onClick={handleSearchCEP}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 cursor-pointer hover:text-slate-600"
+                  />
                 )}
               </div>
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="address_street" className="font-medium text-sm">
+
+            <div className="col-span-12 sm:col-span-8 space-y-1.5">
+              <Label htmlFor="address_street" className="font-bold text-sm text-slate-800">
                 Logradouro
               </Label>
               <Input
                 id="address_street"
                 {...form.register('address_street')}
-                className="h-10"
+                className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                placeholder="Rua, Av., etc."
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="address_number" className="font-medium text-sm">
+
+            <div className="col-span-12 sm:col-span-4 space-y-1.5">
+              <Label htmlFor="address_number" className="font-bold text-sm text-slate-800">
                 Número
               </Label>
               <Input
                 id="address_number"
                 {...form.register('address_number')}
-                className="h-10"
+                placeholder="123"
+                className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
               />
             </div>
-            <div className="space-y-1.5">
+
+            <div className="col-span-12 sm:col-span-4 space-y-1.5">
               <Label
                 htmlFor="address_complement"
-                className="font-medium text-sm"
+                className="font-bold text-sm text-slate-800"
               >
                 Complemento
               </Label>
               <Input
                 id="address_complement"
                 {...form.register('address_complement')}
-                className="h-10"
+                placeholder="Apto, sala, etc."
+                className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
               />
             </div>
-            <div className="space-y-1.5">
+
+            <div className="col-span-12 sm:col-span-4 space-y-1.5">
               <Label
                 htmlFor="address_neighborhood"
-                className="font-medium text-sm"
+                className="font-bold text-sm text-slate-800"
               >
                 Bairro
               </Label>
               <Input
                 id="address_neighborhood"
                 {...form.register('address_neighborhood')}
-                className="h-10"
+                placeholder="Bairro"
+                className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="address_city" className="font-medium text-sm">
+
+            <div className="col-span-12 sm:col-span-8 space-y-1.5">
+              <Label htmlFor="address_city" className="font-bold text-sm text-slate-800">
                 Cidade
               </Label>
               <Input
                 id="address_city"
                 {...form.register('address_city')}
-                className="h-10"
+                placeholder="Cidade"
+                className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="address_state" className="font-medium text-sm">
-                Estado (UF)
+
+            <div className="col-span-12 sm:col-span-4 space-y-1.5">
+              <Label htmlFor="address_state" className="font-bold text-sm text-slate-800">
+                Estado
               </Label>
-              <Input
-                id="address_state"
-                {...form.register('address_state')}
-                maxLength={2}
-                className="h-10 uppercase"
-              />
+              <Select
+                onValueChange={(val) =>
+                  form.setValue('address_state', val || undefined)
+                }
+                value={form.watch('address_state') ?? undefined}
+              >
+                <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-slate-950 text-slate-700">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    'AC',
+                    'AL',
+                    'AP',
+                    'AM',
+                    'BA',
+                    'CE',
+                    'DF',
+                    'ES',
+                    'GO',
+                    'MA',
+                    'MT',
+                    'MS',
+                    'MG',
+                    'PA',
+                    'PB',
+                    'PR',
+                    'PE',
+                    'PI',
+                    'RJ',
+                    'RN',
+                    'RS',
+                    'RO',
+                    'RR',
+                    'SC',
+                    'SP',
+                    'SE',
+                    'TO',
+                  ].map((uf) => (
+                    <SelectItem key={uf} value={uf}>
+                      {uf}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -73,6 +73,18 @@ interface ReceiptViewerProps {
 export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('print') === 'true') {
+        const timer = setTimeout(() => {
+          window.print()
+        }, 1000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [])
 
   const handlePrint = () => {
     window.print()

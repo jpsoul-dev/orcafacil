@@ -200,6 +200,18 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     }
   }, [quote.title, quote.created_at])
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('print') === 'true') {
+        const timer = setTimeout(() => {
+          window.print()
+        }, 1000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [])
+
   const handleStatusChange = async (newStatus: QuoteStatus | null) => {
     if (!newStatus || isUpdating) return
     if (newStatus === 'cancelled') {

@@ -18,7 +18,8 @@ export default async function QuotesPage() {
     .select(
       `
       *,
-      customers ( name )
+      customers ( name ),
+      quote_receipts ( id )
     `,
     )
     .eq('user_id', user.id)

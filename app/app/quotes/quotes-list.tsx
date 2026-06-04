@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface QuotesListProps {
   initialQuotes: Quote[]
@@ -32,6 +33,36 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   }))
+
+  const counts = useMemo(() => {
+    const defaultCounts = {
+      all: initialQuotes.length,
+      draft: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      cancelled: 0,
+      completed: 0,
+      expired: 0,
+    }
+    initialQuotes.forEach((quote) => {
+      const status = quote.status
+      if (status in defaultCounts) {
+        defaultCounts[status as keyof typeof defaultCounts]++
+      }
+    })
+    return defaultCounts
+  }, [initialQuotes])
+
+  const dotMap: Record<string, string> = {
+    draft: 'bg-slate-400',
+    pending: 'bg-indigo-500',
+    approved: 'bg-emerald-500',
+    rejected: 'bg-rose-500',
+    cancelled: 'bg-red-600',
+    completed: 'bg-teal-500',
+    expired: 'bg-slate-900',
+  }
 
   const filteredQuotes = useMemo(() => {
     return initialQuotes.filter((quote) => {
@@ -94,7 +125,7 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
       </div>
 
       {/*Action Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="flex flex-1 items-center gap-2 max-w-md relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
@@ -105,7 +136,7 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full xl:w-auto">
           <DatePickerWithRange
             date={date}
             setDate={setDate}
@@ -114,9 +145,9 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
           <Tabs
             value={statusTab}
             onValueChange={setStatusTab}
-            className="w-full md:w-auto animate-in fade-in duration-200"
+            className="w-full xl:w-auto animate-in fade-in duration-200"
           >
-            <TabsList className="flex flex-wrap md:flex-nowrap h-auto bg-slate-100 p-1 rounded-lg gap-1">
+            <TabsList className="flex flex-nowrap overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] h-auto bg-slate-100 p-1 rounded-lg gap-1 max-w-full justify-start">
               {[
                 { value: 'all', label: 'Todos' },
                 { value: 'draft', label: 'Rascunho' },
@@ -130,9 +161,15 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-3 py-1.5 rounded-md transition-all"
+                  className="text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm px-3 py-1.5 rounded-md transition-all shrink-0 flex items-center gap-1.5"
                 >
-                  {tab.label}
+                  {dotMap[tab.value] && (
+                    <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", dotMap[tab.value])} />
+                  )}
+                  <span>{tab.label}</span>
+                  <span className="text-[10px] bg-slate-200/50 text-slate-500 data-[state=active]:bg-slate-100 rounded-full px-1.5 py-0.2 font-mono">
+                    {counts[tab.value as keyof typeof counts]}
+                  </span>
                 </TabsTrigger>
               ))}
             </TabsList>

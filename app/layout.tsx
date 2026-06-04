@@ -1,11 +1,26 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const metadata: Metadata = {
   title: 'Orça Fácil',
-  description: 'Sistema para genrenciamento de orçamentos',
+  description: 'Sistema profissional de geração e gerenciamento de orçamentos rápidos e recibos',
+  applicationName: 'Orça Fácil',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Orça Fácil',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+  width: 'device-width',
+  initialScale: 1,
 }
 
 import { Toaster } from '@/components/ui/sonner'

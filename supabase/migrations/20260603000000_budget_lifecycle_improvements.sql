@@ -109,3 +109,35 @@ CREATE POLICY "Users can manage their own receipts" ON public.quote_receipts
 -- Cria índices para otimização de buscas e joins
 CREATE INDEX IF NOT EXISTS idx_quote_receipts_quote_id ON public.quote_receipts(quote_id);
 CREATE INDEX IF NOT EXISTS idx_quote_receipts_user_id ON public.quote_receipts(user_id);
+
+-- 8. Alteração de Schema da tabela companies para Onboarding
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS industry text;
+ALTER TABLE public.companies ALTER COLUMN phone DROP NOT NULL;
+
+-- 9. Função Postgres para Encerramento Seguro de Conta (Multi-Tenant)
+CREATE OR REPLACE FUNCTION public.close_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_user_id uuid;
+BEGIN
+    -- Obtém o ID do usuário autenticado solicitante
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Não autenticado';
+    END IF;
+
+    -- Deleta a empresa vinculada ao usuário solicitante (modelo 1:1)
+    -- A exclusão em cascata (ON DELETE CASCADE) de companies limpará quotes, customers, etc.
+    DELETE FROM public.companies WHERE user_id = v_user_id;
+
+    -- Deleta o perfil do usuário
+    DELETE FROM public.profiles WHERE id = v_user_id;
+
+    -- Deleta o usuário da tabela de autenticação auth.users
+    DELETE FROM auth.users WHERE id = v_user_id;
+END;
+$$;
+

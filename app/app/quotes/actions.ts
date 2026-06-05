@@ -296,3 +296,28 @@ export async function reopenQuote(id: string, validUntil: string) {
   }
 }
 
+export async function cloneQuoteAction(quoteId: string) {
+  try {
+    const supabase = await createClient()
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !authData?.user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    const { cloneQuote } = await import('@/lib/services/quote-service')
+    const result = await cloneQuote(quoteId, authData.user.id)
+
+    if (result.success) {
+      revalidatePath('/app/quotes')
+      return { success: true, id: result.id }
+    }
+
+    return { success: false, error: result.error }
+  } catch (error) {
+    logger.error('Error in cloneQuoteAction:', error)
+    return { success: false, error: 'Erro interno ao clonar orçamento' }
+  }
+}
+
+

@@ -1,7 +1,7 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Eye, Printer, Receipt, Trash2, CheckCircle, XCircle, Ban, RotateCcw, MoreHorizontal, Loader2 } from 'lucide-react'
+import { ArrowUpDown, Pencil, Eye, Printer, Receipt, Trash2, CheckCircle, XCircle, Ban, RotateCcw, MoreHorizontal, Loader2, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -18,7 +18,7 @@ import {
 import { useState } from 'react'
 import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
 import { QuoteStatusBadge } from '@/components/quote-status-badge'
-import { deleteQuote, updateQuoteStatus } from '@/app/app/quotes/actions'
+import { deleteQuote, updateQuoteStatus, cloneQuoteAction } from '@/app/app/quotes/actions'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -255,6 +255,28 @@ export const columns: ColumnDef<Quote>[] = [
                     className="cursor-pointer flex items-center gap-2"
                   >
                     <Printer className="h-4 w-4" /> Imprimir Orçamento
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      if (!window.confirm('Deseja realmente clonar este orçamento?')) return
+                      setIsUpdating(true)
+                      try {
+                        const res = await cloneQuoteAction(quote.id)
+                        if (res.success && res.id) {
+                          toast.success('Orçamento clonado com sucesso!')
+                          window.location.href = `/app/quotes/${res.id}/edit`
+                        } else {
+                          toast.error(res.error || 'Erro ao clonar orçamento.')
+                        }
+                      } catch (err) {
+                        toast.error('Erro ao clonar orçamento.')
+                      } finally {
+                        setIsUpdating(false)
+                      }
+                    }}
+                    className="cursor-pointer flex items-center gap-2"
+                  >
+                    <Copy className="h-4 w-4 text-blue-500" /> Clonar Orçamento
                   </DropdownMenuItem>
                 </>
               )}

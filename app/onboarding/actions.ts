@@ -12,7 +12,7 @@ export async function saveOnboarding(rawData: unknown) {
     return { error: 'Dados inválidos fornecidos' }
   }
 
-  const { name, phone } = validation.data
+  const { name, industry } = validation.data
   const supabase = await createClient()
   const {
     data: { user },
@@ -36,7 +36,7 @@ export async function saveOnboarding(rawData: unknown) {
   const { error } = await supabase.from('companies').insert({
     user_id: user.id,
     name,
-    phone,
+    industry,
   })
 
   if (error) {

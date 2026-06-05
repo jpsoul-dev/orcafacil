@@ -18,7 +18,7 @@ import {
 import { useState } from 'react'
 import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
 import { QuoteStatusBadge } from '@/components/quote-status-badge'
-import { deleteQuote, updateQuoteStatus, cloneQuoteAction } from '@/app/app/quotes/actions'
+import { deleteQuote, updateQuoteStatus } from '@/app/app/quotes/actions'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -67,7 +67,7 @@ const printViaIframe = (url: string) => {
 
 export const columns: ColumnDef<Quote>[] = [
   {
-    accessorKey: 'hash_id',
+    accessorKey: 'quote_number',
     header: 'Código',
     cell: ({ row }) => {
       const isDraft = row.original.status === 'draft'
@@ -76,7 +76,7 @@ export const columns: ColumnDef<Quote>[] = [
         : `/app/quotes/${row.original.id}`
       return (
         <Link href={targetUrl} target="_blank">
-          <Badge variant="secondary">{row.original.hash_id}</Badge>
+          <Badge variant="secondary">#{row.original.quote_number}</Badge>
         </Link>
       )
     },
@@ -257,24 +257,12 @@ export const columns: ColumnDef<Quote>[] = [
                     <Printer className="h-4 w-4" /> Imprimir Orçamento
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={async () => {
-                      if (!window.confirm('Deseja realmente clonar este orçamento?')) return
-                      setIsUpdating(true)
-                      try {
-                        const res = await cloneQuoteAction(quote.id)
-                        if (res.success && res.id) {
-                          toast.success('Orçamento clonado com sucesso!')
-                          window.location.href = `/app/quotes/${res.id}/edit`
-                        } else {
-                          toast.error(res.error || 'Erro ao clonar orçamento.')
-                        }
-                      } catch (err) {
-                        toast.error('Erro ao clonar orçamento.')
-                      } finally {
-                        setIsUpdating(false)
-                      }
-                    }}
-                    className="cursor-pointer flex items-center gap-2"
+                    render={
+                      <Link
+                        href={`/app/quotes/new?clone=${quote.id}`}
+                        className="cursor-pointer flex items-center gap-2"
+                      />
+                    }
                   >
                     <Copy className="h-4 w-4 text-blue-500" /> Clonar Orçamento
                   </DropdownMenuItem>

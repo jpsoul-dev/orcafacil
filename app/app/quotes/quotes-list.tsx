@@ -88,12 +88,12 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
         const searchLower = search.toLowerCase()
         const customerName = quote.customers?.name?.toLowerCase() || ''
         const title = quote.title?.toLowerCase() || ''
-        const hashId = quote.hash_id?.toLowerCase() || ''
+        const quoteNumber = quote.quote_number?.toString() || ''
 
         return (
           customerName.includes(searchLower) ||
           title.includes(searchLower) ||
-          hashId.includes(searchLower)
+          quoteNumber.includes(searchLower)
         )
       }
 

@@ -10,7 +10,7 @@ export default async function ReceiptDetailsPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Tenta buscar por ID (UUID) ou por Hash ID
+  // Tenta buscar por ID (UUID) ou por Código Sequencial (quote_number)
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
   
   let query = supabase.from('vw_quotes').select('id')
@@ -18,7 +18,12 @@ export default async function ReceiptDetailsPage({ params }: PageProps) {
   if (isUuid) {
     query = query.eq('id', id)
   } else {
-    query = query.eq('hash_id', id)
+    const isNumeric = /^\d+$/.test(id)
+    if (isNumeric) {
+      query = query.eq('quote_number', parseInt(id, 10))
+    } else {
+      notFound()
+    }
   }
 
   const { data: quoteMeta, error: metaError } = await query.single()
@@ -63,7 +68,7 @@ export default async function ReceiptDetailsPage({ params }: PageProps) {
   // Mapear dados do orçamento simplificados para o client component
   const quoteDataForViewer = {
     id: quote.id,
-    hash_id: quote.hash_id,
+    quote_number: quote.quote_number,
     company: {
       name: quote.company?.name || 'Empresa',
       phone: quote.company?.phone || '',

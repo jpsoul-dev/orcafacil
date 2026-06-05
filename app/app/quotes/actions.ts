@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { generateRandomHash } from '@/lib/hashids'
 import { logger } from '@/lib/logger'
 
 import { 
@@ -50,53 +49,31 @@ export async function saveQuote(data: QuoteInput) {
       }
     }
 
-    let attempts = 0
-    const MAX_ATTEMPTS = 3
+    // Chamada atômica via RPC para garantir transacionalidade
+    const { data: result, error: rpcError } = await supabase.rpc('upsert_quote_with_items', {
+      p_quote_id: id || null,
+      p_customer_id: quoteData.customer_id || null,
+      p_title: quoteData.title || null,
+      p_status: quoteData.status || null,
+      p_subtotal: quoteData.subtotal,
+      p_total: quoteData.total,
+      p_valid_until: quoteData.valid_until || null,
+      p_discount_type: quoteData.discount_type || 'none',
+      p_discount_value: quoteData.discount_value || 0,
+      p_notes: quoteData.notes || null,
+      p_items: items,
+      p_user_id: user.id
+    })
 
-    while (attempts < MAX_ATTEMPTS) {
-      const currentHashId = id ? null : generateRandomHash()
-
-      // Chamada atômica via RPC para garantir transacionalidade
-      const { data: result, error: rpcError } = await supabase.rpc('upsert_quote_with_items', {
-        p_quote_id: id || null,
-        p_customer_id: quoteData.customer_id || null,
-        p_title: quoteData.title || null,
-        p_status: quoteData.status || null,
-        p_subtotal: quoteData.subtotal,
-        p_total: quoteData.total,
-        p_valid_until: quoteData.valid_until || null,
-        p_discount_type: quoteData.discount_type || 'none',
-        p_discount_value: quoteData.discount_value || 0,
-        p_notes: quoteData.notes || null,
-        p_items: items,
-        p_user_id: user.id,
-        p_hash_id: currentHashId
-      })
-
-      if (!rpcError && result) {
-        revalidatePath('/app/quotes')
-        return { success: true, id: result.id }
-      }
-
-      // Se o erro for de unicidade (código 23505) e estamos criando um novo (id é null)
-      if (rpcError?.code === '23505' && !id) {
-        attempts++
-        logger.warn(`Colisão de hash_id detectada. Tentativa ${attempts} de ${MAX_ATTEMPTS}...`)
-        continue
-      }
-
-      // Se for outro erro ou estourou as tentativas
-      logger.error('Erro na RPC upsert_quote_with_items:', rpcError)
-      return {
-        success: false,
-        error: rpcError?.message || 'Erro ao processar orçamento no banco de dados',
-      }
+    if (!rpcError && result) {
+      revalidatePath('/app/quotes')
+      return { success: true, id: result.id }
     }
 
-    logger.error('Falha ao gerar hash_id único após 3 tentativas.')
-    return { 
-      success: false, 
-      error: 'Não foi possível gerar um identificador único para o orçamento após várias tentativas. Por favor, tente novamente.' 
+    logger.error('Erro na RPC upsert_quote_with_items:', rpcError)
+    return {
+      success: false,
+      error: rpcError?.message || 'Erro ao processar orçamento no banco de dados',
     }
   } catch (error) {
     logger.error('Error in saveQuote:', error)
@@ -191,14 +168,19 @@ export async function updateQuoteStatus(id: string, status: string, cancellation
       validatedCancellationReason = cancellationReason || null
     }
 
-    // Tenta atualizar por ID (UUID) ou Hash ID se necessário
+    // Tenta atualizar por ID (UUID) ou quote_number se necessário
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 
     let checkQuery = supabase.from('vw_quotes').select('status').eq('user_id', user.id)
     if (isUuid) {
       checkQuery = checkQuery.eq('id', id)
     } else {
-      checkQuery = checkQuery.eq('hash_id', id)
+      const isNumeric = /^\d+$/.test(id)
+      if (isNumeric) {
+        checkQuery = checkQuery.eq('quote_number', parseInt(id, 10))
+      } else {
+        return { success: false, error: 'Código de orçamento inválido' }
+      }
     }
 
     const { data: existingQuote } = await checkQuery.single()
@@ -223,7 +205,12 @@ export async function updateQuoteStatus(id: string, status: string, cancellation
     if (isUuid) {
       query = query.eq('id', id)
     } else {
-      query = query.eq('hash_id', id)
+      const isNumeric = /^\d+$/.test(id)
+      if (isNumeric) {
+        query = query.eq('quote_number', parseInt(id, 10))
+      } else {
+        return { success: false, error: 'Código de orçamento inválido' }
+      }
     }
 
     const { error } = await query
@@ -273,7 +260,12 @@ export async function reopenQuote(id: string, validUntil: string) {
     if (isUuid) {
       query = query.eq('id', id)
     } else {
-      query = query.eq('hash_id', id)
+      const isNumeric = /^\d+$/.test(id)
+      if (isNumeric) {
+        query = query.eq('quote_number', parseInt(id, 10))
+      } else {
+        return { success: false, error: 'Código de orçamento inválido' }
+      }
     }
 
     const { error } = await query
@@ -295,29 +287,3 @@ export async function reopenQuote(id: string, validUntil: string) {
     return { success: false, error: 'Erro interno ao reabrir o orçamento' }
   }
 }
-
-export async function cloneQuoteAction(quoteId: string) {
-  try {
-    const supabase = await createClient()
-    const { data: authData, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !authData?.user) {
-      return { success: false, error: 'Usuário não autenticado' }
-    }
-
-    const { cloneQuote } = await import('@/lib/services/quote-service')
-    const result = await cloneQuote(quoteId, authData.user.id)
-
-    if (result.success) {
-      revalidatePath('/app/quotes')
-      return { success: true, id: result.id }
-    }
-
-    return { success: false, error: result.error }
-  } catch (error) {
-    logger.error('Error in cloneQuoteAction:', error)
-    return { success: false, error: 'Erro interno ao clonar orçamento' }
-  }
-}
-
-

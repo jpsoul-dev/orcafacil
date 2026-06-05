@@ -55,9 +55,10 @@ export type Database = {
           address_zip: string | null
           created_at: string | null
           id: string
+          industry: string | null
           logo_url: string | null
           name: string
-          phone: string
+          phone: string | null
           user_id: string
         }
         Insert: {
@@ -70,9 +71,10 @@ export type Database = {
           address_zip?: string | null
           created_at?: string | null
           id?: string
+          industry?: string | null
           logo_url?: string | null
           name: string
-          phone: string
+          phone?: string | null
           user_id: string
         }
         Update: {
@@ -85,9 +87,10 @@ export type Database = {
           address_zip?: string | null
           created_at?: string | null
           id?: string
+          industry?: string | null
           logo_url?: string | null
           name?: string
-          phone?: string
+          phone?: string | null
           user_id?: string
         }
         Relationships: []
@@ -201,6 +204,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cancel_at: string | null
+          cancel_at_period_end: boolean | null
           created_at: string | null
           has_password: boolean | null
           id: string
@@ -212,6 +217,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          cancel_at?: string | null
+          cancel_at_period_end?: boolean | null
           created_at?: string | null
           has_password?: boolean | null
           id: string
@@ -223,6 +230,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          cancel_at?: string | null
+          cancel_at_period_end?: boolean | null
           created_at?: string | null
           has_password?: boolean | null
           id?: string
@@ -293,17 +302,71 @@ export type Database = {
           },
         ]
       }
+      quote_receipts: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          issued_at: string
+          payment_method: string | null
+          quote_id: string
+          receipt_number: string
+          services_description: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          issued_at: string
+          payment_method?: string | null
+          quote_id: string
+          receipt_number: string
+          services_description?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          issued_at?: string
+          payment_method?: string | null
+          quote_id?: string
+          receipt_number?: string
+          services_description?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_receipts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_receipts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "vw_quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
+          cancellation_reason: string | null
           created_at: string | null
           customer_id: string | null
           discount_type: string | null
           discount_value: number | null
-          hash_id: string | null
           id: string
           notes: string | null
           payment_method: string | null
-          public_uuid: string | null
+          quote_number: number
           status: string
           subtotal: number
           title: string | null
@@ -312,15 +375,15 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          cancellation_reason?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
           discount_value?: number | null
-          hash_id?: string | null
           id?: string
           notes?: string | null
           payment_method?: string | null
-          public_uuid?: string | null
+          quote_number?: number
           status?: string
           subtotal?: number
           title?: string | null
@@ -329,15 +392,15 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          cancellation_reason?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
           discount_value?: number | null
-          hash_id?: string | null
           id?: string
           notes?: string | null
           payment_method?: string | null
-          public_uuid?: string | null
+          quote_number?: number
           status?: string
           subtotal?: number
           title?: string | null
@@ -363,12 +426,11 @@ export type Database = {
           customer_id: string | null
           discount_type: string | null
           discount_value: number | null
-          hash_id: string | null
           id: string | null
           notes: string | null
           original_status: string | null
           payment_method: string | null
-          public_uuid: string | null
+          quote_number: number | null
           status: string | null
           subtotal: number | null
           title: string | null
@@ -381,12 +443,11 @@ export type Database = {
           customer_id?: string | null
           discount_type?: string | null
           discount_value?: number | null
-          hash_id?: string | null
           id?: string | null
           notes?: string | null
           original_status?: string | null
           payment_method?: string | null
-          public_uuid?: string | null
+          quote_number?: number | null
           status?: never
           subtotal?: number | null
           title?: string | null
@@ -399,12 +460,11 @@ export type Database = {
           customer_id?: string | null
           discount_type?: string | null
           discount_value?: number | null
-          hash_id?: string | null
           id?: string | null
           notes?: string | null
           original_status?: string | null
           payment_method?: string | null
-          public_uuid?: string | null
+          quote_number?: number | null
           status?: never
           subtotal?: number | null
           title?: string | null
@@ -424,36 +484,55 @@ export type Database = {
       }
     }
     Functions: {
-      get_public_quote: { Args: { p_uuid: string }; Returns: Json }
+      close_account: { Args: never; Returns: undefined }
+      get_quote_details: { Args: { p_quote_id: string }; Returns: Json }
       simple_hashid: { Args: { val: number }; Returns: string }
-      update_profile_subscription: {
-        Args: {
-          p_stripe_customer_id: string
-          p_subscription_id: string
-          p_subscription_status: string
-          p_cancel_at_period_end: boolean
-          p_cancel_at: string | null
-        }
-        Returns: undefined
-      }
-      upsert_quote_with_items: {
-        Args: {
-          p_customer_id: string
-          p_discount_type: string
-          p_discount_value: number
-          p_hash_id?: string
-          p_items: Json
-          p_notes: string
-          p_quote_id: string
-          p_status: string
-          p_subtotal: number
-          p_title: string
-          p_total: number
-          p_user_id: string
-          p_valid_until: string
-        }
-        Returns: Json
-      }
+      update_profile_subscription:
+        | {
+            Args: {
+              p_stripe_customer_id: string
+              p_subscription_id: string
+              p_subscription_status: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_cancel_at_period_end?: boolean
+              p_stripe_customer_id: string
+              p_subscription_id: string
+              p_subscription_status: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_cancel_at?: string
+              p_cancel_at_period_end?: boolean
+              p_stripe_customer_id: string
+              p_subscription_id: string
+              p_subscription_status: string
+            }
+            Returns: undefined
+          }
+      upsert_quote_with_items:
+        | {
+            Args: {
+              p_customer_id: string
+              p_discount_type: string
+              p_discount_value: number
+              p_items: Json
+              p_notes: string
+              p_quote_id: string
+              p_status: string
+              p_subtotal: number
+              p_title: string
+              p_total: number
+              p_user_id: string
+              p_valid_until: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       [_ in never]: never

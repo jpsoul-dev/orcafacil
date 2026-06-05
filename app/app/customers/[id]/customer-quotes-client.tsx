@@ -8,7 +8,7 @@ import { QuoteStatusBadge } from '@/components/quote-status-badge'
 
 type Quote = {
   id: string
-  hash_id: string
+  quote_number: number
   title: string
   total: number
   valid_until: string | null
@@ -35,7 +35,7 @@ const columns: ColumnDef<Quote>[] = [
           {row.original.title}
         </Link>
         <span className="text-sm text-slate-400 font-mono">
-          {row.original.hash_id}
+          #{row.original.quote_number}
         </span>
       </div>
     ),

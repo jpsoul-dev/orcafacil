@@ -44,10 +44,24 @@ export async function QuotePageContent({
 
     if (quote) {
       if (mode === 'clone') {
-        // Remover IDs para garantir que seja um novo orçamento
+        // Remover IDs, número, título, cliente e validade para garantir que seja um novo orçamento limpo
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id: _id, public_uuid: _pu, hash_id: _hi, ...rest } = quote
-        initialData = rest as QuoteWithItems
+        const {
+          id: _id,
+          public_uuid: _pu,
+          hash_id: _hi,
+          quote_number: _qn,
+          title: _t,
+          customer_id: _cid,
+          valid_until: _vu,
+          ...rest
+        } = quote
+        initialData = {
+          ...rest,
+          title: '',
+          customer_id: '',
+          valid_until: null,
+        } as QuoteWithItems
       } else {
         initialData = quote as QuoteWithItems
       }

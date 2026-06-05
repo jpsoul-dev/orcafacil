@@ -60,7 +60,7 @@ interface Customer {
 
 interface Quote {
   id: string
-  hash_id: string
+  quote_number: number
   company: Company
   customer: Customer
 }
@@ -305,7 +305,7 @@ export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
         {/* DETALHE PEQUENO DO SISTEMA NO RODAPÉ */}
         <div className="absolute bottom-6 left-0 right-0 px-16 flex justify-between items-center text-[10px] text-slate-400 font-bold tracking-wider opacity-40 print:hidden">
           <span>Orca Fácil — Recibos de Quitação</span>
-          <span>Orçamento Ref: #{quote.hash_id}</span>
+          <span>Orçamento Ref: #{quote.quote_number}</span>
         </div>
       </div>
     </div>

@@ -26,7 +26,7 @@ import { formatBRL } from '@/lib/utils'
 interface ReceiptFormProps {
   quote: {
     id: string
-    hash_id: string
+    quote_number: number
     title?: string | null
     total: number
     payment_method?: string | null
@@ -52,7 +52,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
   const defaultTitle = initialData?.title || 
     (quote.title 
       ? `Recibo de Quitação - ${quote.title}`
-      : `Recibo de Quitação - Orçamento #${quote.hash_id}`)
+      : `Recibo de Quitação - Orçamento #${quote.quote_number}`)
 
   const defaultValues: ReceiptInput = {
     id: initialData?.id,
@@ -106,7 +106,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
             {initialData ? 'Editar Recibo' : 'Emitir Recibo de Quitação'}
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Orçamento #{quote.hash_id} — Cliente: {quote.customer.name}
+            Orçamento #{quote.quote_number} — Cliente: {quote.customer.name}
           </p>
         </div>
       </div>

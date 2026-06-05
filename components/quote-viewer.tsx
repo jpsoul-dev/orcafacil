@@ -24,6 +24,7 @@ import {
   RotateCcw,
   FileText,
   Receipt,
+  Info,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -49,6 +50,14 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 export type QuoteStatus =
   | 'draft'
@@ -97,7 +106,7 @@ export interface Company {
 
 export interface Quote {
   id: string
-  hash_id: string
+  quote_number: number
   public_uuid: string
   status: QuoteStatus
   title: string
@@ -330,6 +339,27 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                     ))}
                 </SelectContent>
               </Select>
+              {currentStatus === 'cancelled' && currentCancellationReason && (
+                <Popover>
+                  <PopoverTrigger
+                    className="h-9 w-9 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    title="Ver motivo do cancelamento"
+                  >
+                    <Info className="h-4.5 w-4.5" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 bg-white border-slate-200 rounded-xl shadow-md p-4">
+                    <PopoverHeader className="mb-2">
+                      <PopoverTitle className="text-sm font-bold text-red-600 flex items-center gap-2">
+                        <Info className="h-4 w-4" />
+                        Motivo do Cancelamento
+                      </PopoverTitle>
+                    </PopoverHeader>
+                    <PopoverDescription className="text-sm text-slate-700 italic">
+                      "{currentCancellationReason}"
+                    </PopoverDescription>
+                  </PopoverContent>
+                </Popover>
+              )}
               {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
                 <Button
                   onClick={() => setIsReopenOpen(true)}
@@ -405,10 +435,10 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                 {[
                   quote.company?.address_street &&
-                    `${quote.company.address_street}${quote.company.address_number ? `, ${quote.company.address_number}` : ''}${quote.company.address_complement ? ` - ${quote.company.address_complement}` : ''}`,
+                  `${quote.company.address_street}${quote.company.address_number ? `, ${quote.company.address_number}` : ''}${quote.company.address_complement ? ` - ${quote.company.address_complement}` : ''}`,
                   quote.company?.address_neighborhood,
                   quote.company?.address_city &&
-                    `${quote.company.address_city}${quote.company.address_state ? `/${quote.company.address_state}` : ''}`,
+                  `${quote.company.address_city}${quote.company.address_state ? `/${quote.company.address_state}` : ''}`,
                 ]
                   .filter(Boolean)
                   .join(' — ')}
@@ -421,7 +451,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               Orçamento
             </h1>
             <p className="text-slate-400 font-bold text-sm tracking-widest mb-6">
-              # {quote.hash_id}
+              # {quote.quote_number}
             </p>
 
             <div className="flex items-center justify-end gap-3">
@@ -431,10 +461,10 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               <span className="text-[13px] font-black text-slate-900">
                 {quote.valid_until
                   ? format(
-                      parseISO(quote.valid_until),
-                      "d 'de' MMMM 'de' yyyy",
-                      { locale: ptBR },
-                    )
+                    parseISO(quote.valid_until),
+                    "d 'de' MMMM 'de' yyyy",
+                    { locale: ptBR },
+                  )
                   : 'A combinar'}
               </span>
             </div>
@@ -481,13 +511,6 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             </div>
           </div>
         </div>
-
-        {currentStatus === 'cancelled' && currentCancellationReason && (
-          <div className="mb-12 p-5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-sm flex flex-col gap-1 shadow-sm">
-            <span className="font-bold text-[11px] uppercase tracking-wider text-rose-600">Motivo do Cancelamento</span>
-            <p className="font-medium text-slate-700 italic">"{currentCancellationReason}"</p>
-          </div>
-        )}
 
         {/* ITEMS TABLE */}
         <div className="mb-12">

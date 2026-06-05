@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell } from 'lucide-react'
+import { Bell, Check } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { 
   DropdownMenu, 
@@ -39,17 +39,25 @@ interface RawNotification {
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread')
   
-  // Memoize o cliente supabase para evitar recriação a cada render
   const supabase = useMemo(() => createClient(), [])
 
   const fetchNotifications = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Buscar as 10 notificações mais recentes
-    // RLS em notification_reads garante que só veremos nossas próprias marcações de leitura
-    const { data, error } = await supabase
+    // 1. Obter a data de criação da conta em profiles para filtrar notificações antigas
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('created_at')
+      .eq('id', user.id)
+      .single()
+
+    const userCreatedAt = profile?.created_at
+
+    // 2. Buscar as notificações
+    let query = supabase
       .from('notifications')
       .select(`
         id,
@@ -60,7 +68,13 @@ export function NotificationBell() {
         notification_reads(read_at)
       `)
       .order('created_at', { ascending: false })
-      .limit(10)
+      .limit(50)
+
+    if (userCreatedAt) {
+      query = query.gte('created_at', userCreatedAt)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Erro ao buscar notificações:', error)
@@ -88,7 +102,6 @@ export function NotificationBell() {
     }
     init()
 
-    // Canal unificado para notificações e status de leitura
     const channel = supabase
       .channel('notification-updates')
       .on('postgres_changes', { 
@@ -113,12 +126,10 @@ export function NotificationBell() {
         table: 'notification_reads',
         schema: 'public'
       }, () => {
-        // Atualiza quando o status de leitura muda (em outro dispositivo, por exemplo)
         fetchNotifications()
       })
       .subscribe()
 
-    // Polling de segurança a cada 2 minutos
     const interval = setInterval(() => {
       fetchNotifications()
     }, 1000 * 60 * 2)
@@ -143,6 +154,10 @@ export function NotificationBell() {
     }
   }
 
+  const filteredNotifications = useMemo(() => {
+    return notifications.filter(n => activeTab === 'unread' ? !n.isRead : n.isRead)
+  }, [notifications, activeTab])
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={
@@ -155,34 +170,62 @@ export function NotificationBell() {
           )}
         </Button>
       } />
-      <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center justify-between font-normal">
-            <span className="font-bold">Notificações</span>
-            {unreadCount > 0 && (
-              <button 
-                onClick={(e) => {
-                  e.preventDefault()
-                  handleMarkAllAsRead()
-                }}
-                className="text-xs text-primary hover:underline"
-              >
-                Marcar todas como lidas
-              </button>
-            )}
+      <DropdownMenuContent align="end" className="w-80 bg-white border border-slate-200 text-slate-900 p-0 overflow-hidden rounded-xl shadow-lg">
+        <DropdownMenuGroup className="p-3 pb-2 flex items-center justify-between">
+          <DropdownMenuLabel className="font-semibold text-sm text-slate-800 p-0">
+            Notificações
           </DropdownMenuLabel>
+          {unreadCount > 0 && (
+            <button 
+              onClick={(e) => {
+                e.preventDefault()
+                handleMarkAllAsRead()
+              }}
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Marcar todas como lidas
+            </button>
+          )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        {notifications.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">
-            Nenhuma notificação por enquanto.
+        
+        {/* Guias/Tabs de Notificação */}
+        <div className="flex border-b border-slate-200 px-3">
+          <button
+            onClick={() => setActiveTab('unread')}
+            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${
+              activeTab === 'unread' 
+                ? 'border-slate-900 text-slate-900' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Não lidas ({unreadCount})
+          </button>
+          <button
+            onClick={() => setActiveTab('read')}
+            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${
+              activeTab === 'read' 
+                ? 'border-slate-900 text-slate-900' 
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Lidas
+          </button>
+        </div>
+
+        <DropdownMenuSeparator className="my-0" />
+
+        {filteredNotifications.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-400">
+            {activeTab === 'unread' ? 'Nenhuma notificação não lida.' : 'Nenhuma notificação lida por enquanto.'}
           </div>
         ) : (
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.map((n) => (
+          <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100">
+            {filteredNotifications.map((n) => (
               <DropdownMenuItem 
                 key={n.id} 
-                className={`flex flex-col items-start p-4 cursor-pointer focus:bg-accent/50 ${!n.isRead ? 'bg-primary/5 border-l-4 border-l-primary' : ''}`}
+                className={`flex items-start p-4 cursor-pointer focus:bg-slate-50/80 relative group ${
+                  !n.isRead ? 'bg-slate-50/40' : 'bg-transparent'
+                }`}
                 onSelect={(e) => {
                   if (!n.isRead) {
                     e.preventDefault()
@@ -190,17 +233,34 @@ export function NotificationBell() {
                   }
                 }}
               >
-                <div className="flex w-full items-start justify-between gap-2">
-                  <span className={`text-sm ${!n.isRead ? 'font-bold text-foreground' : 'font-medium text-muted-foreground'}`}>
-                    {n.title || 'Informativo'}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap pt-0.5">
-                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
-                  </span>
+                <div className="flex flex-col items-start gap-1 w-full pr-6">
+                  <div className="flex w-full items-start justify-between gap-2">
+                    <span className={`text-xs ${!n.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-500'}`}>
+                      {n.title || 'Informativo'}
+                    </span>
+                    <span className="text-[9px] text-slate-400 whitespace-nowrap pt-0.5">
+                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
+                    </span>
+                  </div>
+                  <p className={`text-[11px] leading-relaxed ${!n.isRead ? 'text-slate-700' : 'text-slate-500'}`}>
+                    {n.content}
+                  </p>
                 </div>
-                <p className={`text-xs mt-1 leading-relaxed ${!n.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {n.content}
-                </p>
+
+                {/* Botão de Leitura Rápida */}
+                {!n.isRead && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handleMarkAsRead(n.id)
+                    }}
+                    className="absolute right-3 top-4 flex h-5 w-5 items-center justify-center rounded-md border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-500 hover:text-slate-700 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                    title="Marcar como lida"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </DropdownMenuItem>
             ))}
           </div>

@@ -65,3 +65,60 @@ Utilizar o mecanismo nativo de impressão do navegador (`window.print()`) custom
 *   Adicionar o ícone oficial da aplicação em formato SVG no diretório `public/icon.svg` composto por um raio com gradiente indigo-cyan de cantos arredondados, que servirá como ícone instalável e favicon do PWA.
 *   Declarar as meta-tags do PWA (theme-color, apple-touch-icon, apple-mobile-web-app-capable) no layout principal da aplicação.
 *   Essa abordagem garante a conformidade com as regras de PWA do Chrome/Safari sem sobrecarregar o build com service workers redundantes para offline caching complexo em uma aplicação de gestão autenticada de orçamentos.
+
+---
+
+## 7. Clonagem de Orçamentos
+
+### Decisão
+Implementar a funcionalidade de clonagem de orçamentos por meio da Server Action `cloneQuoteAction(quoteId: string)`. Esta action irá:
+1. Buscar os dados do orçamento original e seus respectivos itens (`quote_items`).
+2. Criar um novo orçamento com status inicial `draft`, copiando todos os campos de dados do orçamento original (cliente, valores, descontos, observações e título).
+3. Duplicar os itens do orçamento associando-os ao ID do novo orçamento clonado.
+4. Retornar o ID do orçamento clonado para o frontend realizar o redirecionamento imediato para a página de edição.
+
+### Racionais
+*   **Performance**: Realizar a duplicação diretamente no banco de dados minimiza chamadas de rede e processamento no cliente.
+*   **Integridade**: Salvar o orçamento clonado inicialmente como `draft` garante que o fluxo do ciclo de vida seja respeitado.
+
+---
+
+## 8. Alterações de Schema do Onboarding e Empresas
+
+### Decisão
+Alterar a tabela `public.companies` para:
+1. Adicionar a coluna `industry` (text, nullable) para armazenar o ramo de atuação selecionado pelo usuário.
+2. Modificar a coluna `phone` (text) para permitir valores nulos (`NULL`), refletindo a simplificação do formulário de onboarding.
+
+### Racionais
+*   **Simplicidade**: Remover a obrigatoriedade de telefone no onboarding reduz a taxa de abandono na integração inicial de novos usuários.
+*   **Estatístico**: Coletar o ramo de atuação sem alterar regras de fluxo, apenas para segmentação.
+
+---
+
+## 9. Sistema de Notificações com Tabs e Filtragem Temporal
+
+### Decisão
+*   **Separação em Abas (Tabs)**: Ajustar o componente de dropdown `NotificationBell` para permitir que o usuário filtre as notificações entre "Não lidas" e "Lidas" por meio de abas em um estado de UI local.
+*   **Filtragem de Novos Usuários**: Atualizar a lógica de busca das notificações para filtrar dinamicamente alertas cuja data de criação (`created_at`) seja anterior ao timestamp de criação da conta do perfil do usuário logado.
+
+### Racionais
+*   **Relevância**: Novos usuários não devem receber notificações legadas disparadas antes do seu registro no sistema.
+*   **Simplicidade de UI**: O uso de abas em memória no client-side garante respostas instantâneas ao alternar filtros de notificações sem novas requisições de rede.
+
+---
+
+## 10. Encerramento de Conta Seguro e Multi-Tenant
+
+### Decisão
+Criar a função Postgres `public.close_account()` rodando com privilégios de `SECURITY DEFINER` para:
+1. Obter o `user_id` do usuário logado via `auth.uid()`.
+2. Identificar os tenants (empresas) onde o usuário é associado.
+3. Se o usuário for o único proprietário/membro do tenant, realizar a exclusão lógica/física da empresa (tabela `companies`), o que disparará a exclusão em cascata (ON DELETE CASCADE) de todos os clientes, orçamentos e recibos associados ao tenant.
+4. Se existirem outros membros ativos no tenant, remover a associação de associação do usuário com o tenant, preservando os dados da empresa.
+5. Excluir o perfil do usuário em `public.profiles` e, finalmente, remover o usuário da tabela `auth.users`.
+No frontend, em `/app/settings`, expor uma seção de "Zona de Perigo" com um botão para acionar a exclusão segura, exibindo um Modal de confirmação dupla que exige a digitação da frase "ENCERRAR CONTA".
+
+### Racionais
+*   **Conformidade**: Garante a remoção completa de dados pessoais do usuário sob demanda (regras de privacidade/LGPD).
+*   **Integridade**: A exclusão em cascata baseada na presença de outros membros evita órfãos ou quebras em contas multi-tenant compartilhadas.

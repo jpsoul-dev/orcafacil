@@ -118,6 +118,66 @@ Como usuário do aplicativo (mobile ou desktop), eu quero que toda a interface g
 2. **Given** a página do cliente em `/app/customers/[id]` na aba "orçamentos", **When** a lista de orçamentos do cliente é exibida, **Then** os badges de indicação da situação dos orçamentos utilizam exatamente a mesma cor, tipografia e bordas que os badges da listagem geral `/app/quotes`.
 3. **Given** o acesso via dispositivo móvel, **When** o app é carregado, **Then** ele se adapta perfeitamente e oferece suporte para instalação na tela inicial como PWA (Progressive Web App).
 
+---
+
+### User Story 8 - Clonar Orçamento (Priority: P2)
+
+Como prestador de serviços, eu quero poder clonar um orçamento existente para gerar rapidamente uma nova proposta com dados pré-preenchidos de um cliente ou escopo semelhante, otimizando o meu tempo.
+
+**Why this priority**: Evita redigitação e retrabalho para propostas recorrentes ou muito parecidas.
+
+**Independent Test**: Clicar na ação "Clonar" em qualquer orçamento que não esteja em rascunho na listagem, e verificar se o sistema redireciona para a tela de criação com as informações pré-preenchidas e status inicial "Rascunho".
+
+**Acceptance Scenarios**:
+
+1. **Given** que o usuário deseja criar uma proposta parecida com uma existente que não seja rascunho, **When** ele seleciona a opção "Clonar" no menu de ações, **Then** o sistema o redireciona para a tela de criação de orçamento com os campos de cliente, itens e observações pré-preenchidos e o status do novo orçamento como "Rascunho".
+2. **Given** um orçamento na situação "Rascunho", **When** o usuário abre o menu de ações, **Then** a opção "Clonar" não é exibida.
+
+---
+
+### User Story 9 - Melhoria e Consistência nas Telas de Onboarding (Priority: P2)
+
+Como um novo usuário do sistema, eu quero passar por um processo de integração (onboarding) visualmente limpo, com identidade consistente e formulários simplificados, para que eu possa configurar meu perfil rapidamente e sem atrito.
+
+**Why this priority**: O onboarding é a primeira experiência do usuário. Telas limpas e com menos campos desnecessários reduzem o abandono de novos usuários.
+
+**Independent Test**: Registrar uma nova conta no sistema, acessar o fluxo de onboarding, confirmar a obrigatoriedade do ramo de atuação, verificar a ausência do campo de número de telefone e confirmar a coesão estética com o estilo Linear App.
+
+**Acceptance Scenarios**:
+
+1. **Given** um novo usuário realizando o primeiro acesso, **When** ele é direcionado para a tela de onboarding, **Then** o layout visual reflete as mesmas cores, tipografia e espaçamentos inspirados no Linear App.
+2. **Given** o formulário de onboarding, **When** o usuário preenche seus dados iniciais, **Then** ele deve selecionar obrigatoriamente o seu "Ramo de Atuação" a partir de uma lista pré-definida, e o campo de número de telefone não deve estar presente no formulário.
+
+---
+
+### User Story 10 - Sistema de Notificações Aprimorado (Priority: P2)
+
+Como prestador de serviços, eu quero gerenciar minhas notificações de forma eficiente, podendo marcar avisos como lidos para despoluir minha tela, ver meu histórico de mensagens lidas e não receber notificações retroativas criadas antes do meu cadastro.
+
+**Why this priority**: Melhora a usabilidade de alertas do sistema e evita que novos usuários recebam uma enxurrada de notificações antigas e irrelevantes.
+
+**Independent Test**: Marcar notificações de teste como lidas individualmente e em lote, navegar pelas abas "Lidas" e "Não lidas", e cadastrar um novo usuário para garantir que ele inicie com a caixa de notificações vazia.
+
+**Acceptance Scenarios**:
+
+1. **Given** que o usuário possui notificações pendentes, **When** ele clica no botão de marcar como lida em uma notificação individual ou clica em "Marcar todas como lidas", **Then** essas notificações saem da guia de "Não lidas" e são movidas para a guia de "Lidas".
+2. **Given** um novo usuário recém-cadastrado no sistema, **When** ele acessa o painel de notificações, **Then** ele não visualiza nenhuma notificação global cuja data de criação seja anterior ao seu timestamp de cadastro.
+
+---
+
+### User Story 11 - Encerramento Seguro de Conta (Priority: P2)
+
+Como usuário do sistema, eu quero ter a opção de encerrar minha conta de forma segura e definitiva através do painel de configurações, garantindo a privacidade e a remoção dos meus dados de acordo com as normas vigentes.
+
+**Why this priority**: Garante privacidade e autonomia do usuário sobre seus dados, além de conformidade regulatória.
+
+**Independent Test**: Clicar na opção "Encerrar Conta" nas configurações do perfil, confirmar a ação digitando o texto de segurança exigido, e validar se o usuário é deslogado, seus dados são apagados/desativados e o acesso é revogado.
+
+**Acceptance Scenarios**:
+
+1. **Given** que o usuário decide encerrar sua conta, **When** ele acessa `/app/settings` e clica em "Encerrar Conta", **Then** uma caixa de diálogo de confirmação é exibida detalhando as consequências da ação.
+2. **Given** a caixa de confirmação de encerramento de conta, **When** o usuário digita o texto de segurança e confirma a exclusão, **Then** o sistema executa o processo de desativação/exclusão da conta, encerra a sessão ativa e o redireciona para a página pública inicial.
+
 ### Edge Cases
 
 - **Validade do Orçamento Pendente**: Se um orçamento está como "Pendente" e passa do prazo limite configurado em `valid_until`, ele expira automaticamente. Ele não pode ser alterado para aprovado sem que a ação de "Reabrir" seja acionada para redefinir o prazo.
@@ -125,6 +185,8 @@ Como usuário do aplicativo (mobile ou desktop), eu quero que toda a interface g
 - **Restauração de Rascunhos**: Um orçamento que já foi publicado e passou para "Pendente" nunca pode voltar a ser um "Rascunho". Apenas orçamentos que nunca saíram do estado de "Rascunho" podem ser excluídos fisicamente.
 - **Acesso Privado Obrigatório**: O sistema deve impedir que qualquer pessoa sem sessão ativa (não autenticada) ou sem permissões de acesso ao tenant proprietário do orçamento visualize as telas de detalhes, impressão ou recibos de qualquer orçamento.
 - **Sidebar Recolhida em Desktop**: Quando a sidebar desktop for minimizada/recolhida, o texto descritivo dos itens de menu deve sumir por completo através de transições suaves, mantendo visíveis apenas os ícones centralizados de forma simétrica.
+- **Clonagem de Rascunho**: O sistema deve bloquear qualquer tentativa de clonagem de orçamentos cujo status atual seja `draft`.
+- **Exclusão de Conta com Múltiplos Usuários**: Se o usuário que solicita o encerramento da conta for o único proprietário de um tenant, todos os dados vinculados ao tenant (empresa, clientes, orçamentos, recibos) serão excluídos permanentemente em cascata. Caso existam outros membros ou proprietários ativos no mesmo tenant, apenas o usuário solicitante será removido e desassociado do tenant, mantendo os dados da empresa intactos.
 
 ## Requirements *(mandatory)*
 
@@ -166,6 +228,17 @@ Como usuário do aplicativo (mobile ou desktop), eu quero que toda a interface g
 - **FR-017**: Os campos de formulário que representam endereço em `/app/settings` MUST ser redesenhados para compartilhar exatamente a mesma estrutura de layout visual, alinhamento, grid CSS e inputs do formulário de endereço de clientes em `/app/customers`.
 - **FR-018**: Os badges indicadores do status do orçamento em `/app/customers/[id]` MUST utilizar os mesmos estilos, cores (baseadas no status) e espaçamento adotados na listagem em `/app/quotes`.
 - **FR-019**: A listagem de orçamentos MUST conter um menu de ações contextual em cada linha (usando Dropdown Menu) com opções baseadas na situação do registro para: Imprimir Orçamento, Mudar Status, Reabrir (se vencido), Excluir (somente rascunhos) e Gerar Recibo (somente concluídos).
+- **FR-020**: O sistema MUST permitir a clonagem de orçamentos cuja situação atual seja diferente de `draft` a partir do menu de ações na listagem de orçamentos.
+- **FR-021**: Ao clonar um orçamento, o sistema MUST redirecionar o usuário para a página de criação de orçamentos pré-preenchendo todos os dados (dados do cliente, itens e valores) e inicializando seu status como `draft`.
+- **FR-022**: O sistema MUST exigir que o usuário selecione obrigatoriamente o seu "Ramo de Atuação" (ex: Prestação de Serviços, Freelancer, Marcenaria, Agência de Marketing, Consultoria) durante o processo de onboarding, sendo este campo utilizado exclusivamente para fins cadastrais e estatísticos (sem impacto funcional no fluxo de criação de orçamentos).
+- **FR-023**: O sistema MUST remover a solicitação de número de telefone do usuário no formulário de onboarding.
+- **FR-024**: O sistema MUST permitir que o usuário marque notificações individuais como lidas através de um botão de ação rápida no painel de notificações.
+- **FR-025**: O sistema MUST disponibilizar uma funcionalidade para marcar todas as notificações ativas do usuário como lidas em um único clique.
+- **FR-026**: O sistema MUST estruturar a visualização de notificações em duas abas principais ("Não lidas" e "Lidas").
+- **FR-027**: O sistema MUST filtrar as notificações globais do sistema, exibindo apenas aquelas cujo timestamp de criação seja posterior ao timestamp de cadastro do usuário.
+- **FR-028**: O sistema MUST exibir um botão "Encerrar Conta" nas configurações do usuário (`/app/settings`) que inicie um fluxo seguro de exclusão da conta.
+- **FR-029**: O sistema MUST solicitar confirmação explícita de segurança na caixa de diálogo de encerramento de conta antes de processar a exclusão.
+- **FR-030**: O sistema MUST deslogar o usuário e revogar todos os seus privilégios de acesso imediatamente após o encerramento da conta ser processado.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -180,6 +253,10 @@ Como usuário do aplicativo (mobile ou desktop), eu quero que toda a interface g
     - `services_description` (descrição livre dos serviços prestados).
     - `issued_at` (data do recibo).
     - `quote_id` (associação 1:1 com o orçamento original).
+- **Profile (Perfil do Usuário)**: Informações cadastrais do usuário e negócio.
+  - Atributos a adicionar: `industry` (ramo de atuação, textual/enum, obrigatório no onboarding), `phone` (removido do fluxo de onboarding e tornado opcional).
+- **Notification (Notificação)**: Registro de alertas do sistema.
+  - Atributos a adicionar/modificar: `is_read` (booleano, padrão false), `read_at` (timestamp, opcional), `created_at` (timestamp de criação).
 
 ## Success Criteria *(mandatory)*
 
@@ -193,6 +270,8 @@ Como usuário do aplicativo (mobile ou desktop), eu quero que toda a interface g
 - **SC-006**: A sidebar recolhida no desktop ou visualizada no mobile não apresenta nenhum overflow horizontal ou ícones sobrepostos em 100% dos testes de responsividade.
 - **SC-007**: Os campos de endereço na tela de configurações (`app/settings`) e no cadastro de clientes possuem exatamente as mesmas margens, paddings, larguras de coluna e estilos de input.
 - **SC-008**: O aplicativo atende aos critérios de PWA (detecção de manifesto e instalabilidade básica do navegador) em dispositivos móveis e desktop.
+- **SC-009**: O usuário consegue clonar um orçamento e visualizar a tela de novo orçamento pré-preenchida em menos de 3 segundos após o clique.
+- **SC-010**: A marcação de uma ou de todas as notificações como lidas é refletida visualmente de imediato (menos de 500ms) sem necessidade de atualizar a página.
 
 ## Assumptions
 
@@ -201,3 +280,6 @@ Como usuário do aplicativo (mobile ou desktop), eu quero que toda a interface g
 - **A-003**: O recibo gerado utiliza as mesmas informações de cabeçalho da empresa (logo, nome, contato) já cadastradas nas configurações de perfil do usuário.
 - **A-004**: O cálculo do valor por extenso pode ser feito via biblioteca auxiliar do lado do cliente ou formatado de forma simplificada em texto dinâmico.
 - **A-005**: A melhoria visual no estilo Linear utilizará as primitivas CSS/Tailwind configuradas na aplicação (Tailwind CSS v4 + shadcn/ui).
+- **A-006**: A listagem de ramos de atuação no onboarding será pré-definida e estática, não exigindo gerenciamento dinâmico pelo banco nesta fase.
+- **A-007**: Notificações lidas serão mantidas no banco de dados com a flag `is_read = true`, permitindo sua consulta futura na aba "Lidas".
+- **A-008**: O encerramento seguro de conta envolve a destruição dos dados do usuário e do tenant via cascade triggers ou funções Postgres seguras, respeitando a privacidade dos dados.

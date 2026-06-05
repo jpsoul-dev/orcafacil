@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const settingsSchema = z.object({
   name: z.string().min(1, 'Nome da empresa é obrigatório'),
@@ -48,7 +49,6 @@ export async function saveCompanySettings(formData: FormData) {
     const validatedData = validation.data
     const logoFile = formData.get('logo') as File | null
     let logo_url = formData.get('existing_logo_url') as string
-
 
     if (logoFile && logoFile.size > 0) {
       const fileExt = logoFile.name.split('.').pop()
@@ -102,7 +102,7 @@ export async function saveCompanySettings(formData: FormData) {
     revalidatePath('/app/settings')
     return { success: true }
   } catch (error) {
-    console.error('Error in saveCompanySettings:', error)
+    logger.error('Error in saveCompanySettings:', error)
     return {
       success: false,
       error: 'Ocorreu um erro inesperado ao salvar as configurações.',

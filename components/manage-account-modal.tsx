@@ -202,29 +202,6 @@ export function ManageAccountModal({
                   </Button>
                 </form>
               </div>
-
-              <div className="pt-6 border-t">
-                <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-destructive/10 text-destructive">
-                      <ShieldCheck className="size-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-semibold text-destructive">
-                        Excluir conta
-                      </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        Ao excluir sua conta, todos os seus dados serão
-                        removidos permanentemente. Esta ação não pode ser
-                        desfeita.
-                      </p>
-                    </div>
-                  </div>
-                  <Button variant="destructive" className="h-10">
-                    Encerrar conta
-                  </Button>
-                </div>
-              </div>
             </TabsContent>
           </div>
         </Tabs>

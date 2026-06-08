@@ -62,7 +62,8 @@ export async function saveQuote(data: QuoteInput) {
       p_discount_value: quoteData.discount_value || 0,
       p_notes: quoteData.notes || null,
       p_items: items,
-      p_user_id: user.id
+      p_user_id: user.id,
+      p_payment_method: quoteData.payment_method || null
     })
 
     if (!rpcError && result) {

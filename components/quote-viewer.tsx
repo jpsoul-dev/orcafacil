@@ -117,7 +117,7 @@ export interface Quote {
   discount_type: 'percentage' | 'fixed'
   total: number
   notes?: string
-  payment_method?: string
+  payment_method?: string | string[] | null
   customer_id: string
   customer: Customer
   company: Company
@@ -517,6 +517,9 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           <Table>
             <TableHeader>
               <TableRow className="border-b-2 border-slate-100 hover:bg-transparent">
+                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-center w-[6%] px-0">
+                  Nº
+                </TableHead>
                 <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 px-0">
                   Descrição
                 </TableHead>
@@ -540,6 +543,9 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                   key={i}
                   className="border-b border-slate-50 hover:bg-transparent group"
                 >
+                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium w-[6%] px-0">
+                    {i + 1}
+                  </TableCell>
                   <TableCell className="py-5 px-0">
                     <span className="text-sm font-black text-slate-800">
                       {item.item_name}
@@ -566,6 +572,12 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
         {/* TOTALS SECTION */}
         <div className="flex justify-end mb-24">
           <div className="w-full max-w-[320px] space-y-4">
+            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+              <span className="text-slate-400 font-medium">Total de itens</span>
+              <span className="font-bold text-slate-900 tabular-nums">
+                {quote.items?.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0) || 0}
+              </span>
+            </div>
             <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
               <span className="text-slate-400 font-medium">Valor total</span>
               <span className="font-bold text-slate-900 tabular-nums">
@@ -602,23 +614,37 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           </div>
         </div>
 
-        {/* NOTES SECTION */}
-        {quote.notes && (
-          <div className="mb-24 pt-8 border-t border-slate-100">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-              Anotações
-            </h4>
-            <p className="text-sm text-slate-500 leading-relaxed italic">
-              {`"${quote.notes}"`}
-            </p>
-            {quote.payment_method && (
-              <p className="text-sm text-slate-900 font-bold mt-4">
-                Forma de Pagamento:{' '}
-                <span className="uppercase">{quote.payment_method}</span>
-              </p>
-            )}
-          </div>
-        )}
+        {/* TERMOS E CONDIÇÕES */}
+        {(() => {
+          const paymentMethodsString = (() => {
+            if (!quote.payment_method) return ''
+            if (Array.isArray(quote.payment_method)) {
+              return quote.payment_method.filter(Boolean).join(', ')
+            }
+            return quote.payment_method
+          })()
+
+          if (!quote.notes && !paymentMethodsString) return null
+
+          return (
+            <div className="mb-24 pt-8 border-t border-slate-100">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                Termos e condições
+              </h4>
+              {quote.notes && (
+                <p className="text-sm text-slate-500 leading-relaxed italic">
+                  {`"${quote.notes}"`}
+                </p>
+              )}
+              {paymentMethodsString && (
+                <p className="text-sm text-slate-900 font-semibold mt-4">
+                  Formas de Pagamento aceitas:{' '}
+                  <span className="text-slate-600 font-normal">{paymentMethodsString}</span>
+                </p>
+              )}
+            </div>
+          )
+        })()}
 
         {/* SIGNATURES */}
         <div className="mt-auto pt-16">

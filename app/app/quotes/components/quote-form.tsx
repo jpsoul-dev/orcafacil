@@ -72,7 +72,7 @@ export interface QuoteWithItems {
   valid_until?: string | null
   discount_type?: 'none' | 'percentage' | 'fixed'
   discount_value?: number
-  payment_method?: string
+  payment_method?: string[] | null
   notes?: string | null
   quote_items?: {
     catalog_item_id: string | null
@@ -112,7 +112,7 @@ const quoteSchema = z.object({
     .nullable(),
   discount_type: z.enum(['none', '%', 'R$']),
   discount_value: z.coerce.number().min(0),
-  payment_method: z.string().optional(),
+  payment_method: z.array(z.string()).optional().nullable(),
   notes: z.string().optional().nullable(),
   items: z
     .array(quoteItemSchema)
@@ -157,6 +157,15 @@ export function QuoteForm({
       }))
     : []
 
+  const defaultPaymentMethods = (() => {
+    if (!initialData?.payment_method) return ['Pix']
+    if (Array.isArray(initialData.payment_method)) return initialData.payment_method
+    if (typeof initialData.payment_method === 'string') {
+      return (initialData.payment_method as string).split(',').map((m) => m.trim()).filter(Boolean)
+    }
+    return ['Pix']
+  })()
+
   const form = useForm<QuoteValues>({
     resolver: zodResolver(quoteSchema) as Resolver<QuoteValues>,
     defaultValues: {
@@ -172,7 +181,7 @@ export function QuoteForm({
             ? 'R$'
             : 'R$',
       discount_value: initialData?.discount_value || 0,
-      payment_method: initialData?.payment_method || 'Pix',
+      payment_method: defaultPaymentMethods,
       notes: initialData?.notes || '',
       items: defaultItems,
     },
@@ -201,8 +210,10 @@ export function QuoteForm({
     name: 'payment_method',
   })
 
-  const { subtotalFinal, totalFinal } = useMemo(() => {
+  const { subtotalFinal, totalFinal, totalItemsCount } = useMemo(() => {
+    let itemsCount = 0
     const sub = (watchItems || []).reduce((acc, item) => {
+      itemsCount += Number(item.quantity) || 0
       return acc + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0)
     }, 0)
 
@@ -214,6 +225,7 @@ export function QuoteForm({
     return {
       subtotalFinal: sub,
       totalFinal: Math.max(0, tot),
+      totalItemsCount: itemsCount,
     }
   }, [watchItems, watchDiscountType, watchDiscountValue])
 
@@ -442,7 +454,8 @@ export function QuoteForm({
               <table className="w-full text-sm text-left border-collapse">
                 <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                   <tr>
-                    <th className="pr-2 pb-3 w-[45%]">Item</th>
+                    <th className="pr-2 pb-3 text-center w-[6%]">Nº</th>
+                    <th className="pr-2 pb-3 w-[39%]">Item</th>
                     <th className="px-2 pb-3 text-center w-[12%]">Qtd</th>
                     <th className="px-2 pb-3 text-center w-[20%]">
                       Preço (R$)
@@ -454,6 +467,11 @@ export function QuoteForm({
                 <tbody className="divide-y divide-slate-50">
                   {fields.map((field, index) => (
                     <tr key={field.id} className="group">
+                      <td className="pr-2 py-4 align-top text-center text-slate-500 font-medium text-sm">
+                        <div className="h-10 flex items-center justify-center">
+                          {index + 1}
+                        </div>
+                      </td>
                       <td className="pr-2 py-4 align-top">
                         <div className="relative">
                           <Input
@@ -705,44 +723,57 @@ export function QuoteForm({
         </CardHeader>
         <CardContent className="p-6 space-y-6 pt-2">
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-full">
               <Label className="text-[13px] font-semibold text-slate-700">
-                Forma de pagamento
+                Formas de pagamento disponibilizadas para o cliente
               </Label>
-              <Select
-                onValueChange={(val) =>
-                  form.setValue('payment_method', val as string)
-                }
-                value={watchPaymentMethod}
-              >
-                <SelectTrigger className="h-10 border-slate-200 rounded-md bg-white">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent
-                  alignItemWithTrigger={false}
-                  side="bottom"
-                  sideOffset={4}
-                  className="rounded-xl border-slate-200"
-                >
-                  {[
-                    'Pix',
-                    'Dinheiro',
-                    'Cartão de Crédito',
-                    'Cartão de Débito',
-                    'Boleto Bancário',
-                    'Cheque',
-                  ].map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {[
+                  'Pix',
+                  'Dinheiro',
+                  'Cartão de Crédito',
+                  'Cartão de Débito',
+                  'Boleto Bancário',
+                  'Cheque',
+                ].map((method) => {
+                  const currentMethods = Array.isArray(watchPaymentMethod) ? watchPaymentMethod : []
+                  const isSelected = currentMethods.includes(method)
+                  return (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => {
+                        let newMethods: string[]
+                        if (isSelected) {
+                          newMethods = currentMethods.filter((m) => m !== method)
+                        } else {
+                          newMethods = [...currentMethods, method]
+                        }
+                        form.setValue('payment_method', newMethods)
+                      }}
+                      className={cn(
+                        "flex items-center justify-center text-center px-3 h-10 text-xs font-bold rounded-lg border transition-all cursor-pointer",
+                        isSelected
+                          ? "bg-slate-900 border-slate-900 text-white shadow-sm"
+                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                      )}
+                    >
+                      {method}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
           <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-end">
             <div className="w-full max-w-[320px] space-y-3">
+              <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium border-b border-slate-100/50 pb-2">
+                <span>Total de itens</span>
+                <span className="tabular-nums text-slate-700">
+                  {totalItemsCount}
+                </span>
+              </div>
               <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
                 <span>Subtotal</span>
                 <span className="tabular-nums text-slate-700">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -29,7 +29,7 @@ interface ReceiptFormProps {
     quote_number: number
     title?: string | null
     total: number
-    payment_method?: string | null
+    payment_method?: string | string[] | null
     customer: {
       name: string
       document: string
@@ -49,6 +49,22 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
+  const availableMethods = useMemo(() => {
+    if (!quote.payment_method) return []
+    if (Array.isArray(quote.payment_method)) {
+      return quote.payment_method.filter(Boolean)
+    }
+    if (typeof quote.payment_method === 'string') {
+      return (quote.payment_method as string)
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean)
+    }
+    return []
+  }, [quote.payment_method])
+
+  const defaultPaymentMethod = initialData?.payment_method ?? (availableMethods[0] || 'Pix')
+
   const defaultTitle = initialData?.title || 
     (quote.title 
       ? `Recibo de Quitação - ${quote.title}`
@@ -59,7 +75,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
     quoteId: quote.id,
     title: defaultTitle,
     amount: initialData?.amount ?? quote.total,
-    paymentMethod: initialData?.payment_method ?? quote.payment_method ?? 'Pix',
+    paymentMethod: defaultPaymentMethod,
     servicesDescription: initialData?.services_description ?? '',
     issuedAt: initialData?.issued_at ?? new Date().toISOString().split('T')[0],
   }
@@ -168,14 +184,17 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-slate-200">
-                        {[
-                          'Pix',
-                          'Dinheiro',
-                          'Cartão de Crédito',
-                          'Cartão de Débito',
-                          'Boleto Bancário',
-                          'Cheque',
-                        ].map((method) => (
+                        {(availableMethods.length > 0
+                          ? availableMethods
+                          : [
+                              'Pix',
+                              'Dinheiro',
+                              'Cartão de Crédito',
+                              'Cartão de Débito',
+                              'Boleto Bancário',
+                              'Cheque',
+                            ]
+                        ).map((method) => (
                           <SelectItem key={method} value={method}>
                             {method}
                           </SelectItem>

@@ -34,6 +34,7 @@ export const quoteSchema = z.object({
   shipping_value: z.coerce.number().optional(),
   notes: z.string().optional().nullable(),
   cancellation_reason: z.string().optional().nullable(),
+  payment_method: z.array(z.string()).optional().nullable(),
   items: z.array(quoteItemSchema),
 })
 

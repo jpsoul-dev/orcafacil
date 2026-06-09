@@ -51,7 +51,7 @@ export async function saveReceipt(data: ReceiptInput, userId: string) {
     // 1. Validar a propriedade do orçamento (Evitar escalação de privilégios)
     const { data: quote, error: quoteError } = await supabase
       .from('quotes')
-      .select('id, status')
+      .select('id, total, status')
       .eq('id', data.quoteId)
       .eq('user_id', userId)
       .single()
@@ -74,7 +74,7 @@ export async function saveReceipt(data: ReceiptInput, userId: string) {
         .from('quote_receipts')
         .update({
           title: data.title,
-          amount: data.amount,
+          amount: quote.total, // Proteção backend: ignora input de amount do cliente e usa o total real do banco
           payment_method: data.paymentMethod,
           services_description: data.servicesDescription,
           issued_at: data.issuedAt,
@@ -110,7 +110,7 @@ export async function saveReceipt(data: ReceiptInput, userId: string) {
           quote_id: data.quoteId,
           receipt_number: receiptNumber,
           title: data.title,
-          amount: data.amount,
+          amount: quote.total, // Proteção backend: ignora input de amount do cliente e usa o total real do banco
           payment_method: data.paymentMethod,
           services_description: data.servicesDescription,
           issued_at: data.issuedAt,

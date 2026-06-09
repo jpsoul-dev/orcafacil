@@ -28,7 +28,7 @@ export default async function SettingsPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Meu negócio</h2>
           <p className="text-muted-foreground text-sm">
-            Informações que aparecerão nos seus orçamentos.
+            Atualize os dados do seu negócio.
           </p>
         </div>
       </div>

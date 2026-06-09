@@ -77,7 +77,7 @@ export function CustomerForm({
   const [loading, setLoading] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
   const lastSearchedCep = useRef<string>('')
-  
+
   const { isExpired, openUpgradeModal } = useSubscription()
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -249,7 +249,6 @@ export function CustomerForm({
                   <Input
                     id="name"
                     {...form.register('name')}
-                    placeholder="Ex: Maria Silva"
                     className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
                   />
                   {form.formState.errors.name && (
@@ -277,7 +276,7 @@ export function CustomerForm({
                           field.onChange(maskPhone(e.target.value))
                         }
                         className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
-                        placeholder="(11) 9 9999-9999"
+                        placeholder="(00) 0 0000-0000"
                         maxLength={15}
                       />
                     )}
@@ -307,7 +306,6 @@ export function CustomerForm({
                             else masked = maskCNPJ(e.target.value)
                             field.onChange(masked)
                           }}
-                          placeholder="000.000.000-00 ou 00.000.000/0000-00"
                           className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
                           maxLength={18}
                         />
@@ -328,7 +326,6 @@ export function CustomerForm({
                     type="email"
                     {...form.register('email')}
                     className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
-                    placeholder="email@exemplo.com"
                   />
                   {form.formState.errors.email && (
                     <p className="text-xs text-red-500">
@@ -355,7 +352,7 @@ export function CustomerForm({
                           field.onChange(maskPhone(e.target.value))
                         }
                         className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
-                        placeholder="(11) 9 9999-9999"
+                        placeholder="(00) 0 0000-0000"
                         maxLength={15}
                       />
                     )}

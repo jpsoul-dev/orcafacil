@@ -148,7 +148,6 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
               <Input
                 id="name"
                 {...form.register('name')}
-                placeholder="Ex: Minha Empresa"
                 className="h-10"
               />
               {form.formState.errors.name && (
@@ -224,7 +223,6 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                       else masked = maskCNPJ(e.target.value)
                       field.onChange(masked)
                     }}
-                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
                     className="h-10"
                     maxLength={18}
                   />
@@ -244,7 +242,6 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                 id="email"
                 type="email"
                 {...form.register('email')}
-                placeholder="exemplo@dominio.com"
                 className="h-10"
               />
               {form.formState.errors.email && (

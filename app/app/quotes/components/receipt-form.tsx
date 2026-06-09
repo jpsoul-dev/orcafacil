@@ -157,7 +157,6 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
                 <Input
                   id="title"
                   {...register('title')}
-                  placeholder="Ex: Recibo de Quitação - Serviços de Pintura"
                   className={`h-10 border-slate-200 rounded-lg bg-white ${errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
                 {errors.title && (

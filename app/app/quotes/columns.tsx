@@ -71,7 +71,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Código',
     cell: ({ row }) => {
       const isDraft = row.original.status === 'draft'
-      const targetUrl = isDraft 
+      const targetUrl = isDraft
         ? `/app/quotes/${row.original.id}/edit`
         : `/app/quotes/${row.original.id}`
       return (
@@ -236,7 +236,7 @@ export const columns: ColumnDef<Quote>[] = [
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Ações</DropdownMenuLabel>
               </DropdownMenuGroup>
-              
+
               {!isDraft && (
                 <>
                   <DropdownMenuItem
@@ -248,7 +248,7 @@ export const columns: ColumnDef<Quote>[] = [
                       />
                     }
                   >
-                    <Eye className="h-4 w-4" /> Ver detalhes
+                    <Eye className="h-4 w-4" /> Ver orçamento
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => printViaIframe(`/app/quotes/${quote.id}?print=true`)}
@@ -281,7 +281,7 @@ export const columns: ColumnDef<Quote>[] = [
                   >
                     <Pencil className="h-4 w-4" /> Editar rascunho
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuItem
                     onClick={handleDelete}
                     className="cursor-pointer flex items-center gap-2 text-red-600 focus:text-red-600 font-medium"
@@ -340,7 +340,7 @@ export const columns: ColumnDef<Quote>[] = [
                   <DropdownMenuGroup>
                     <DropdownMenuLabel className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Mudar Status</DropdownMenuLabel>
                   </DropdownMenuGroup>
-                  
+
                   {quote.status === 'draft' && (
                     <DropdownMenuItem
                       onClick={() => handleUpdateStatus('pending')}

@@ -99,17 +99,17 @@ export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-            Recibos de Quitação
+            Meus recibos
           </h2>
           <p className="text-slate-500 text-sm mt-1">
-            Gerencie recibos avulsos ou vinculados a orçamentos.
+            Gerencie seus recibos
           </p>
         </div>
         <div className="flex items-center gap-2">
           <SubscriptionGuard>
             <Link href="/app/receipts/new">
               <Button className="h-10 font-bold bg-slate-950 hover:bg-slate-800 text-white gap-2 rounded-lg">
-                <Plus className="h-4 w-4" /> Criar Recibo Avulso
+                <Plus className="h-4 w-4" /> Criar Recibo
               </Button>
             </Link>
           </SubscriptionGuard>

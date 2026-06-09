@@ -159,14 +159,14 @@ export function QuoteForm({
 
   const defaultItems = initialData?.quote_items?.length
     ? initialData.quote_items.map((i) => ({
-        catalog_item_id: i.catalog_item_id,
-        item_name: i.item_name,
-        quantity: i.quantity,
-        unit_price: i.unit_price,
-        subtotal: i.subtotal,
-        discount_type: (i.discount_type === 'percentage' ? '%' : i.discount_type === 'fixed' ? 'R$' : 'none') as 'none' | '%' | 'R$',
-        discount_value: i.discount_value || 0,
-      }))
+      catalog_item_id: i.catalog_item_id,
+      item_name: i.item_name,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+      subtotal: i.subtotal,
+      discount_type: (i.discount_type === 'percentage' ? '%' : i.discount_type === 'fixed' ? 'R$' : 'none') as 'none' | '%' | 'R$',
+      discount_value: i.discount_value || 0,
+    }))
     : []
 
   const defaultPaymentMethods = (() => {
@@ -369,7 +369,7 @@ export function QuoteForm({
                   htmlFor="show_quote_number"
                   className="text-xs font-medium text-slate-500 cursor-pointer select-none"
                 >
-                  Exibir número do orçamento no documento
+                  Exibir número do orçamento
                 </Label>
               </div>
             </div>
@@ -397,7 +397,7 @@ export function QuoteForm({
                               'w-full justify-between text-left font-normal h-10 border-slate-200 rounded-md bg-white',
                               !field.value && 'text-muted-foreground',
                               form.formState.errors.valid_until &&
-                                'border-red-500 focus-visible:ring-red-500',
+                              'border-red-500 focus-visible:ring-red-500',
                             )}
                           />
                         }
@@ -617,10 +617,10 @@ export function QuoteForm({
                                 value={
                                   field.value
                                     ? maskCurrency(
-                                        Math.round(
-                                          field.value * 100,
-                                        ).toString(),
-                                      )
+                                      Math.round(
+                                        field.value * 100,
+                                      ).toString(),
+                                    )
                                     : ''
                                 }
                                 onChange={(e) => {
@@ -632,7 +632,7 @@ export function QuoteForm({
                                         .replace(',', '.'),
                                     ) || 0
                                   field.onChange(raw)
- 
+
                                   const qty =
                                     Number(
                                       form.getValues(`items.${index}.quantity`),
@@ -690,16 +690,16 @@ export function QuoteForm({
                                 onChange={(e) => {
                                   const newType = e.target.value as 'none' | '%' | 'R$'
                                   field.onChange(newType)
-                                  
+
                                   const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
                                   const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
                                   let discVal = Number(form.getValues(`items.${index}.discount_value`)) || 0
-                                  
+
                                   if (newType === 'none') {
                                     form.setValue(`items.${index}.discount_value`, 0)
                                     discVal = 0
                                   }
-                                  
+
                                   const gross = round2(qty * price)
                                   let discountMoney = 0
                                   if (newType === '%') {
@@ -715,7 +715,7 @@ export function QuoteForm({
                                     }
                                     discountMoney = round2(discVal)
                                   }
-                                  
+
                                   form.setValue(
                                     `items.${index}.subtotal`,
                                     round2(gross - discountMoney),
@@ -729,14 +729,14 @@ export function QuoteForm({
                               </select>
                             )}
                           />
-                          
+
                           <Controller
                             name={`items.${index}.discount_value` as const}
                             control={form.control}
                             render={({ field }) => {
                               const type = form.watch(`items.${index}.discount_type`) || 'none'
                               const isNone = type === 'none'
-                              
+
                               return (
                                 <Input
                                   type={type === 'R$' ? 'text' : 'number'}
@@ -762,28 +762,28 @@ export function QuoteForm({
                                     } else {
                                       raw = parseFloat(e.target.value) || 0
                                     }
-                                    
+
                                     raw = Math.max(0, raw)
-                                    
+
                                     const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
                                     const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
                                     const gross = round2(qty * price)
-                                    
+
                                     if (type === '%') {
                                       if (raw > 100) raw = 100
                                     } else if (type === 'R$') {
                                       if (raw > gross) raw = gross
                                     }
-                                    
+
                                     field.onChange(raw)
-                                    
+
                                     let discountMoney = 0
                                     if (type === '%') {
                                       discountMoney = round2(gross * (raw / 100))
                                     } else if (type === 'R$') {
                                       discountMoney = round2(raw)
                                     }
-                                    
+
                                     form.setValue(
                                       `items.${index}.subtotal`,
                                       round2(gross - discountMoney),
@@ -809,11 +809,11 @@ export function QuoteForm({
                                 const gross = round2(qty * price)
                                 const discVal = Number(watchItems[index]?.discount_value) || 0
                                 const type = watchItems[index]?.discount_type || 'none'
-                                
+
                                 const discountMoney = type === '%'
                                   ? round2(gross * (discVal / 100))
                                   : round2(discVal)
-                                  
+
                                 return `(- ${brl(discountMoney)})`
                               })()}
                             </span>
@@ -1095,10 +1095,10 @@ export function QuoteForm({
                                   watchDiscountType === 'R$'
                                     ? field.value
                                       ? maskCurrency(
-                                          Math.round(
-                                            field.value * 100,
-                                          ).toString(),
-                                        )
+                                        Math.round(
+                                          field.value * 100,
+                                        ).toString(),
+                                      )
                                       : ''
                                     : field.value || ''
                                 }
@@ -1161,7 +1161,7 @@ export function QuoteForm({
       <Card className="rounded-[12px] border-slate-200 shadow-sm overflow-hidden bg-white">
         <CardHeader className="p-6 pb-2">
           <CardTitle className="text-[16px] font-bold text-slate-800">
-            Observações
+            Termos e condições
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-2">

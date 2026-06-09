@@ -17,6 +17,7 @@ O projeto foi construído utilizando tecnologias modernas de nível empresarial,
 *   **React Hook Form** – Gerenciamento de estado de formulários performático com renderizações mínimas.
 *   **Zod** – Validação de esquemas e inferência de tipos robusta, garantindo a integridade dos dados tanto no cliente quanto no servidor.
 *   **@hookform/resolvers** – Integração transparente entre Zod e React Hook Form.
+* **datefns** – Manipulação de datas.
 
 ### **Backend, Banco de Dados & Infraestrutura (BaaS)**
 *   **Supabase** – Backend-as-a-Service (BaaS) alimentado por **PostgreSQL**.

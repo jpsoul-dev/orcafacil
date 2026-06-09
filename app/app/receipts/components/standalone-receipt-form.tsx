@@ -79,11 +79,11 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
 
   const defaultItems = initialData?.items?.length
     ? initialData.items.map((i) => ({
-        item_name: i.item_name,
-        quantity: i.quantity,
-        unit_price: i.unit_price,
-        subtotal: i.subtotal,
-      }))
+      item_name: i.item_name,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+      subtotal: i.subtotal,
+    }))
     : []
 
   const defaultValues: StandaloneReceiptInput = {
@@ -218,7 +218,6 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                 <Input
                   id="title"
                   {...register('title')}
-                  placeholder="Ex: Recibo de Quitação - Prestação de Consultoria"
                   className={`h-10 border-slate-200 rounded-lg bg-white ${errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
                 {errors.title && (
@@ -402,7 +401,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                           <div className="h-10 flex items-center justify-end text-[14px] text-slate-800 font-bold tabular-nums">
                             {brl(
                               (Number(watchItems[index]?.quantity) || 0) *
-                                (Number(watchItems[index]?.unit_price) || 0)
+                              (Number(watchItems[index]?.unit_price) || 0)
                             )}
                           </div>
                         </td>

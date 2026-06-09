@@ -82,7 +82,10 @@ export async function deleteReceiptAction(receiptId: string, quoteId: string) {
   }
 }
 
-export async function saveStandaloneReceiptAction(data: StandaloneReceiptInput) {
+export async function saveStandaloneReceiptAction(data: StandaloneReceiptInput): Promise<
+  | { success: true; id: string }
+  | { success: false; error: string }
+> {
   try {
     const supabase = await createClient()
     const {
@@ -114,9 +117,10 @@ export async function saveStandaloneReceiptAction(data: StandaloneReceiptInput) 
       } catch (revalidateError) {
         logger.warn('Revalidation failed in saveStandaloneReceiptAction:', revalidateError)
       }
+      return { success: true, id: result.id as string }
     }
 
-    return result
+    return { success: false, error: result.error || 'Erro ao salvar o recibo avulso.' }
   } catch (error) {
     logger.error('Error in saveStandaloneReceiptAction:', error)
     return { success: false, error: 'Erro interno ao salvar o recibo avulso.' }

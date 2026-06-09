@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCompanySettings } from './actions'
-import { maskCEP } from '@/lib/masks'
+import { maskCEP, maskCNPJ } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,7 @@ import {
 const settingsSchema = z.object({
   name: z.string().min(1, 'Nome da empresa é obrigatório'),
   phone: z.string().min(1, 'Telefone é obrigatório'),
+  cnpj: z.string().optional(),
   address_zip: z.string().optional(),
   address_street: z.string().optional(),
   address_number: z.string().optional(),
@@ -42,6 +43,7 @@ export interface Company {
   name: string
   phone: string
   logo_url: string | null
+  cnpj?: string | null
   address_zip?: string | null
   address_street?: string | null
   address_number?: string | null
@@ -65,6 +67,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
     defaultValues: {
       name: initialData?.name || '',
       phone: initialData?.phone || '',
+      cnpj: initialData?.cnpj || '',
       address_zip: initialData?.address_zip || '',
       address_street: initialData?.address_street || '',
       address_number: initialData?.address_number || '',
@@ -231,6 +234,30 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
               {form.formState.errors.phone && (
                 <p className="text-xs text-destructive">
                   {form.formState.errors.phone.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="cnpj" className="font-medium text-sm">
+                CNPJ
+              </Label>
+              <Controller
+                name="cnpj"
+                control={form.control}
+                render={({ field }) => (
+                  <Input
+                    id="cnpj"
+                    {...field}
+                    onChange={(e) => field.onChange(maskCNPJ(e.target.value))}
+                    placeholder="00.000.000/0000-00"
+                    className="h-10"
+                    maxLength={18}
+                  />
+                )}
+              />
+              {form.formState.errors.cnpj && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.cnpj.message}
                 </p>
               )}
             </div>

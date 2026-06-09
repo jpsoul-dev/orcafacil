@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger'
 const settingsSchema = z.object({
   name: z.string().min(1, 'Nome da empresa é obrigatório'),
   phone: z.string().min(1, 'Telefone é obrigatório'),
+  cnpj: z.string().optional().nullable(),
   address_zip: z.string().optional().nullable(),
   address_street: z.string().optional().nullable(),
   address_number: z.string().optional().nullable(),
@@ -32,6 +33,7 @@ export async function saveCompanySettings(formData: FormData) {
     const rawData = {
       name: formData.get('name') as string,
       phone: formData.get('phone') as string,
+      cnpj: formData.get('cnpj') as string,
       address_zip: formData.get('address_zip') as string,
       address_street: formData.get('address_street') as string,
       address_number: formData.get('address_number') as string,

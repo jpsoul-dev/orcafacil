@@ -10,7 +10,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Separator } from '@/components/ui/separator'
-import { deleteReceiptAction } from '../receipt-actions'
+import { deleteReceiptAction, deleteStandaloneReceiptAction } from '../receipt-actions'
 import { formatBRL } from '@/lib/utils'
 import {
   AlertDialog,
@@ -79,9 +79,10 @@ interface Quote {
 interface ReceiptViewerProps {
   receipt: Receipt
   quote: Quote
+  isStandalone?: boolean
 }
 
-export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
+export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptViewerProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -104,10 +105,12 @@ export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const result = await deleteReceiptAction(receipt.id, quote.id)
+      const result = isStandalone
+        ? await deleteStandaloneReceiptAction(receipt.id)
+        : await deleteReceiptAction(receipt.id, quote.id)
       if (result.success) {
         toast.success('Recibo excluído com sucesso!')
-        router.push(`/app/quotes/${quote.id}`)
+        router.push(isStandalone ? '/app/receipts' : `/app/quotes/${quote.id}`)
         router.refresh()
       } else {
         toast.error(result.error || 'Erro ao excluir o recibo.')
@@ -151,7 +154,7 @@ export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link
-              href={`/app/quotes/${quote.id}`}
+              href={isStandalone ? '/app/receipts' : `/app/quotes/${quote.id}`}
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'sm' }),
                 "h-9 gap-2 font-bold text-slate-600"
@@ -164,7 +167,7 @@ export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
 
           <div className="flex items-center gap-2">
             <Link
-              href={`/app/quotes/${quote.id}/receipt/edit`}
+              href={isStandalone ? `/app/receipts/${receipt.id}/edit` : `/app/quotes/${quote.id}/receipt/edit`}
               className={cn(
                 buttonVariants({ variant: 'outline', size: 'sm' }),
                 "h-9 gap-2 border-slate-200 font-bold text-slate-700"
@@ -335,7 +338,7 @@ export function ReceiptViewer({ receipt, quote }: ReceiptViewerProps) {
         {/* DETALHE PEQUENO DO SISTEMA NO RODAPÉ */}
         <div className="absolute bottom-4 left-0 right-0 px-12 flex justify-between items-center text-[9px] text-slate-400 font-bold tracking-wider opacity-40 print:hidden">
           <span>Orca Fácil — Recibos de Quitação</span>
-          <span>Orçamento Ref: #{quote.quote_number}</span>
+          <span>{isStandalone ? 'Recibo Avulso' : `Orçamento Ref: #${quote.quote_number}`}</span>
         </div>
       </div>
     </div>

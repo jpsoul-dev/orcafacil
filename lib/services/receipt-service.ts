@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { ReceiptInput } from '@/app/app/quotes/schemas'
+import { ReceiptInput, StandaloneReceiptInput } from '@/app/app/quotes/schemas'
 
 export async function getReceiptByQuoteId(quoteId: string) {
   try {
@@ -149,5 +149,98 @@ export async function deleteReceipt(receiptId: string, userId: string) {
   } catch (error) {
     logger.error('CRITICAL: deleteReceipt failed:', error)
     return { success: false, error: 'Ocorreu um erro inesperado ao excluir o recibo.' }
+  }
+}
+
+export async function saveStandaloneReceipt(data: StandaloneReceiptInput, userId: string) {
+  try {
+    const supabase = await createClient()
+
+    const { data: result, error: rpcError } = await supabase.rpc('upsert_receipt_with_items', {
+      p_receipt_id: data.id || null,
+      p_customer_id: data.customerId,
+      p_title: data.title,
+      p_amount: data.amount,
+      p_payment_method: data.paymentMethod,
+      p_services_description: data.servicesDescription,
+      p_issued_at: data.issuedAt,
+      p_items: data.items,
+      p_user_id: userId
+    })
+
+    if (rpcError) {
+      logger.error('Error executing RPC upsert_receipt_with_items:', rpcError)
+      return { success: false, error: rpcError.message || 'Erro ao salvar o recibo avulso no banco de dados.' }
+    }
+
+    return { success: true, id: result.id }
+  } catch (error) {
+    logger.error('CRITICAL: saveStandaloneReceipt failed:', error)
+    return { success: false, error: 'Ocorreu um erro inesperado ao salvar o recibo avulso.' }
+  }
+}
+
+export async function getStandaloneReceiptDetails(receiptId: string, userId: string) {
+  try {
+    const supabase = await createClient()
+
+    // 1. Busca o recibo avulso na tabela quote_receipts
+    const { data: receipt, error: receiptError } = await supabase
+      .from('quote_receipts')
+      .select('*')
+      .eq('id', receiptId)
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (receiptError || !receipt) {
+      logger.error('Error fetching standalone receipt:', receiptError)
+      return null
+    }
+
+    // 2. Busca os itens do recibo na tabela receipt_items
+    const { data: items, error: itemsError } = await supabase
+      .from('receipt_items')
+      .select('*')
+      .eq('receipt_id', receiptId)
+      .order('created_at', { ascending: true })
+
+    if (itemsError) {
+      logger.error('Error fetching standalone receipt items:', itemsError)
+      return null
+    }
+
+    // 3. Busca o cliente associado ao recibo
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', receipt.customer_id)
+      .maybeSingle()
+
+    if (customerError || !customer) {
+      logger.error('Error fetching standalone receipt customer:', customerError)
+      return null
+    }
+
+    // 4. Busca a empresa do usuário
+    const { data: company, error: companyError } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (companyError || !company) {
+      logger.error('Error fetching company details:', companyError)
+      return null
+    }
+
+    return {
+      receipt,
+      items: items || [],
+      customer,
+      company
+    }
+  } catch (error) {
+    logger.error('CRITICAL: getStandaloneReceiptDetails failed:', error)
+    return null
   }
 }

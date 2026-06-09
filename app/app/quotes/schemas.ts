@@ -58,3 +58,25 @@ export type QuoteItemInput = z.infer<typeof quoteItemSchema>
 export type QuoteStatus = z.infer<typeof statusSchema>
 export type ReceiptInput = z.infer<typeof receiptSchema>
 
+export const standaloneReceiptItemSchema = z.object({
+  id: z.string().uuid().optional(),
+  item_name: z.string().min(1, 'Nome do item obrigatório'),
+  quantity: z.coerce.number().min(0.01, 'Quantidade deve ser maior que zero'),
+  unit_price: z.coerce.number().min(0, 'Preço unitário deve ser maior ou igual a zero'),
+  subtotal: z.coerce.number()
+})
+
+export const standaloneReceiptSchema = z.object({
+  id: z.string().uuid().optional(),
+  customerId: z.string().uuid('Selecione um cliente'),
+  title: z.string().min(1, 'O título do recibo é obrigatório'),
+  amount: z.coerce.number().min(0.01, 'O valor do recibo deve ser maior que zero'),
+  paymentMethod: z.string().min(1, 'A forma de pagamento é obrigatória'),
+  servicesDescription: z.string().min(1, 'A descrição dos serviços é obrigatória'),
+  issuedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de emissão inválida (formato AAAA-MM-DD)'),
+  items: z.array(standaloneReceiptItemSchema).min(1, 'Adicione pelo menos um item ao recibo')
+})
+
+export type StandaloneReceiptItemInput = z.infer<typeof standaloneReceiptItemSchema>
+export type StandaloneReceiptInput = z.infer<typeof standaloneReceiptSchema>
+

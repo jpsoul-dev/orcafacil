@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, CreditCard, ShieldCheck } from "lucide-react"
+import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, CreditCard, ShieldCheck, Receipt } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -34,6 +34,7 @@ import { ManageAccountModal } from "@/components/manage-account-modal"
 const mainItems = [
   { title: "Painel", url: "/app", icon: LayoutDashboard, exact: true },
   { title: "Orçamentos", url: "/app/quotes", icon: FileText },
+  { title: "Recibos", url: "/app/receipts", icon: Receipt },
   { title: "Clientes", url: "/app/customers", icon: Users },
   { title: "Catálogo", url: "/app/catalog", icon: Package },
 ]

@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCompanySettings } from './actions'
-import { maskCEP, maskCNPJ } from '@/lib/masks'
+import { maskCEP, maskCNPJ, maskCPF, maskPhone } from '@/lib/masks'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,8 +23,10 @@ import {
 } from '@/components/ui/select'
 
 const settingsSchema = z.object({
-  name: z.string().min(1, 'Nome da empresa é obrigatório'),
-  phone: z.string().min(1, 'Telefone é obrigatório'),
+  name: z.string().min(1, 'Nome do negócio é obrigatório'),
+  phone: z.string().optional(),
+  whatsapp: z.string().optional(),
+  email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   cnpj: z.string().optional(),
   address_zip: z.string().optional(),
   address_street: z.string().optional(),
@@ -41,8 +43,10 @@ export interface Company {
   id: string
   user_id: string
   name: string
-  phone: string
-  logo_url: string | null
+  phone?: string | null
+  whatsapp?: string | null
+  email?: string | null
+  logo_url?: string | null
   cnpj?: string | null
   address_zip?: string | null
   address_street?: string | null
@@ -56,9 +60,6 @@ export interface Company {
 
 export function SettingsForm({ initialData }: { initialData: Company | null }) {
   const [loading, setLoading] = useState(false)
-  const [logoPreview, setLogoPreview] = useState<string | null>(
-    initialData?.logo_url || null,
-  )
   const [searchingCEP, setSearchingCEP] = useState(false)
   const lastSearchedCep = useRef<string>('')
 
@@ -67,6 +68,8 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
     defaultValues: {
       name: initialData?.name || '',
       phone: initialData?.phone || '',
+      whatsapp: initialData?.whatsapp || '',
+      email: initialData?.email || '',
       cnpj: initialData?.cnpj || '',
       address_zip: initialData?.address_zip || '',
       address_street: initialData?.address_street || '',
@@ -84,30 +87,12 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
     Object.entries(data).forEach(([key, value]) =>
       formData.append(key, value || ''),
     )
-    const fileInput = document.getElementById('logo') as HTMLInputElement
-    if (fileInput?.files?.[0]) formData.append('logo', fileInput.files[0])
-    if (initialData?.logo_url)
-      formData.append('existing_logo_url', initialData.logo_url)
     const result = await saveCompanySettings(formData)
     setLoading(false)
     if (result.error) {
       toast.error(result.error)
     } else {
       toast.success('Configurações salvas!')
-    }
-  }
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('A imagem deve ter no máximo 2MB')
-        e.target.value = ''
-        return
-      }
-      const reader = new FileReader()
-      reader.onloadend = () => setLogoPreview(reader.result as string)
-      reader.readAsDataURL(file)
     }
   }
 
@@ -146,73 +131,24 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      {/* Card Logotipo */}
-      <Card className="border-border/60 shadow-sm">
-        <CardHeader className="pb-3 pt-5 px-6">
-          <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            <ImageIcon className="h-4 w-4" />
-            Logotipo
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 pb-5">
-          <div className="flex items-start gap-5">
-            <div className="shrink-0">
-              {logoPreview ? (
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-border shadow-sm">
-                  <Image
-                    src={logoPreview}
-                    alt="Logo"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="w-20 h-20 rounded-xl border-2 border-dashed border-border bg-muted/50 flex flex-col items-center justify-center text-muted-foreground">
-                  <Building2 className="h-6 w-6 mb-1" />
-                  <span className="text-[10px] font-medium">Sem logo</span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1 space-y-2">
-              <label htmlFor="logo" className="cursor-pointer">
-                <div className="flex items-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground hover:bg-muted/60 hover:border-muted-foreground/40 transition-all">
-                  <Upload className="h-4 w-4 shrink-0" />
-                  <span>Clique para selecionar uma imagem</span>
-                </div>
-                <Input
-                  id="logo"
-                  type="file"
-                  accept="image/png, image/jpeg"
-                  onChange={handleLogoChange}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-muted-foreground">
-                PNG ou JPG, recomendado 500×500px, máximo 2MB
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Card Dados da Empresa */}
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-3 pt-5 px-6">
           <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
             <Building2 className="h-4 w-4" />
-            Informações da Empresa
+            Informações do Negócio
           </CardTitle>
         </CardHeader>
         <CardContent className="px-6 pb-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="name" className="font-medium text-sm">
-                Nome da Empresa *
+                Nome do negócio *
               </Label>
               <Input
                 id="name"
                 {...form.register('name')}
-                placeholder="Sua Empresa LTDA"
+                placeholder="Ex: Minha Empresa"
                 className="h-10"
               />
               {form.formState.errors.name && (
@@ -223,13 +159,21 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="phone" className="font-medium text-sm">
-                Telefone / WhatsApp *
+                Telefone
               </Label>
-              <Input
-                id="phone"
-                {...form.register('phone')}
-                placeholder="(00) 00000-0000"
-                className="h-10"
+              <Controller
+                name="phone"
+                control={form.control}
+                render={({ field }) => (
+                  <Input
+                    id="phone"
+                    {...field}
+                    onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                    placeholder="(00) 00000-0000"
+                    className="h-10"
+                    maxLength={15}
+                  />
+                )}
               />
               {form.formState.errors.phone && (
                 <p className="text-xs text-destructive">
@@ -237,9 +181,33 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                 </p>
               )}
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="whatsapp" className="font-medium text-sm">
+                WhatsApp
+              </Label>
+              <Controller
+                name="whatsapp"
+                control={form.control}
+                render={({ field }) => (
+                  <Input
+                    id="whatsapp"
+                    {...field}
+                    onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                    placeholder="(00) 00000-0000"
+                    className="h-10"
+                    maxLength={15}
+                  />
+                )}
+              />
+              {form.formState.errors.whatsapp && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.whatsapp.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="cnpj" className="font-medium text-sm">
-                CNPJ
+                CPF/CNPJ
               </Label>
               <Controller
                 name="cnpj"
@@ -248,8 +216,15 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                   <Input
                     id="cnpj"
                     {...field}
-                    onChange={(e) => field.onChange(maskCNPJ(e.target.value))}
-                    placeholder="00.000.000/0000-00"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '')
+                      let masked = e.target.value
+                      if (val.length <= 11)
+                        masked = maskCPF(e.target.value)
+                      else masked = maskCNPJ(e.target.value)
+                      field.onChange(masked)
+                    }}
+                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
                     className="h-10"
                     maxLength={18}
                   />
@@ -258,6 +233,23 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
               {form.formState.errors.cnpj && (
                 <p className="text-xs text-destructive">
                   {form.formState.errors.cnpj.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="font-medium text-sm">
+                E-mail
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                {...form.register('email')}
+                placeholder="exemplo@dominio.com"
+                className="h-10"
+              />
+              {form.formState.errors.email && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.email.message}
                 </p>
               )}
             </div>

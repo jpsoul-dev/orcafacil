@@ -7,8 +7,10 @@ import { z } from 'zod'
 import { logger } from '@/lib/logger'
 
 const settingsSchema = z.object({
-  name: z.string().min(1, 'Nome da empresa é obrigatório'),
-  phone: z.string().min(1, 'Telefone é obrigatório'),
+  name: z.string().min(1, 'Nome do negócio é obrigatório'),
+  phone: z.string().optional().nullable(),
+  whatsapp: z.string().optional().nullable(),
+  email: z.string().email('E-mail inválido').optional().nullable().or(z.literal('')),
   cnpj: z.string().optional().nullable(),
   address_zip: z.string().optional().nullable(),
   address_street: z.string().optional().nullable(),
@@ -33,6 +35,8 @@ export async function saveCompanySettings(formData: FormData) {
     const rawData = {
       name: formData.get('name') as string,
       phone: formData.get('phone') as string,
+      whatsapp: formData.get('whatsapp') as string,
+      email: formData.get('email') as string,
       cnpj: formData.get('cnpj') as string,
       address_zip: formData.get('address_zip') as string,
       address_street: formData.get('address_street') as string,
@@ -49,31 +53,9 @@ export async function saveCompanySettings(formData: FormData) {
     }
 
     const validatedData = validation.data
-    const logoFile = formData.get('logo') as File | null
-    let logo_url = formData.get('existing_logo_url') as string
-
-    if (logoFile && logoFile.size > 0) {
-      const fileExt = logoFile.name.split('.').pop()
-      const filePath = `${randomUUID()}.${fileExt}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('company-logos')
-        .upload(filePath, logoFile, { upsert: true })
-
-      if (uploadError) {
-        return { success: false, error: 'Falha ao fazer upload da logo' }
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from('company-logos')
-        .getPublicUrl(filePath)
-
-      logo_url = publicUrlData.publicUrl
-    }
 
     const companyData = {
       user_id: user.id,
-      logo_url,
       ...validatedData,
     }
 

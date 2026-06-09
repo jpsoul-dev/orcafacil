@@ -97,7 +97,10 @@ export interface Customer {
 export interface Company {
   name: string
   logo_url?: string
-  phone: string
+  phone?: string
+  whatsapp?: string
+  cnpj?: string
+  email?: string
   address_street?: string
   address_number?: string
   address_neighborhood?: string
@@ -457,7 +460,14 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 {quote.company?.name || 'Sua Empresa'}
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                {maskPhone(quote.company?.phone)}
+                {[
+                  quote.company?.phone && `Tel: ${maskPhone(quote.company.phone)}`,
+                  quote.company?.whatsapp && `Whats: ${maskPhone(quote.company.whatsapp)}`,
+                  quote.company?.email && `E-mail: ${quote.company.email}`,
+                  quote.company?.cnpj && `CNPJ/CPF: ${quote.company.cnpj}`,
+                ]
+                  .filter(Boolean)
+                  .join(' | ')}
               </p>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                 {[

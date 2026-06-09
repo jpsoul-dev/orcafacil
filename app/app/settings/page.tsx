@@ -26,7 +26,7 @@ export default async function SettingsPage() {
           <Settings className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Configurações da Empresa</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Meu negócio</h2>
           <p className="text-muted-foreground text-sm">
             Informações que aparecerão nos seus orçamentos.
           </p>

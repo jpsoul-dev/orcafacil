@@ -76,6 +76,7 @@ export default async function ReceiptEditPage({ params }: PageProps) {
       name: quote.customer?.name || 'Cliente',
       document: quote.customer?.document || '',
     },
+    items: quote.items || [],
   }
 
   return (

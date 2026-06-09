@@ -69,9 +69,11 @@ export default async function ReceiptDetailsPage({ params }: PageProps) {
   const quoteDataForViewer = {
     id: quote.id,
     quote_number: quote.quote_number,
+    title: quote.title,
     company: {
       name: quote.company?.name || 'Empresa',
       phone: quote.company?.phone || '',
+      cnpj: quote.company?.cnpj || '',
       address_street: quote.company?.address_street,
       address_number: quote.company?.address_number,
       address_neighborhood: quote.company?.address_neighborhood,
@@ -91,6 +93,7 @@ export default async function ReceiptDetailsPage({ params }: PageProps) {
       address_state: quote.customer?.address_state,
       address_zip: quote.customer?.address_zip,
     },
+    items: quote.items || [],
   }
 
   return (

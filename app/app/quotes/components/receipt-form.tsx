@@ -34,6 +34,13 @@ interface ReceiptFormProps {
       name: string
       document: string
     }
+    items?: Array<{
+      item_name: string
+      quantity: number
+      unit_price: number
+      subtotal: number
+      unit_measure?: string | null
+    }>
   }
   initialData?: {
     id: string
@@ -65,9 +72,9 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
 
   const defaultPaymentMethod = initialData?.payment_method ?? (availableMethods[0] || 'Pix')
 
-  const defaultTitle = initialData?.title || 
-    (quote.title 
-      ? `Recibo de Quitação - ${quote.title}`
+  const defaultTitle = initialData?.title ||
+    (quote.title
+      ? `${quote.title}`
       : `Recibo de Quitação - Orçamento #${quote.quote_number}`)
 
   const defaultValues: ReceiptInput = {
@@ -76,8 +83,14 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
     title: defaultTitle,
     amount: initialData?.amount ?? quote.total,
     paymentMethod: defaultPaymentMethod,
-    servicesDescription: initialData?.services_description ?? '',
-    issuedAt: initialData?.issued_at ?? new Date().toISOString().split('T')[0],
+    servicesDescription: initialData?.services_description ?? 'Confirmamos o recebimento dos produtos/serviços descritos.',
+    issuedAt: initialData?.issued_at ?? (() => {
+      const today = new Date()
+      const year = today.getFullYear()
+      const month = String(today.getMonth() + 1).padStart(2, '0')
+      const day = String(today.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    })(),
   }
 
   const {
@@ -121,7 +134,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
           <h2 className="text-xl font-bold tracking-tight text-slate-800">
             {initialData ? 'Editar Recibo' : 'Emitir Recibo de Quitação'}
           </h2>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-sm text-slate-500 font-medium">
             Orçamento #{quote.quote_number} — Cliente: {quote.customer.name}
           </p>
         </div>
@@ -132,10 +145,10 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
           <CardHeader className="p-6 pb-2">
             <CardTitle className="text-base font-bold text-slate-800">Dados do Recibo</CardTitle>
             <CardDescription className="text-xs">
-              Preencha as informações para a impressão do documento de quitação física.
+              Confirme as informações para emissão do recibo.
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 pt-4 space-y-4">
+          <CardContent className="p-6 pt-4 space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="title" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -152,24 +165,8 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="amount" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Valor Recebido (R$) <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  {...register('amount')}
-                  className={`h-10 border-slate-200 rounded-lg bg-white ${errors.amount ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                />
-                <p className="text-[10px] text-slate-400 font-medium">
-                  Valor de referência do orçamento: <span className="font-bold">{formatBRL(quote.total)}</span>
-                </p>
-                {errors.amount && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.amount.message}</p>
-                )}
-              </div>
+              {/* Valor do Recibo registrado de forma oculta */}
+              <input type="hidden" {...register('amount')} />
 
               <div className="space-y-2">
                 <Label htmlFor="paymentMethod" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -187,13 +184,13 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
                         {(availableMethods.length > 0
                           ? availableMethods
                           : [
-                              'Pix',
-                              'Dinheiro',
-                              'Cartão de Crédito',
-                              'Cartão de Débito',
-                              'Boleto Bancário',
-                              'Cheque',
-                            ]
+                            'Pix',
+                            'Dinheiro',
+                            'Cartão de Crédito',
+                            'Cartão de Débito',
+                            'Boleto Bancário',
+                            'Cheque',
+                          ]
                         ).map((method) => (
                           <SelectItem key={method} value={method}>
                             {method}
@@ -223,19 +220,18 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
                 )}
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="servicesDescription" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Descrição dos Serviços Prestados <span className="text-red-500">*</span>
+                Descrição <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="servicesDescription"
-                placeholder="Descreva detalhadamente os serviços prestados que estão sendo quitados por este recibo..."
+                placeholder="Confirmamos o recebimento dos produtos/serviços descritos."
                 {...register('servicesDescription')}
                 className={`min-h-[140px] resize-none border-slate-200 rounded-lg bg-white ${errors.servicesDescription ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
-              <p className="text-[10px] text-slate-400 font-medium">
-                Esta descrição sairá impressa no corpo do recibo físico.
+              <p className="text-xs text-slate-400 font-medium">
+                Esta descrição sairá impressa no corpo do recibo.
               </p>
               {errors.servicesDescription && (
                 <p className="text-xs text-red-500 font-semibold">{errors.servicesDescription.message}</p>
@@ -243,6 +239,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
             </div>
           </CardContent>
         </Card>
+
 
         <div className="flex items-center justify-end gap-3">
           <Link href={`/app/quotes/${quote.id}`}>

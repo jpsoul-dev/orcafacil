@@ -37,6 +37,7 @@ export const quoteSchema = z.object({
   notes: z.string().optional().nullable(),
   cancellation_reason: z.string().optional().nullable(),
   payment_method: z.array(z.string()).optional().nullable(),
+  show_quote_number: z.boolean().optional().default(true),
   items: z.array(quoteItemSchema),
 })
 

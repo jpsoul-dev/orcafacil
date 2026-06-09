@@ -74,6 +74,7 @@ export interface QuoteWithItems {
   discount_value?: number
   payment_method?: string[] | null
   notes?: string | null
+  show_quote_number?: boolean
   quote_items?: {
     catalog_item_id: string | null
     item_name: string
@@ -118,6 +119,7 @@ const quoteSchema = z.object({
   discount_value: z.coerce.number().min(0),
   payment_method: z.array(z.string()).optional().nullable(),
   notes: z.string().optional().nullable(),
+  show_quote_number: z.boolean().optional().default(true),
   items: z
     .array(quoteItemSchema)
     .min(1, 'Adicione pelo menos um item ao orçamento'),
@@ -193,6 +195,7 @@ export function QuoteForm({
       discount_value: initialData?.discount_value || 0,
       payment_method: defaultPaymentMethods,
       notes: initialData?.notes || '',
+      show_quote_number: initialData?.show_quote_number ?? true,
       items: defaultItems,
     },
   })
@@ -348,6 +351,27 @@ export function QuoteForm({
                 {...form.register('title')}
                 className="h-10 border-slate-200 rounded-md bg-white"
               />
+              <div className="flex items-center gap-2 pt-1">
+                <Controller
+                  name="show_quote_number"
+                  control={form.control}
+                  render={({ field }) => (
+                    <input
+                      type="checkbox"
+                      id="show_quote_number"
+                      checked={field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className="rounded border-slate-300 text-slate-900 focus:ring-slate-500 h-4 w-4 cursor-pointer accent-slate-900"
+                    />
+                  )}
+                />
+                <Label
+                  htmlFor="show_quote_number"
+                  className="text-xs font-medium text-slate-500 cursor-pointer select-none"
+                >
+                  Exibir número do orçamento no documento
+                </Label>
+              </div>
             </div>
             <div className="space-y-2">
               <Label

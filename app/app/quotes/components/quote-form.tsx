@@ -80,6 +80,8 @@ export interface QuoteWithItems {
     quantity: number
     unit_price: number
     subtotal: number
+    discount_type?: 'none' | 'percentage' | 'fixed' | null
+    discount_value?: number | null
   }[]
 }
 
@@ -89,6 +91,8 @@ const quoteItemSchema = z.object({
   quantity: z.coerce.number().min(0.01),
   unit_price: z.coerce.number().min(0),
   subtotal: z.number(),
+  discount_type: z.enum(['none', '%', 'R$']).optional().nullable().default('none'),
+  discount_value: z.coerce.number().optional().nullable().default(0),
 })
 
 const quoteSchema = z.object({
@@ -126,6 +130,10 @@ const brl = (val: number) =>
     val,
   )
 
+const round2 = (num: number): number => {
+  return Math.round((num + Number.EPSILON) * 100) / 100
+}
+
 export function QuoteForm({
   customers,
   catalogItems,
@@ -154,6 +162,8 @@ export function QuoteForm({
         quantity: i.quantity,
         unit_price: i.unit_price,
         subtotal: i.subtotal,
+        discount_type: (i.discount_type === 'percentage' ? '%' : i.discount_type === 'fixed' ? 'R$' : 'none') as 'none' | '%' | 'R$',
+        discount_value: i.discount_value || 0,
       }))
     : []
 
@@ -214,17 +224,17 @@ export function QuoteForm({
     let itemsCount = 0
     const sub = (watchItems || []).reduce((acc, item) => {
       itemsCount += Number(item.quantity) || 0
-      return acc + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0)
+      return acc + (Number(item.subtotal) || 0)
     }, 0)
 
     let tot = sub
     const dv = Number(watchDiscountValue) || 0
-    if (watchDiscountType === '%') tot -= tot * (dv / 100)
+    if (watchDiscountType === '%') tot -= round2(tot * (dv / 100))
     else if (watchDiscountType === 'R$') tot -= dv
 
     return {
       subtotalFinal: sub,
-      totalFinal: Math.max(0, tot),
+      totalFinal: Math.max(0, round2(tot)),
       totalItemsCount: itemsCount,
     }
   }, [watchItems, watchDiscountType, watchDiscountValue])
@@ -239,6 +249,8 @@ export function QuoteForm({
       quantity: 1,
       unit_price: item.unit_price,
       subtotal: item.unit_price,
+      discount_type: 'none',
+      discount_value: 0,
     })
     setOpenCatalogModal(false)
     setCatalogSearch('')
@@ -251,6 +263,8 @@ export function QuoteForm({
       quantity: 1,
       unit_price: 0,
       subtotal: 0,
+      discount_type: 'none',
+      discount_value: 0,
     })
   }
 
@@ -273,9 +287,20 @@ export function QuoteForm({
           ? 'fixed'
           : 'none'
 
+    const dbItems = data.items.map((item) => ({
+      ...item,
+      discount_type: (item.discount_type === '%'
+        ? 'percentage'
+        : item.discount_type === 'R$'
+          ? 'fixed'
+          : 'none') as 'none' | 'percentage' | 'fixed',
+      discount_value: Number(item.discount_value) || 0,
+    }))
+
     setLoading(true)
     const result = await saveQuote({
       ...data,
+      items: dbItems,
       discount_type: dbDiscountType,
       id: mode === 'edit' ? initialData?.id : undefined,
       status,
@@ -454,13 +479,16 @@ export function QuoteForm({
               <table className="w-full text-sm text-left border-collapse">
                 <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                   <tr>
-                    <th className="pr-2 pb-3 text-center w-[6%]">Nº</th>
-                    <th className="pr-2 pb-3 w-[39%]">Item</th>
-                    <th className="px-2 pb-3 text-center w-[12%]">Qtd</th>
-                    <th className="px-2 pb-3 text-center w-[20%]">
+                    <th className="pr-2 pb-3 text-center w-[5%]">Nº</th>
+                    <th className="pr-2 pb-3 w-[30%]">Item</th>
+                    <th className="px-2 pb-3 text-center w-[10%]">Qtd</th>
+                    <th className="px-2 pb-3 text-center w-[18%]">
                       Preço (R$)
                     </th>
-                    <th className="px-2 pb-3 text-right w-[18%]">Total</th>
+                    <th className="px-2 pb-3 text-center w-[18%]">
+                      Desconto
+                    </th>
+                    <th className="px-2 pb-3 text-right w-[14%]">Total</th>
                     <th className="w-[5%] pb-3 text-right"></th>
                   </tr>
                 </thead>
@@ -511,9 +539,37 @@ export function QuoteForm({
                                         `items.${index}.unit_price`,
                                       ),
                                     ) || 0
+                                  const type =
+                                    form.getValues(
+                                      `items.${index}.discount_type`,
+                                    ) || 'none'
+                                  let discVal =
+                                    Number(
+                                      form.getValues(
+                                        `items.${index}.discount_value`,
+                                      ),
+                                    ) || 0
+
+                                  const gross = round2(qty * price)
+
+                                  if (type === 'R$' && discVal > gross) {
+                                    form.setValue(
+                                      `items.${index}.discount_value`,
+                                      gross,
+                                    )
+                                    discVal = gross
+                                  }
+
+                                  let discountMoney = 0
+                                  if (type === '%') {
+                                    discountMoney = round2(gross * (discVal / 100))
+                                  } else if (type === 'R$') {
+                                    discountMoney = round2(discVal)
+                                  }
+
                                   form.setValue(
                                     `items.${index}.subtotal`,
-                                    qty * price,
+                                    round2(gross - discountMoney),
                                   )
                                 },
                               },
@@ -552,14 +608,42 @@ export function QuoteForm({
                                         .replace(',', '.'),
                                     ) || 0
                                   field.onChange(raw)
-
+ 
                                   const qty =
                                     Number(
                                       form.getValues(`items.${index}.quantity`),
                                     ) || 0
+                                  const type =
+                                    form.getValues(
+                                      `items.${index}.discount_type`,
+                                    ) || 'none'
+                                  let discVal =
+                                    Number(
+                                      form.getValues(
+                                        `items.${index}.discount_value`,
+                                      ),
+                                    ) || 0
+
+                                  const gross = round2(qty * raw)
+
+                                  if (type === 'R$' && discVal > gross) {
+                                    form.setValue(
+                                      `items.${index}.discount_value`,
+                                      gross,
+                                    )
+                                    discVal = gross
+                                  }
+
+                                  let discountMoney = 0
+                                  if (type === '%') {
+                                    discountMoney = round2(gross * (discVal / 100))
+                                  } else if (type === 'R$') {
+                                    discountMoney = round2(discVal)
+                                  }
+
                                   form.setValue(
                                     `items.${index}.subtotal`,
-                                    qty * raw,
+                                    round2(gross - discountMoney),
                                   )
                                 }}
                                 className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-1"
@@ -571,11 +655,144 @@ export function QuoteForm({
                           </div>
                         </div>
                       </td>
+                      <td className="px-2 py-4 align-top">
+                        <div className="flex h-10 border border-slate-200 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+                          <Controller
+                            name={`items.${index}.discount_type` as const}
+                            control={form.control}
+                            render={({ field }) => (
+                              <select
+                                value={field.value || 'none'}
+                                onChange={(e) => {
+                                  const newType = e.target.value as 'none' | '%' | 'R$'
+                                  field.onChange(newType)
+                                  
+                                  const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
+                                  const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
+                                  let discVal = Number(form.getValues(`items.${index}.discount_value`)) || 0
+                                  
+                                  if (newType === 'none') {
+                                    form.setValue(`items.${index}.discount_value`, 0)
+                                    discVal = 0
+                                  }
+                                  
+                                  const gross = round2(qty * price)
+                                  let discountMoney = 0
+                                  if (newType === '%') {
+                                    if (discVal > 100) {
+                                      form.setValue(`items.${index}.discount_value`, 100)
+                                      discVal = 100
+                                    }
+                                    discountMoney = round2(gross * (discVal / 100))
+                                  } else if (newType === 'R$') {
+                                    if (discVal > gross) {
+                                      form.setValue(`items.${index}.discount_value`, gross)
+                                      discVal = gross
+                                    }
+                                    discountMoney = round2(discVal)
+                                  }
+                                  
+                                  form.setValue(
+                                    `items.${index}.subtotal`,
+                                    round2(gross - discountMoney),
+                                  )
+                                }}
+                                className="h-full bg-slate-100 text-slate-700 text-xs px-2 border-r border-slate-200 outline-none shrink-0 font-medium cursor-pointer"
+                              >
+                                <option value="none">Sem desc.</option>
+                                <option value="%">%</option>
+                                <option value="R$">R$</option>
+                              </select>
+                            )}
+                          />
+                          
+                          <Controller
+                            name={`items.${index}.discount_value` as const}
+                            control={form.control}
+                            render={({ field }) => {
+                              const type = form.watch(`items.${index}.discount_type`) || 'none'
+                              const isNone = type === 'none'
+                              
+                              return (
+                                <Input
+                                  type={type === 'R$' ? 'text' : 'number'}
+                                  disabled={isNone}
+                                  placeholder={isNone ? '---' : type === 'R$' ? '0,00' : '0'}
+                                  min="0"
+                                  max={type === '%' ? '100' : undefined}
+                                  step={type === '%' ? '1' : '0.01'}
+                                  value={
+                                    isNone
+                                      ? ''
+                                      : type === 'R$'
+                                        ? field.value
+                                          ? maskCurrency(Math.round(field.value * 100).toString())
+                                          : ''
+                                        : field.value || ''
+                                  }
+                                  onChange={(e) => {
+                                    let raw = 0
+                                    if (type === 'R$') {
+                                      const masked = maskCurrency(e.target.value)
+                                      raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
+                                    } else {
+                                      raw = parseFloat(e.target.value) || 0
+                                    }
+                                    
+                                    raw = Math.max(0, raw)
+                                    
+                                    const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
+                                    const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
+                                    const gross = round2(qty * price)
+                                    
+                                    if (type === '%') {
+                                      if (raw > 100) raw = 100
+                                    } else if (type === 'R$') {
+                                      if (raw > gross) raw = gross
+                                    }
+                                    
+                                    field.onChange(raw)
+                                    
+                                    let discountMoney = 0
+                                    if (type === '%') {
+                                      discountMoney = round2(gross * (raw / 100))
+                                    } else if (type === 'R$') {
+                                      discountMoney = round2(raw)
+                                    }
+                                    
+                                    form.setValue(
+                                      `items.${index}.subtotal`,
+                                      round2(gross - discountMoney),
+                                    )
+                                  }}
+                                  className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-2 disabled:bg-slate-50 disabled:text-slate-400"
+                                />
+                              )
+                            }}
+                          />
+                        </div>
+                      </td>
                       <td className="px-2 py-4 align-top text-right">
-                        <div className="h-10 flex items-center justify-end text-[14px] text-slate-800 font-bold tabular-nums">
-                          {brl(
-                            (Number(watchItems[index]?.quantity) || 0) *
-                              (Number(watchItems[index]?.unit_price) || 0),
+                        <div className="h-10 flex flex-col items-end justify-center">
+                          <span className="text-[14px] text-slate-800 font-bold tabular-nums">
+                            {brl(watchItems[index]?.subtotal || 0)}
+                          </span>
+                          {Number(watchItems[index]?.discount_value) > 0 && (
+                            <span className="text-[10px] text-slate-400 font-medium tabular-nums mt-0.5">
+                              {(() => {
+                                const qty = Number(watchItems[index]?.quantity) || 0
+                                const price = Number(watchItems[index]?.unit_price) || 0
+                                const gross = round2(qty * price)
+                                const discVal = Number(watchItems[index]?.discount_value) || 0
+                                const type = watchItems[index]?.discount_type || 'none'
+                                
+                                const discountMoney = type === '%'
+                                  ? round2(gross * (discVal / 100))
+                                  : round2(discVal)
+                                  
+                                return `(- ${brl(discountMoney)})`
+                              })()}
+                            </span>
                           )}
                         </div>
                       </td>

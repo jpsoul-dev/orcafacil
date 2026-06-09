@@ -74,6 +74,8 @@ export interface QuoteItem {
   unit_price: number
   subtotal: number
   unit_measure?: string
+  discount_type?: 'none' | 'percentage' | 'fixed' | null
+  discount_value?: number | null
 }
 
 export interface Customer {
@@ -561,7 +563,19 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                     {brl(item.unit_price)}
                   </TableCell>
                   <TableCell className="py-5 text-right pr-0 font-black text-slate-900 tabular-nums">
-                    {brl(item.subtotal)}
+                    <div className="flex flex-col items-end justify-center">
+                      <span>{brl(item.subtotal)}</span>
+                      {Number(item.discount_value) > 0 && (
+                        <span className="text-xs font-normal text-slate-400 mt-0.5">
+                          {(() => {
+                            const discountInMoney = item.discount_type === 'percentage'
+                              ? (item.quantity * item.unit_price) * ((item.discount_value || 0) / 100)
+                              : (item.discount_value || 0)
+                            return `(- ${brl(discountInMoney)})`
+                          })()}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

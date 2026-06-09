@@ -60,6 +60,9 @@ export type Database = {
           name: string
           phone: string | null
           user_id: string
+          cnpj: string | null
+          whatsapp: string | null
+          email: string | null
         }
         Insert: {
           address_city?: string | null
@@ -76,6 +79,9 @@ export type Database = {
           name: string
           phone?: string | null
           user_id: string
+          cnpj?: string | null
+          whatsapp?: string | null
+          email?: string | null
         }
         Update: {
           address_city?: string | null
@@ -92,6 +98,9 @@ export type Database = {
           name?: string
           phone?: string | null
           user_id?: string
+          cnpj?: string | null
+          whatsapp?: string | null
+          email?: string | null
         }
         Relationships: []
       }

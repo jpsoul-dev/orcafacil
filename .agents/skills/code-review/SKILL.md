@@ -2,7 +2,7 @@
 name: code-review
 description: >
   Realiza code reviews profundos, detalhados e estruturados do código-fonte do Orca Fácil.
-  Garante aderência à stack (React 19, Next.js 16 App Router, Tailwind CSS v4, TypeScript, Supabase com RLS, Stripe, TanStack Table v8, dnd-kit, Zod, React Hook Form)
+  Garante aderência à stack (React 19, Next.js 16 App Router, Tailwind CSS v4, TypeScript, Supabase com RLS, Stripe, Zod, React Hook Form)
   e aos princípios de arquitetura limpa do projeto (SRP, Services Pattern em lib/services/, Server Components por padrão, Server Actions seguras, TypeScript estrito, nomenclatura em inglês e sem any).
   Esta skill gera e salva automaticamente um relatório Markdown detalhado em 'reviews/review-[modulo]-[data].md' na raiz do projeto.
   Use esta skill sempre que o usuário solicitar code review, revisão de código, feedback técnico, análise de qualidade,

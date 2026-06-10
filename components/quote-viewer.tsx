@@ -442,13 +442,13 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
       </div>
 
       {/* DOCUMENT CONTAINER */}
-      <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:min-h-0 print:h-auto">
+      <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
             @page {
               size: A4 portrait;
-              margin: 1.5cm;
+              margin: 1.5cm 1.5cm 2.2cm 1.5cm;
             }
             body {
               background-color: white !important;
@@ -460,15 +460,34 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               break-inside: avoid !important;
               page-break-inside: avoid !important;
             }
+            thead {
+              display: table-header-group !important;
+            }
+            tr {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
             .print-footer {
-              margin-top: 4rem !important;
+              margin-top: 3rem !important;
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
             }
             .print-system-footer {
               position: fixed !important;
-              bottom: -1cm !important;
-              left: 1.5cm !important;
-              right: 1.5cm !important;
-              padding: 0 !important;
+              bottom: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              padding-left: 1.5cm !important;
+              padding-right: 1.5cm !important;
+              height: 1cm !important;
+              display: flex !important;
+              justify-content: space-between !important;
+              align-items: center !important;
+              font-size: 10px !important;
+              color: #64748b !important;
+              border-top: 1px solid #e2e8f0 !important;
+              background-color: white !important;
+              opacity: 1 !important;
             }
           }
         `}} />
@@ -565,7 +584,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           </div>
 
           {/* ITEMS TABLE */}
-          <div className="border border-neutral-800 rounded-none overflow-hidden my-6 print-no-break">
+          <div className="border border-neutral-800 rounded-none overflow-hidden my-6">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-neutral-800 text-white font-bold uppercase tracking-wider text-[11px] border-b border-neutral-800">

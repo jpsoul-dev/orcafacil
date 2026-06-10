@@ -2,8 +2,10 @@
 
 import { createClient } from '../../lib/supabase/server'
 import { stripe } from '../../lib/stripe'
+import Stripe from 'stripe'
 import { redirect } from 'next/navigation'
 import { logger } from '@/lib/logger'
+
 
 export async function createCheckoutAction(formData?: FormData) {
   logger.info('createCheckoutAction called')
@@ -153,3 +155,125 @@ export async function createPortalAction() {
     redirect(portalUrl)
   }
 }
+
+interface StripeSubscription {
+  current_period_end?: number | null
+  cancel_at?: number | null
+  items?: {
+    data: Array<{
+      price?: {
+        unit_amount?: number | null
+        recurring?: {
+          interval?: 'month' | 'year' | null
+        } | null
+      } | null
+    }>
+  } | null
+}
+
+export async function getActiveSubscriptionDetails() {
+  logger.info('getActiveSubscriptionDetails called')
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    logger.error('User not authenticated in getActiveSubscriptionDetails', userError)
+    return { error: 'Não autenticado' }
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('subscription_id, subscription_status, trial_ends_at, cancel_at')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || !profile) {
+    logger.error('Error fetching user profile in getActiveSubscriptionDetails', profileError)
+    return { error: 'Perfil não encontrado' }
+  }
+
+  const status = profile.subscription_status
+  const trialEndsAt = profile.trial_ends_at
+  const cancelAt = profile.cancel_at
+
+  // Caso 1: Usuário em período de testes (trialing)
+  if (status === 'trialing') {
+    return {
+      planName: 'Avaliação Gratuita',
+      price: 'R$ 0,00',
+      status: 'trialing',
+      trialEndsAt,
+      cancelAt: null,
+      nextBillingDate: trialEndsAt,
+    }
+  }
+
+  // Caso 2: Sem assinatura ativa
+  if (!profile.subscription_id || !['active', 'past_due', 'unpaid', 'paused'].includes(status || '')) {
+    return {
+      planName: null,
+      price: null,
+      status: status || 'none',
+      trialEndsAt: null,
+      cancelAt: null,
+      nextBillingDate: null,
+    }
+  }
+
+  // Caso 3: Assinatura ativa ou similar no Stripe
+  try {
+    const subscription = (await stripe.subscriptions.retrieve(
+      profile.subscription_id
+    )) as unknown as StripeSubscription
+    
+    const priceItem = subscription.items?.data?.[0]?.price
+    const interval = priceItem?.recurring?.interval // 'month' ou 'year'
+    const amount = priceItem?.unit_amount ? priceItem.unit_amount / 100 : 0
+    
+    const formattedPrice = amount > 0 
+      ? amount.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }) + (interval === 'year' ? '/ano' : '/mês')
+      : 'R$ 39,90/mês'
+
+    const isYearly = interval === 'year'
+    const planName = isYearly ? 'Assinatura Pro Anual' : 'Assinatura Pro Mensal'
+
+    // Determinar a data da próxima cobrança de forma defensiva
+    const currentPeriodEnd = subscription.current_period_end
+    const nextBillingDate = typeof currentPeriodEnd === 'number' && !isNaN(currentPeriodEnd) && currentPeriodEnd > 0
+      ? new Date(currentPeriodEnd * 1000).toISOString()
+      : null
+
+    const cancelAtTimestamp = subscription.cancel_at
+    const cancelAt = typeof cancelAtTimestamp === 'number' && !isNaN(cancelAtTimestamp) && cancelAtTimestamp > 0
+      ? new Date(cancelAtTimestamp * 1000).toISOString()
+      : null
+
+    return {
+      planName,
+      price: formattedPrice,
+      status,
+      trialEndsAt: null,
+      cancelAt,
+      nextBillingDate,
+    }
+  } catch (error) {
+    logger.error('Failed to retrieve Stripe subscription in getActiveSubscriptionDetails:', error)
+    // Fallback caso ocorra algum erro de comunicação com o Stripe
+    return {
+      planName: 'Assinatura Pro',
+      price: 'Sob Consulta',
+      status,
+      trialEndsAt: null,
+      cancelAt: cancelAt,
+      nextBillingDate: cancelAt || trialEndsAt,
+      error: 'Erro de comunicação com o provedor de pagamentos'
+    }
+  }
+}
+

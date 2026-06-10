@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, CreditCard, ShieldCheck, Receipt } from "lucide-react"
+import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, ShieldCheck, Receipt } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -20,7 +20,6 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { logout } from "@/app/auth/actions"
-import { createPortalAction } from "@/app/pricing/server-actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -234,37 +233,6 @@ export function AppSidebar({
                 align="end"
                 sideOffset={4}
               >
-                <div className="px-3 py-2.5 border-b border-sidebar-border bg-sidebar-accent/30 rounded-t-md mb-1.5 group-data-[collapsible=icon]:hidden">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs uppercase font-bold text-sidebar-foreground/40 tracking-wider">Assinatura</span>
-                    {subscriptionStatus === 'active' && !cancelAt && (
-                      <span className="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 text-xs font-bold px-1.5 py-0.5 rounded-full">Pro</span>
-                    )}
-                    {subscriptionStatus === 'trialing' && (
-                      <span className="bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 text-xs font-bold px-1.5 py-0.5 rounded-full">Trial</span>
-                    )}
-                    {cancelAt && (
-                      <span className="bg-amber-500/10 text-amber-500 dark:bg-amber-500/20 text-xs font-bold px-1.5 py-0.5 rounded-full">Pendente</span>
-                    )}
-                  </div>
-                  <p className="text-xs font-semibold text-sidebar-foreground leading-normal">
-                    {cancelDate
-                      ? `Expira em: ${cancelDate.toLocaleDateString('pt-BR')}`
-                      : trialDate && subscriptionStatus === 'trialing'
-                        ? `Período grátis até: ${trialDate.toLocaleDateString('pt-BR')}`
-                        : "Renovação Automática"}
-                  </p>
-                </div>
-                <DropdownMenuItem
-                  render={
-                    <form action={createPortalAction} className="w-full" />
-                  }
-                >
-                  <button type="submit" className="flex w-full items-center gap-2 cursor-pointer text-sidebar-foreground/80 hover:text-sidebar-foreground">
-                    <CreditCard className="size-4" />
-                    <span>Gerenciar Assinatura</span>
-                  </button>
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   nativeButton={true}
                   render={
@@ -297,6 +265,9 @@ export function AppSidebar({
         onOpenChange={setIsManageAccountOpen}
         user={user}
         hasPasswordInitial={hasPassword}
+        subscriptionStatus={subscriptionStatus}
+        cancelAt={cancelAt}
+        trialEndsAt={trialEndsAt}
       />
     </Sidebar>
   )

@@ -442,287 +442,256 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
       </div>
 
       {/* DOCUMENT CONTAINER */}
-      <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-8 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative overflow-hidden">
-        {/* COMPANY HEADER */}
-        <div className="flex justify-between items-start mb-16">
-          <div className="flex items-center gap-4">
-            {quote.company?.logo_url && (
-              <Image
-                src={quote.company.logo_url}
-                alt={quote.company.name}
-                width={64}
-                height={64}
-                className="h-16 w-16 object-contain rounded-xl bg-slate-50 p-2"
-              />
-            )}
-            <div className="space-y-1">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                {quote.company?.name || 'Sua Empresa'}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                {[
-                  quote.company?.phone && `Tel: ${maskPhone(quote.company.phone)}`,
-                  quote.company?.whatsapp && `Whats: ${maskPhone(quote.company.whatsapp)}`,
-                  quote.company?.email && `E-mail: ${quote.company.email}`,
-                  quote.company?.cnpj && `CNPJ/CPF: ${quote.company.cnpj}`,
-                ]
-                  .filter(Boolean)
-                  .join(' | ')}
-              </p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                {[
-                  quote.company?.address_street &&
-                  `${quote.company.address_street}${quote.company.address_number ? `, ${quote.company.address_number}` : ''}${quote.company.address_complement ? ` - ${quote.company.address_complement}` : ''}`,
-                  quote.company?.address_neighborhood,
-                  quote.company?.address_city &&
-                  `${quote.company.address_city}${quote.company.address_state ? `/${quote.company.address_state}` : ''}`,
-                ]
-                  .filter(Boolean)
-                  .join(' — ')}
-              </p>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <h1 className="text-2xl font-black text-slate-900 tracking-widest uppercase mb-1">
-              Orçamento
-            </h1>
-            {showQuoteNumber && (
-              <p className="text-slate-400 font-bold text-sm tracking-widest mb-6">
-                # {quote.quote_number}
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-3">
-              <span className="text-sm font-bold text-slate-400 tracking-widest">
-                Válido até:
-              </span>
-              <span className="text-[13px] font-black text-slate-900">
-                {quote.valid_until
-                  ? format(
-                    parseISO(quote.valid_until),
-                    "d 'de' MMMM 'de' yyyy",
-                    { locale: ptBR },
-                  )
-                  : 'A combinar'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="mb-12 bg-slate-200" />
-
-        {/* CUSTOMER HEADER */}
-        <div className="flex justify-between items-start mb-12">
-          <div className="space-y-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-              Orçamento para
-            </p>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              {quote.customer?.name}
-            </h1>
-            <p className="text-sm text-slate-500 font-medium">
-              CPF: {quote.customer?.document || '---'}
-            </p>
-          </div>
-
-          <div className="text-right border-r-4 border-indigo-500 pr-6 py-1">
-            <h4 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest mb-2">
-              Contato
-            </h4>
-            <div className="text-[13px] text-slate-500 font-medium leading-relaxed space-y-1">
-              <div className="flex items-center justify-end gap-2">
-                <Phone className="h-3.5 w-3.5 text-slate-400" />
-                <span>{maskPhone(quote.customer?.phone) || '---'}</span>
-              </div>
-              {quote.customer?.whatsapp && (
-                <div className="flex items-center justify-end gap-2">
-                  <MessageCircle className="h-3.5 w-3.5 text-slate-400" />
-                  <span>{maskPhone(quote.customer.whatsapp)}</span>
-                </div>
-              )}
-              {quote.customer?.email && (
-                <div className="flex items-center justify-end gap-2">
-                  <Mail className="h-3.5 w-3.5 text-slate-400" />
-                  <span>{quote.customer.email}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ITEMS TABLE */}
-        <div className="mb-12">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b-2 border-slate-100 hover:bg-transparent">
-                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-center w-[6%] px-0">
-                  Nº
-                </TableHead>
-                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 px-0">
-                  Descrição
-                </TableHead>
-                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
-                  Unid.
-                </TableHead>
-                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-center">
-                  Qtd
-                </TableHead>
-                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-right">
-                  Preço Unit.
-                </TableHead>
-                <TableHead className="text-xs font-bold text-slate-400 uppercase tracking-widest h-10 text-right pr-0">
-                  Total item
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quote.items?.map((item, i) => (
-                <TableRow
-                  key={i}
-                  className="border-b border-slate-50 hover:bg-transparent group"
-                >
-                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium w-[6%] px-0">
-                    {i + 1}
-                  </TableCell>
-                  <TableCell className="py-5 px-0">
-                    <span className="text-sm font-black text-slate-800">
-                      {item.item_name}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium">
-                    {item.unit_measure || 'un'}
-                  </TableCell>
-                  <TableCell className="py-5 text-center text-[13px] text-slate-500 font-medium tabular-nums">
-                    {item.quantity}
-                  </TableCell>
-                  <TableCell className="py-5 text-right text-[13px] text-slate-500 font-medium tabular-nums">
-                    {brl(item.unit_price)}
-                  </TableCell>
-                  <TableCell className="py-5 text-right pr-0 font-black text-slate-900 tabular-nums">
-                    <div className="flex flex-col items-end justify-center">
-                      <span>{brl(item.subtotal)}</span>
-                      {Number(item.discount_value) > 0 && (
-                        <span className="text-xs font-normal text-slate-400 mt-0.5">
-                          {(() => {
-                            const discountInMoney = item.discount_type === 'percentage'
-                              ? (item.quantity * item.unit_price) * ((item.discount_value || 0) / 100)
-                              : (item.discount_value || 0)
-                            return `(- ${brl(discountInMoney)})`
-                          })()}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* TOTALS SECTION */}
-        <div className="flex justify-end mb-24">
-          <div className="w-full max-w-[320px] space-y-4">
-            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
-              <span className="text-slate-400 font-medium">Total de itens</span>
-              <span className="font-bold text-slate-900 tabular-nums">
-                {quote.items?.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0) || 0}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
-              <span className="text-slate-400 font-medium">Valor total</span>
-              <span className="font-bold text-slate-900 tabular-nums">
-                {brl(quote.subtotal)}
-              </span>
-            </div>
-
-            {quote.discount_value > 0 && (
-              <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
-                <span className="text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
-                  Desconto{' '}
-                  {quote.discount_type === 'percentage'
-                    ? `(${quote.discount_value}%)`
-                    : ''}
-                </span>
-                <span className="font-bold text-emerald-600 tabular-nums">
-                  - {brl(
-                    quote.discount_type === 'percentage'
-                      ? quote.subtotal * (quote.discount_value / 100)
-                      : quote.discount_value
-                  )}
-                </span>
-              </div>
-            )}
-
-            <div className="flex justify-between items-center pt-2">
-              <span className="text-xl font-black text-slate-900 tracking-tight">
-                Valor final
-              </span>
-              <span className="text-2xl font-black text-indigo-600 tabular-nums tracking-tight">
-                {brl(quote.total)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* TERMOS E CONDIÇÕES */}
-        {(() => {
-          const paymentMethodsString = (() => {
-            if (!quote.payment_method) return ''
-            if (Array.isArray(quote.payment_method)) {
-              return quote.payment_method.filter(Boolean).join(', ')
+      <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:min-h-0 print:h-auto">
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          @media print {
+            @page {
+              size: A4 portrait;
+              margin: 1.5cm;
             }
-            return quote.payment_method
-          })()
+            body {
+              background-color: white !important;
+              color: black !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .print-no-break {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+            }
+            .print-footer {
+              margin-top: 4rem !important;
+            }
+            .print-system-footer {
+              position: fixed !important;
+              bottom: -1cm !important;
+              left: 1.5cm !important;
+              right: 1.5cm !important;
+              padding: 0 !important;
+            }
+          }
+        `}} />
 
-          if (!quote.notes && !paymentMethodsString) return null
+        <div>
+          {/* COMPANY HEADER */}
+          <div className="space-y-1 mb-6 text-left">
+            <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">
+              {quote.company?.name || 'Sua Empresa'}
+            </h2>
+            {(() => {
+              const companyContacts = [
+                quote.company?.phone && `Tel: ${maskPhone(quote.company.phone)}`,
+                quote.company?.whatsapp && `Whats: ${maskPhone(quote.company.whatsapp)}`,
+                quote.company?.email && `Email: ${quote.company.email}`,
+              ].filter(Boolean).join(' | ')
 
-          return (
-            <div className="mb-24 pt-8 border-t border-slate-100">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                Termos e condições
-              </h4>
+              if (!companyContacts) return null
+              return <p className="text-xs text-neutral-600 font-medium">{companyContacts}</p>
+            })()}
+            {(() => {
+              const addressParts = [
+                quote.company?.address_street && `${quote.company.address_street}${quote.company.address_number ? `, N. ${quote.company.address_number}` : ''}${quote.company.address_complement ? ` - ${quote.company.address_complement}` : ''}`,
+                quote.company?.address_neighborhood,
+                quote.company?.address_city && `${quote.company.address_city}${quote.company.address_state ? `/${quote.company.address_state}` : ''}`,
+                quote.company?.address_zip && `CEP: ${quote.company.address_zip}`,
+              ].filter(Boolean).join(', ')
+
+              if (!addressParts) return null
+              return (
+                <p className="text-xs text-neutral-600 font-medium">
+                  Endereço: {addressParts}
+                </p>
+              )
+            })()}
+          </div>
+
+          <div className="border-t border-neutral-300 my-4" />
+
+          {/* QUOTE IDENTIFICATION */}
+          <div className="flex justify-between items-start my-6">
+            <div>
+              <h1 className="text-3xl font-bold text-neutral-800">Orçamento</h1>
+              {quote.title && (
+                <p className="text-sm font-medium text-neutral-600 mt-1 italic">{quote.title}</p>
+              )}
+            </div>
+            <div className="text-right flex flex-col justify-between items-end min-h-[50px]">
+              {showQuoteNumber && (
+                <span className="text-lg font-bold text-neutral-800">N° {quote.quote_number}</span>
+              )}
+              <div className={cn("text-xs font-semibold text-neutral-500 mt-auto")}>
+                <span className="font-medium">Válido até: </span>
+                <span className="text-neutral-800 font-bold">
+                  {quote.valid_until
+                    ? format(
+                      parseISO(quote.valid_until),
+                      "d 'de' MMMM 'de' yyyy",
+                      { locale: ptBR },
+                    )
+                    : 'A combinar'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-neutral-300 my-4" />
+
+          {/* CUSTOMER INFO */}
+          <div className="text-xs text-neutral-700 space-y-1 my-6 leading-relaxed">
+            <div>
+              <span className="font-bold text-neutral-800">Orçamento para:</span>{' '}
+              <span>{quote.customer?.name || '---'}</span>
+            </div>
+            <div>
+              <span className="font-bold text-neutral-800">CPF/CNPJ:</span>{' '}
+              <span>{quote.customer?.document || '---'}</span>
+            </div>
+            {(() => {
+              const customerContacts = [
+                quote.customer?.phone && maskPhone(quote.customer.phone),
+                quote.customer?.whatsapp && maskPhone(quote.customer.whatsapp),
+                quote.customer?.email,
+              ].filter(Boolean).join(' | ')
+
+              if (!customerContacts) return null
+              return (
+                <div>
+                  <span className="font-bold text-neutral-800">Contatos:</span>{' '}
+                  <span>{customerContacts}</span>
+                </div>
+              )
+            })()}
+          </div>
+
+          {/* ITEMS TABLE */}
+          <div className="border border-neutral-800 rounded-none overflow-hidden my-6 print-no-break">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-neutral-800 text-white font-bold uppercase tracking-wider text-[11px] border-b border-neutral-800">
+                  <th className="p-3 text-left w-[50%] border-r border-neutral-800 bg-neutral-800 text-white">DESCRIÇÃO</th>
+                  <th className="p-3 text-left w-[20%] border-r border-neutral-800 bg-neutral-800 text-white">VALOR</th>
+                  <th className="p-3 text-center w-[10%] border-r border-neutral-800 bg-neutral-800 text-white">QTD.</th>
+                  <th className="p-3 text-left w-[20%] bg-neutral-800 text-white">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-800 text-neutral-800 font-medium">
+                {quote.items?.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-transparent">
+                    <td className="p-3 text-left border-r border-neutral-800 font-normal">
+                      {item.item_name}
+                    </td>
+                    <td className="p-3 text-left border-r border-neutral-800 tabular-nums">
+                      {brl(item.unit_price)}
+                    </td>
+                    <td className="p-3 text-center border-r border-neutral-800 tabular-nums">
+                      {item.quantity}
+                    </td>
+                    <td className="p-3 text-left tabular-nums font-bold">
+                      <div className="flex flex-col">
+                        <span>{brl(item.subtotal)}</span>
+                        {Number(item.discount_value) > 0 && (
+                          <span className="text-[10px] font-normal text-neutral-500 mt-0.5">
+                            {(() => {
+                              const discountInMoney = item.discount_type === 'percentage'
+                                ? (item.quantity * item.unit_price) * ((item.discount_value || 0) / 100)
+                                : (item.discount_value || 0)
+                              return `(- ${brl(discountInMoney)})`
+                            })()}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="text-right text-[11px] font-semibold text-neutral-500 mt-1 mb-8">
+            Total de itens:{' '}
+            <span className="text-neutral-800 font-bold">
+              {quote.items?.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0) || 0}
+            </span>
+          </div>
+
+          {/* CLOSING AND TOTALS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-8 print:grid-cols-2 items-start">
+            <div className="space-y-6 print-no-break">
+              {(() => {
+                const paymentMethodsString = (() => {
+                  if (!quote.payment_method) return ''
+                  if (Array.isArray(quote.payment_method)) {
+                    return quote.payment_method.filter(Boolean).join(' | ')
+                  }
+                  return quote.payment_method
+                })()
+
+                if (!paymentMethodsString) return null
+                return (
+                  <div>
+                    <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                      FORMAS DE PAGAMENTO
+                    </h4>
+                    <p className="text-xs text-neutral-700 font-medium">
+                      {paymentMethodsString}
+                    </p>
+                  </div>
+                )
+              })()}
               {quote.notes && (
-                <p className="text-sm text-slate-500 leading-relaxed italic">
-                  {`"${quote.notes}"`}
-                </p>
-              )}
-              {paymentMethodsString && (
-                <p className="text-sm text-slate-900 font-semibold mt-4">
-                  Formas de Pagamento aceitas:{' '}
-                  <span className="text-slate-600 font-normal">{paymentMethodsString}</span>
-                </p>
+                <div>
+                  <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                    TERMOS E CONDIÇÕES
+                  </h4>
+                  <p className="text-xs text-neutral-600 leading-relaxed font-medium">
+                    {quote.notes}
+                  </p>
+                </div>
               )}
             </div>
-          )
-        })()}
 
-        {/* SIGNATURES */}
-        <div className="mt-auto pt-16">
-          <div className="grid grid-cols-2 gap-20">
-            <div className="text-center space-y-2">
-              <div className="border-t border-slate-300 w-full" />
-              <p className="text-sm font-bold text-slate-900">
-                {quote.company?.name || 'Empresa'}
-              </p>
-            </div>
-            <div className="text-center space-y-2">
-              <div className="border-t border-slate-300 w-full" />
-              <p className="text-sm font-bold text-slate-900">
-                {quote.customer?.name}
-              </p>
-              <p className="text-[11px] text-slate-400 font-medium">
-                CPF: {quote.customer?.document || '---'}
-              </p>
+            <div className="border border-neutral-800 p-4 space-y-2 max-w-[280px] ml-auto w-full print-no-break">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-neutral-500 font-medium">Valor itens</span>
+                <span className="font-bold text-neutral-800 tabular-nums">{brl(quote.subtotal)}</span>
+              </div>
+              {quote.discount_value > 0 && (
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-emerald-600 font-bold">Desconto</span>
+                  <span className="font-bold text-emerald-600 tabular-nums">
+                    - {brl(
+                      quote.discount_type === 'percentage'
+                        ? quote.subtotal * (quote.discount_value / 100)
+                        : quote.discount_value
+                    )}
+                  </span>
+                </div>
+              )}
+              <div className="border-t border-neutral-800 pt-2 flex justify-between items-center text-xs">
+                <span className="font-bold text-neutral-800 text-sm">Valor final</span>
+                <span className="font-extrabold text-neutral-800 text-base tabular-nums">{brl(quote.total)}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* COMPANY DETAILS - BOTTOM SMALL */}
-        <div className="absolute bottom-8 left-0 right-0 px-16 flex justify-end items-center text-xs text-slate-400 font-bold tracking-[0.2em] opacity-50 print:hidden">
-          <span>
-            Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}
-          </span>
+        {/* INSTITUTIONAL FOOTER */}
+        <div className="text-center mt-auto pt-16 print-no-break print-footer">
+          <p className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+            {quote.company?.name || 'Sua Empresa'}
+          </p>
+          {quote.company?.cnpj && (
+            <p className="text-sm text-neutral-500 mt-1">
+              CNPJ/CPF: {quote.company.cnpj}
+            </p>
+          )}
+        </div>
+
+        {/* DETALHE PEQUENO DO SISTEMA NO RODAPÉ */}
+        <div className="absolute bottom-4 left-0 right-0 px-12 flex justify-between items-center text-xs text-slate-500 tracking-wider opacity-80 print-system-footer">
+          <span>Criado por Orca Fácil</span>
+          <span>Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}</span>
         </div>
       </div>
 

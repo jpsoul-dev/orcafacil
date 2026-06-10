@@ -38,7 +38,6 @@ import { useState, useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
 import {
   updateQuoteStatus,
-  updateQuoteShowNumber,
 } from '@/app/app/quotes/actions'
 
 import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
@@ -190,13 +189,11 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
   const [cancellationReason, setCancellationReason] = useState('')
   const [currentCancellationReason, setCurrentCancellationReason] = useState<string | null>(quote.cancellation_reason || null)
   const [receiptId, setReceiptId] = useState<string | null>(initialReceiptId || null)
-  const [showQuoteNumber, setShowQuoteNumber] = useState<boolean>(quote.show_quote_number ?? true)
 
   useEffect(() => {
     setCurrentStatus(quote.status)
     setCurrentCancellationReason(quote.cancellation_reason || null)
-    setShowQuoteNumber(quote.show_quote_number ?? true)
-  }, [quote.status, quote.cancellation_reason, quote.show_quote_number])
+  }, [quote.status, quote.cancellation_reason])
 
   useEffect(() => {
     const originalTitle = document.title
@@ -408,27 +405,6 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-slate-600 bg-slate-50 border border-slate-200 px-3 h-9 rounded-lg text-xs font-semibold">
-              <input
-                type="checkbox"
-                id="toggle_number"
-                checked={showQuoteNumber}
-                onChange={async (e) => {
-                  const val = e.target.checked
-                  setShowQuoteNumber(val)
-                  const res = await updateQuoteShowNumber(quote.id, val)
-                  if (!res.success) {
-                    toast.error('Erro ao salvar preferência: ' + res.error)
-                    setShowQuoteNumber(!val)
-                  }
-                }}
-                className="rounded border-slate-300 text-slate-900 focus:ring-slate-500 h-3.5 w-3.5 cursor-pointer accent-slate-900"
-              />
-              <label htmlFor="toggle_number" className="cursor-pointer select-none">
-                Exibir nº do orçamento
-              </label>
-            </div>
-
             <Button
               onClick={handlePrint}
               size="sm"
@@ -536,7 +512,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               )}
             </div>
             <div className="text-right flex flex-col justify-between items-end min-h-[50px]">
-              {showQuoteNumber && (
+              {quote.show_quote_number && (
                 <span className="text-lg font-bold text-neutral-800">N° {quote.quote_number}</span>
               )}
               <div className={cn("text-xs font-semibold text-neutral-500 mt-auto")}>

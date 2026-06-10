@@ -19,6 +19,7 @@ const settingsSchema = z.object({
   address_neighborhood: z.string().optional().nullable(),
   address_city: z.string().optional().nullable(),
   address_state: z.string().optional().nullable(),
+  show_quote_number: z.boolean().optional().default(true),
 })
 
 export async function saveCompanySettings(formData: FormData) {
@@ -45,6 +46,7 @@ export async function saveCompanySettings(formData: FormData) {
       address_neighborhood: formData.get('address_neighborhood') as string,
       address_city: formData.get('address_city') as string,
       address_state: formData.get('address_state') as string,
+      show_quote_number: formData.get('show_quote_number') === 'true',
     }
 
     const validation = settingsSchema.safeParse(rawData)

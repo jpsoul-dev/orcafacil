@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
-import { ImageIcon, Building2, MapPin, Loader2, Upload, Search } from 'lucide-react'
+import { ImageIcon, Building2, MapPin, Loader2, Upload, Search, FileText } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -35,6 +35,7 @@ const settingsSchema = z.object({
   address_neighborhood: z.string().optional(),
   address_city: z.string().optional(),
   address_state: z.string().optional(),
+  show_quote_number: z.boolean().optional().default(true),
 })
 
 type SettingsValues = z.infer<typeof settingsSchema>
@@ -56,6 +57,7 @@ export interface Company {
   address_city?: string | null
   address_state?: string | null
   created_at: string
+  show_quote_number?: boolean | null
 }
 
 export function SettingsForm({ initialData }: { initialData: Company | null }) {
@@ -64,7 +66,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
   const lastSearchedCep = useRef<string>('')
 
   const form = useForm<SettingsValues>({
-    resolver: zodResolver(settingsSchema),
+    resolver: zodResolver(settingsSchema) as Resolver<SettingsValues>,
     defaultValues: {
       name: initialData?.name || '',
       phone: initialData?.phone || '',
@@ -78,15 +80,20 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
       address_neighborhood: initialData?.address_neighborhood || '',
       address_city: initialData?.address_city || '',
       address_state: initialData?.address_state || '',
+      show_quote_number: initialData?.show_quote_number ?? true,
     },
   })
 
   async function onSubmit(data: SettingsValues) {
     setLoading(true)
     const formData = new FormData()
-    Object.entries(data).forEach(([key, value]) =>
-      formData.append(key, value || ''),
-    )
+    Object.entries(data).forEach(([key, value]) => {
+      if (typeof value === 'boolean') {
+        formData.append(key, value ? 'true' : 'false')
+      } else {
+        formData.append(key, value || '')
+      }
+    })
     const result = await saveCompanySettings(formData)
     setLoading(false)
     if (result.error) {
@@ -412,6 +419,46 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Card Preferências do Orçamento */}
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader className="pb-3 pt-5 px-6">
+          <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Preferências dos Orçamentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-6 pb-5">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <Controller
+                name="show_quote_number"
+                control={form.control}
+                render={({ field }) => (
+                  <input
+                    type="checkbox"
+                    id="show_quote_number"
+                    checked={field.value ?? true}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    className="rounded border-slate-300 text-slate-900 focus:ring-slate-500 h-4 w-4 mt-0.5 cursor-pointer accent-slate-900"
+                  />
+                )}
+              />
+              <div className="space-y-1">
+                <Label
+                  htmlFor="show_quote_number"
+                  className="font-semibold text-sm text-slate-800 cursor-pointer select-none"
+                >
+                  Exibir número do orçamento nos documentos
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Quando ativado, os orçamentos gerados e visualizados exibirão o número de controle sequencial (ex: N° 1024).
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>

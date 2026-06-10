@@ -290,37 +290,3 @@ export async function reopenQuote(id: string, validUntil: string) {
   }
 }
 
-export async function updateQuoteShowNumber(id: string, showQuoteNumber: boolean) {
-  try {
-    const supabase = await createClient()
-    const { data: authData, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !authData?.user) {
-      return { success: false, error: 'Usuário não autenticado' }
-    }
-
-    const user = authData.user
-
-    const { error } = await supabase
-      .from('quotes')
-      .update({ show_quote_number: showQuoteNumber })
-      .eq('id', id)
-      .eq('user_id', user.id)
-
-    if (error) {
-      logger.error('Erro ao atualizar exibição do número do orçamento:', error)
-      return { success: false, error: error.message }
-    }
-
-    try {
-      revalidatePath(`/app/quotes/${id}`)
-      revalidatePath('/app/quotes')
-    } catch (revalidateError) {
-      logger.warn('Revalidation failed:', revalidateError)
-    }
-    return { success: true }
-  } catch (error) {
-    logger.error('Erro interno ao atualizar exibição do número do orçamento:', error)
-    return { success: false, error: 'Erro interno ao atualizar exibição do número do orçamento' }
-  }
-}

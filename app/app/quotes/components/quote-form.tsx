@@ -351,27 +351,6 @@ export function QuoteForm({
                 {...form.register('title')}
                 className="h-10 border-slate-200 rounded-md bg-white"
               />
-              <div className="flex items-center gap-2 pt-1">
-                <Controller
-                  name="show_quote_number"
-                  control={form.control}
-                  render={({ field }) => (
-                    <input
-                      type="checkbox"
-                      id="show_quote_number"
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      className="rounded border-slate-300 text-slate-900 focus:ring-slate-500 h-4 w-4 cursor-pointer accent-slate-900"
-                    />
-                  )}
-                />
-                <Label
-                  htmlFor="show_quote_number"
-                  className="text-xs font-medium text-slate-500 cursor-pointer select-none"
-                >
-                  Exibir número do orçamento
-                </Label>
-              </div>
             </div>
             <div className="space-y-2">
               <Label

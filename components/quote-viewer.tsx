@@ -25,6 +25,7 @@ import {
   FileText,
   Receipt,
   Info,
+  CloudDownload,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -286,139 +287,13 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-0 print:bg-white print:py-0">
-      {/* ACTION BAR - NO PRINT */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 print:hidden mb-8">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <Select
-                value={currentStatus}
-                onValueChange={(val) => handleStatusChange(val as QuoteStatus)}
-                disabled={isUpdating || ['completed', 'expired', 'rejected', 'cancelled'].includes(currentStatus)}
-              >
-                <SelectTrigger
-                  className={`h-9 w-40 rounded-lg px-3 border shadow-none focus:ring-0 transition-all ${STATUS_MAP[currentStatus]?.color}`}
-                >
-                  <div className="flex items-center gap-2">
-                    {isUpdating ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <div
-                        className={`h-2 w-2 rounded-full ${STATUS_MAP[currentStatus]?.dot}`}
-                      />
-                    )}
-                    <SelectValue>
-                      {STATUS_MAP[currentStatus]?.label}
-                    </SelectValue>
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-200">
-                  {Object.entries(STATUS_MAP)
-                    .filter(([value]) => {
-                      if (currentStatus === 'draft') {
-                        return ['draft', 'pending'].includes(value)
-                      }
-                      if (currentStatus === 'pending') {
-                        return ['pending', 'approved', 'rejected', 'cancelled'].includes(value)
-                      }
-                      if (currentStatus === 'approved') {
-                        return ['approved', 'completed', 'cancelled'].includes(value)
-                      }
-                      return value === currentStatus
-                    })
-                    .map(([value, info]) => (
-                      <SelectItem
-                        key={value}
-                        value={value}
-                        className="py-2 focus:bg-slate-50"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`h-2 w-2 rounded-full ${info.dot}`}
-                          />
-                          <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">
-                            {info.label}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              {currentStatus === 'cancelled' && currentCancellationReason && (
-                <Popover>
-                  <PopoverTrigger
-                    className="h-9 w-9 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                    title="Ver motivo do cancelamento"
-                  >
-                    <Info className="h-4.5 w-4.5" />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-white border-slate-200 rounded-xl shadow-md p-4">
-                    <PopoverHeader className="mb-2">
-                      <PopoverTitle className="text-sm font-bold text-red-600 flex items-center gap-2">
-                        <Info className="h-4 w-4" />
-                        Motivo do Cancelamento
-                      </PopoverTitle>
-                    </PopoverHeader>
-                    <PopoverDescription className="text-sm text-slate-700 italic">
-                      "{currentCancellationReason}"
-                    </PopoverDescription>
-                  </PopoverContent>
-                </Popover>
-              )}
-              {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
-                <Button
-                  onClick={() => setIsReopenOpen(true)}
-                  size="sm"
-                  className="h-9 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reabrir Orçamento
-                </Button>
-              )}
-              {currentStatus === 'completed' && (
-                receiptId ? (
-                  <Link
-                    href={`/app/quotes/${quote.id}/receipt`}
-                    className={cn(
-                      buttonVariants({ variant: 'default', size: 'sm' }),
-                      "h-9 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold"
-                    )}
-                  >
-                    <FileText className="h-4 w-4" />
-                    Ver Recibo
-                  </Link>
-                ) : (
-                  <Link
-                    href={`/app/quotes/${quote.id}/receipt/edit`}
-                    className={cn(
-                      buttonVariants({ variant: 'default', size: 'sm' }),
-                      "h-9 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold"
-                    )}
-                  >
-                    <Receipt className="h-4 w-4" />
-                    Gerar Recibo
-                  </Link>
-                )
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={handlePrint}
-              size="sm"
-              className="h-9 gap-2 border-slate-200 font-bold"
-            >
-              <Printer className="h-4 w-4" />
-              Imprimir
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* DOCUMENT CONTAINER */}
-      <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
+    <div className="min-h-screen bg-slate-50 py-4 sm:py-8 px-0 sm:px-4 print:bg-white print:py-0 print:px-0">
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center print:block print:max-w-none">
+        
+        {/* DOCUMENT CONTAINER (ESQUERDA) */}
+        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none">
+          {/* DOCUMENT CONTAINER */}
+          <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
@@ -689,8 +564,159 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           <span>Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}</span>
         </div>
       </div>
+    </div>
 
-      <ReopenQuoteDialog
+    {/* SIDEBAR DE STATUS E AÇÕES (DIREITA) */}
+    <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0">
+      <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-md flex flex-col gap-4">
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+            Status
+          </span>
+          <div className="flex items-center gap-2">
+            <Select
+              value={currentStatus}
+              onValueChange={(val) => handleStatusChange(val as QuoteStatus)}
+              disabled={isUpdating || ['completed', 'expired', 'rejected', 'cancelled'].includes(currentStatus)}
+            >
+              <SelectTrigger
+                className={cn(
+                  "h-10 w-full rounded-lg px-3 border shadow-none focus:ring-0 transition-all font-semibold justify-between",
+                  STATUS_MAP[currentStatus]?.color
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  {isUpdating ? (
+                    <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                  ) : (
+                    <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", STATUS_MAP[currentStatus]?.dot)} />
+                  )}
+                  <SelectValue>{STATUS_MAP[currentStatus]?.label}</SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200">
+                {Object.entries(STATUS_MAP)
+                  .filter(([value]) => {
+                    if (currentStatus === 'draft') {
+                      return ['draft', 'pending'].includes(value)
+                    }
+                    if (currentStatus === 'pending') {
+                      return ['pending', 'approved', 'rejected', 'cancelled'].includes(value)
+                    }
+                    if (currentStatus === 'approved') {
+                      return ['approved', 'completed', 'cancelled'].includes(value)
+                    }
+                    return value === currentStatus
+                  })
+                  .map(([value, info]) => (
+                    <SelectItem
+                      key={value}
+                      value={value}
+                      className="py-2 focus:bg-slate-50 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", info.dot)} />
+                        <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">
+                          {info.label}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+
+            {/* Motivo do Cancelamento */}
+            {currentStatus === 'cancelled' && currentCancellationReason && (
+              <Popover>
+                <PopoverTrigger
+                  className="h-10 w-10 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  title="Ver motivo do cancelamento"
+                >
+                  <Info className="h-5 w-5" />
+                </PopoverTrigger>
+                <PopoverContent className="w-80 bg-white border-slate-200 rounded-xl shadow-md p-4">
+                  <PopoverHeader className="mb-2">
+                    <PopoverTitle className="text-sm font-bold text-red-600 flex items-center gap-2">
+                      <Info className="h-4 w-4" />
+                      Motivo do Cancelamento
+                    </PopoverTitle>
+                  </PopoverHeader>
+                  <PopoverDescription className="text-sm text-slate-700 italic">
+                    "{currentCancellationReason}"
+                  </PopoverDescription>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
+        </div>
+
+        <Separator className="bg-slate-100" />
+
+        <div className="flex flex-col gap-2.5">
+          {/* Botão Reabrir Orçamento */}
+          {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
+            <Button
+              onClick={() => setIsReopenOpen(true)}
+              className="w-full h-10 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg cursor-pointer"
+            >
+              <RotateCcw className="h-4.5 w-4.5" />
+              Reabrir Orçamento
+            </Button>
+          )}
+
+          {/* Botão Imprimir */}
+          <Button
+            onClick={handlePrint}
+            variant="outline"
+            className="w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700"
+          >
+            <Printer className="h-4.5 w-4.5" />
+            Imprimir
+          </Button>
+
+          {/* Botão Ver / Gerar Recibo */}
+          {currentStatus === 'completed' && (
+            receiptId ? (
+              <Link
+                href={`/app/quotes/${quote.id}/receipt`}
+                className={cn(
+                  buttonVariants({ variant: 'default' }),
+                  "w-full h-10 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg flex items-center justify-center cursor-pointer"
+                )}
+              >
+                <FileText className="h-4.5 w-4.5" />
+                Ver Recibo
+              </Link>
+            ) : (
+              <Link
+                href={`/app/quotes/${quote.id}/receipt/edit`}
+                className={cn(
+                  buttonVariants({ variant: 'default' }),
+                  "w-full h-10 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg flex items-center justify-center cursor-pointer"
+                )}
+              >
+                <Receipt className="h-4.5 w-4.5" />
+                Gerar Recibo
+              </Link>
+            )
+          )}
+
+          {/* Botão Baixar PDF */}
+          <Button
+            onClick={handlePrint}
+            variant="outline"
+            className="w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700"
+          >
+            <CloudDownload className="h-4.5 w-4.5" />
+            Baixar PDF
+          </Button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <ReopenQuoteDialog
         quoteId={quote.id}
         open={isReopenOpen}
         onOpenChange={setIsReopenOpen}

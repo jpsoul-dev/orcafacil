@@ -60,77 +60,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-export type QuoteStatus =
-  | 'draft'
-  | 'pending'
-  | 'approved'
-  | 'rejected'
-  | 'cancelled'
-  | 'completed'
-  | 'expired'
-
-export interface QuoteItem {
-  item_name: string
-  quantity: number
-  unit_price: number
-  subtotal: number
-  unit_measure?: string
-  discount_type?: 'none' | 'percentage' | 'fixed' | null
-  discount_value?: number | null
-}
-
-export interface Customer {
-  name: string
-  document: string
-  phone: string
-  address_street: string
-  address_number?: string
-  address_neighborhood: string
-  address_city: string
-  address_state: string
-  address_zip: string
-  address_complement?: string
-  email?: string
-  whatsapp?: string
-}
-
-export interface Company {
-  name: string
-  logo_url?: string
-  phone?: string
-  whatsapp?: string
-  cnpj?: string
-  email?: string
-  address_street?: string
-  address_number?: string
-  address_neighborhood?: string
-  address_city?: string
-  address_state?: string
-  address_zip?: string
-  address_complement?: string
-}
-
-export interface Quote {
-  id: string
-  quote_number: number
-  public_uuid: string
-  status: QuoteStatus
-  title: string
-  created_at: string
-  valid_until?: string | null
-  subtotal: number
-  discount_value: number
-  discount_type: 'percentage' | 'fixed'
-  total: number
-  notes?: string
-  payment_method?: string | string[] | null
-  customer_id: string
-  customer: Customer
-  company: Company
-  items: QuoteItem[]
-  cancellation_reason?: string | null
-  show_quote_number: boolean
-}
+import {
+  type QuoteStatus,
+  type QuoteItem,
+  type Customer,
+  type Company,
+  type Quote,
+} from '@/types/quote'
 
 import { formatBRL } from '@/lib/utils'
 const brl = formatBRL
@@ -196,38 +132,6 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     setCurrentCancellationReason(quote.cancellation_reason || null)
   }, [quote.status, quote.cancellation_reason])
 
-  useEffect(() => {
-    const originalTitle = document.title
-    const handleBeforePrint = () => {
-      const dateStr = format(parseISO(quote.created_at), 'ddMMyyyy')
-      const titleStr = quote.title.replace(/\s+/g, '_')
-      document.title = `${titleStr}_${dateStr}`
-    }
-    const handleAfterPrint = () => {
-      document.title = originalTitle
-    }
-
-    window.addEventListener('beforeprint', handleBeforePrint)
-    window.addEventListener('afterprint', handleAfterPrint)
-
-    return () => {
-      window.removeEventListener('beforeprint', handleBeforePrint)
-      window.removeEventListener('afterprint', handleAfterPrint)
-    }
-  }, [quote.title, quote.created_at])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      if (urlParams.get('print') === 'true') {
-        const timer = setTimeout(() => {
-          window.print()
-        }, 1000)
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [])
-
   const handleStatusChange = async (newStatus: QuoteStatus | null) => {
     if (!newStatus || isUpdating) return
     if (newStatus === 'cancelled') {
@@ -280,10 +184,6 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     } finally {
       setIsUpdating(false)
     }
-  }
-
-  const handlePrint = () => {
-    window.print()
   }
 
   return (
@@ -439,25 +339,25 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-neutral-800 text-white font-bold uppercase tracking-wider text-[11px] border-b border-neutral-800">
-                  <th className="p-3 text-left w-[50%] border-r border-neutral-800 bg-neutral-800 text-white">DESCRIÇÃO</th>
-                  <th className="p-3 text-left w-[20%] border-r border-neutral-800 bg-neutral-800 text-white">VALOR</th>
-                  <th className="p-3 text-center w-[10%] border-r border-neutral-800 bg-neutral-800 text-white">QTD.</th>
-                  <th className="p-3 text-left w-[20%] bg-neutral-800 text-white">TOTAL</th>
+                  <th className="py-2 px-3 text-left w-[50%] border-r border-neutral-800 bg-neutral-800 text-white">DESCRIÇÃO</th>
+                  <th className="py-2 px-3 text-left w-[20%] border-r border-neutral-800 bg-neutral-800 text-white">VALOR</th>
+                  <th className="py-2 px-3 text-center w-[10%] border-r border-neutral-800 bg-neutral-800 text-white">QTD.</th>
+                  <th className="py-2 px-3 text-left w-[20%] bg-neutral-800 text-white">TOTAL</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800 text-neutral-800 font-medium">
                 {quote.items?.map((item, idx) => (
                   <tr key={idx} className="hover:bg-transparent">
-                    <td className="p-3 text-left border-r border-neutral-800 font-normal">
+                    <td className="py-1.5 px-3 text-left border-r border-neutral-800 font-normal">
                       {item.item_name}
                     </td>
-                    <td className="p-3 text-left border-r border-neutral-800 tabular-nums">
+                    <td className="py-1.5 px-3 text-left border-r border-neutral-800 tabular-nums">
                       {brl(item.unit_price)}
                     </td>
-                    <td className="p-3 text-center border-r border-neutral-800 tabular-nums">
+                    <td className="py-1.5 px-3 text-center border-r border-neutral-800 tabular-nums">
                       {item.quantity}
                     </td>
-                    <td className="p-3 text-left tabular-nums font-bold">
+                    <td className="py-1.5 px-3 text-left tabular-nums font-bold">
                       <div className="flex flex-col">
                         <span>{brl(item.subtotal)}</span>
                         {Number(item.discount_value) > 0 && (
@@ -665,14 +565,18 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           )}
 
           {/* Botão Imprimir */}
-          <Button
-            onClick={handlePrint}
-            variant="outline"
-            className="w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700"
+          <a
+            href={`/api/quotes/${quote.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
+            )}
           >
             <Printer className="h-4.5 w-4.5" />
             Imprimir
-          </Button>
+          </a>
 
           {/* Botão Ver / Gerar Recibo */}
           {currentStatus === 'completed' && (
@@ -702,14 +606,18 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           )}
 
           {/* Botão Baixar PDF */}
-          <Button
-            onClick={handlePrint}
-            variant="outline"
-            className="w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700"
+          <a
+            href={`/api/quotes/${quote.id}/pdf?download=true`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
+            )}
           >
             <CloudDownload className="h-4.5 w-4.5" />
             Baixar PDF
-          </Button>
+          </a>
         </div>
       </div>
     </div>

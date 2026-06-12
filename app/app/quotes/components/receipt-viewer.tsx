@@ -24,57 +24,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 
-interface Receipt {
-  id: string
-  receipt_number: string
-  title: string
-  amount: number
-  payment_method: string
-  services_description: string
-  issued_at: string
-}
-
-interface Company {
-  name: string
-  phone: string
-  cnpj?: string | null
-  address_street?: string
-  address_number?: string
-  address_neighborhood?: string
-  address_city?: string
-  address_state?: string
-  address_zip?: string
-  address_complement?: string
-}
-
-interface Customer {
-  name: string
-  document: string
-  phone: string
-  address_street?: string
-  address_number?: string
-  address_neighborhood?: string
-  address_city?: string
-  address_state?: string
-  address_zip?: string
-}
-
-interface QuoteItem {
-  item_name: string
-  quantity: number
-  unit_price: number
-  subtotal: number
-  unit_measure?: string | null
-}
-
-interface Quote {
-  id: string
-  quote_number: number
-  title?: string | null
-  company: Company
-  customer: Customer
-  items?: QuoteItem[]
-}
+import {
+  type Receipt,
+  type ReceiptQuote as Quote,
+} from '@/types/receipt'
 
 interface ReceiptViewerProps {
   receipt: Receipt
@@ -86,21 +39,6 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      if (urlParams.get('print') === 'true') {
-        const timer = setTimeout(() => {
-          window.print()
-        }, 1000)
-        return () => clearTimeout(timer)
-      }
-    }
-  }, [])
-
-  const handlePrint = () => {
-    window.print()
-  }
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -155,21 +93,6 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
         <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none">
           {/* CONTAINER DO RECIBO FÍSICO (A4 OTIMIZADO) */}
           <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-md min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative overflow-hidden flex flex-col justify-between print:min-h-0 print:h-full">
-            <style dangerouslySetInnerHTML={{
-              __html: `
-          @media print {
-            @page {
-              size: A4 portrait;
-              margin: 1.5cm;
-            }
-            body {
-              background-color: white !important;
-              color: black !important;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-          }
-        `}} />
             <div>
               {/* TOPO: CABEÇALHO DO RECIBO */}
               <div className="flex justify-between items-start mb-10 pb-6 border-b border-neutral-100">
@@ -289,13 +212,18 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
 
             <div className="flex flex-col gap-2.5">
               {/* Botão Imprimir Recibo */}
-              <Button
-                onClick={handlePrint}
-                className="w-full h-10 gap-2 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-lg cursor-pointer"
+              <a
+                href={`/api/receipts/${receipt.id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: 'default' }),
+                  "w-full h-10 gap-2 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-lg cursor-pointer flex items-center justify-center"
+                )}
               >
                 <Printer className="h-4.5 w-4.5" />
                 Imprimir Recibo
-              </Button>
+              </a>
 
               {/* Botão Editar Recibo */}
               <Link
@@ -310,14 +238,18 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
               </Link>
 
               {/* Botão Baixar PDF */}
-              <Button
-                onClick={handlePrint}
-                variant="outline"
-                className="w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700"
+              <a
+                href={`/api/receipts/${receipt.id}/pdf?download=true`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: 'outline' }),
+                  "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
+                )}
               >
                 <CloudDownload className="h-4.5 w-4.5" />
                 Baixar PDF
-              </Button>
+              </a>
 
               {/* Separador antes do excluir */}
               <Separator className="bg-slate-100 my-1" />

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { ReceiptInput, StandaloneReceiptInput } from '@/app/app/quotes/schemas'
+import { Receipt, ReceiptQuote, ReceiptQuoteItem } from '@/types/receipt'
 
 export async function getReceiptByQuoteId(quoteId: string) {
   try {
@@ -241,6 +242,149 @@ export async function getStandaloneReceiptDetails(receiptId: string, userId: str
     }
   } catch (error) {
     logger.error('CRITICAL: getStandaloneReceiptDetails failed:', error)
+    return null
+  }
+}
+
+export async function getReceiptDetails(
+  receiptId: string,
+  userId: string
+): Promise<{ receipt: Receipt; quote: ReceiptQuote } | null> {
+  try {
+    const supabase = await createClient()
+
+    // 1. Buscar o recibo
+    const { data: receipt, error: receiptError } = await supabase
+      .from('quote_receipts')
+      .select('*')
+      .eq('id', receiptId)
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (receiptError || !receipt) {
+      logger.error('getReceiptDetails: Recibo não encontrado ou acesso não autorizado:', receiptError)
+      return null
+    }
+
+    const receiptData: Receipt = {
+      id: receipt.id,
+      receipt_number: receipt.receipt_number,
+      title: receipt.title || '',
+      amount: parseFloat(receipt.amount),
+      payment_method: receipt.payment_method || 'Pix',
+      services_description: receipt.services_description || '',
+      issued_at: receipt.issued_at,
+    }
+
+    // 2. Se for recibo vinculado a orçamento
+    if (receipt.quote_id) {
+      const { data: quote, error: quoteError } = await supabase.rpc('get_quote_details', {
+        p_quote_id: receipt.quote_id,
+      })
+
+      if (quoteError || !quote) {
+        logger.error('getReceiptDetails: Erro ao obter orçamento detalhado para recibo:', quoteError)
+        return null
+      }
+
+      const quoteData: ReceiptQuote = {
+        id: quote.id,
+        quote_number: quote.quote_number,
+        title: quote.title,
+        company: {
+          name: quote.company?.name || 'Empresa',
+          phone: quote.company?.phone || '',
+          cnpj: quote.company?.cnpj || '',
+          address_street: quote.company?.address_street,
+          address_number: quote.company?.address_number,
+          address_neighborhood: quote.company?.address_neighborhood,
+          address_city: quote.company?.address_city,
+          address_state: quote.company?.address_state,
+          address_zip: quote.company?.address_zip,
+          address_complement: quote.company?.address_complement,
+        },
+        customer: {
+          name: quote.customer?.name || 'Cliente',
+          document: quote.customer?.document || '',
+          phone: quote.customer?.phone || '',
+          address_street: quote.customer?.address_street,
+          address_number: quote.customer?.address_number,
+          address_neighborhood: quote.customer?.address_neighborhood,
+          address_city: quote.customer?.address_city,
+          address_state: quote.customer?.address_state,
+          address_zip: quote.customer?.address_zip,
+        },
+        items: (quote.items || []).map((item: unknown) => {
+          const qi = item as ReceiptQuoteItem
+          return {
+            item_name: qi.item_name,
+            quantity: Number(qi.quantity),
+            unit_price: Number(qi.unit_price),
+            subtotal: Number(qi.subtotal),
+            unit_measure: qi.unit_measure || null,
+          }
+        }),
+      }
+
+      return {
+        receipt: receiptData,
+        quote: quoteData,
+      }
+    }
+
+    // 3. Se for recibo avulso (standalone)
+    const standaloneDetails = await getStandaloneReceiptDetails(receiptId, userId)
+    if (!standaloneDetails) {
+      return null
+    }
+
+    const { items, customer, company } = standaloneDetails
+
+    const quoteData: ReceiptQuote = {
+      id: receipt.id,
+      quote_number: 0,
+      title: receipt.title,
+      company: {
+        name: company?.name || 'Empresa',
+        phone: company?.phone || '',
+        cnpj: company?.cnpj || '',
+        address_street: company?.address_street,
+        address_number: company?.address_number,
+        address_neighborhood: company?.address_neighborhood,
+        address_city: company?.address_city,
+        address_state: company?.address_state,
+        address_zip: company?.address_zip,
+        address_complement: company?.address_complement,
+      },
+      customer: {
+        name: customer?.name || 'Cliente',
+        document: customer?.document || '',
+        phone: customer?.phone || '',
+        address_street: customer?.address_street,
+        address_number: customer?.address_number,
+        address_neighborhood: customer?.address_neighborhood,
+        address_city: customer?.address_city,
+        address_state: customer?.address_state,
+        address_zip: customer?.address_zip,
+      },
+      items: items.map((item: unknown) => {
+        const qi = item as ReceiptQuoteItem
+        return {
+          item_name: qi.item_name,
+          quantity: Number(qi.quantity),
+          unit_price: Number(qi.unit_price),
+          subtotal: Number(qi.subtotal),
+          unit_measure: qi.unit_measure || null,
+        }
+      }),
+    }
+
+    return {
+      receipt: receiptData,
+      quote: quoteData,
+    }
+  } catch (error) {
+    logger.error('CRITICAL: getReceiptDetails failed:', error)
     return null
   }
 }

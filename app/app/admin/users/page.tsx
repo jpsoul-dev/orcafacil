@@ -55,6 +55,8 @@ export default async function AdminUsersPage() {
     const authUser = authData.users.find((u) => u.id === profile.id)
     return {
       ...profile,
+      is_admin: profile.is_admin ?? false,
+      created_at: profile.created_at ?? undefined,
       email: authUser?.email || 'Sem e-mail',
     }
   })

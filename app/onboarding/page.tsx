@@ -154,8 +154,7 @@ export default function OnboardingPage() {
         </Card>
 
         <p className="text-center text-xs text-zinc-500 font-medium italic">
-          Você poderá alterar essas informações e adicionar sua logo nas
-          configurações mais tarde.
+          Você poderá alterar essas informações mais tarde.
         </p>
       </div>
     </div>

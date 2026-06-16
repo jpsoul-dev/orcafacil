@@ -206,7 +206,7 @@ export function ManageAccountModal({
 
               <div className="grid gap-6">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Nome completo</Label>
+                  <Label className="text-sm font-semibold">Nome de perfil</Label>
                   <Input
                     value={user.name}
                     disabled
@@ -339,7 +339,7 @@ export function ManageAccountModal({
                     </div>
                     <Link href="/pricing" className="inline-block">
                       <Button className="h-11 px-8 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
-                        Conhecer Planos
+                        Assinar Plano Pro
                       </Button>
                     </Link>
                   </div>
@@ -361,13 +361,21 @@ export function ManageAccountModal({
                   </div>
 
                   <div className="pt-2">
-                    <Button
-                      onClick={handleManageSubscription}
-                      disabled={isPending}
-                      className="h-11 px-6 font-bold cursor-pointer"
-                    >
-                      {isPending ? 'Redirecionando...' : 'Gerenciar Assinatura'}
-                    </Button>
+                    {subDetails.status === 'trialing' ? (
+                      <Link href="/pricing" className="inline-block">
+                        <Button className="h-11 px-6 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
+                          Assinar Plano Pro
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        onClick={handleManageSubscription}
+                        disabled={isPending}
+                        className="h-11 px-6 font-bold cursor-pointer"
+                      >
+                        {isPending ? 'Redirecionando...' : 'Gerenciar Assinatura'}
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}

@@ -67,24 +67,6 @@ export function AppSidebar({
   const pathname = usePathname()
   const [isManageAccountOpen, setIsManageAccountOpen] = useState(false)
 
-  // Lógica de prazos e rótulos de assinatura
-  const now = new Date()
-  const cancelDate = cancelAt ? new Date(cancelAt) : null
-  const trialDate = trialEndsAt ? new Date(trialEndsAt) : null
-
-  let billingLabel = ""
-  let warningType: 'none' | 'trial' | 'cancel' = 'none'
-  let daysRemaining = 0
-
-  if (subscriptionStatus === 'trialing' && trialDate) {
-    daysRemaining = Math.max(0, Math.ceil((trialDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-    billingLabel = `${daysRemaining}d`
-    warningType = 'trial'
-  } else if (cancelDate) {
-    daysRemaining = Math.max(0, Math.ceil((cancelDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-    billingLabel = `${daysRemaining}d`
-    warningType = 'cancel'
-  }
 
   return (
     <Sidebar collapsible="icon" className="print:hidden">
@@ -213,16 +195,6 @@ export function AppSidebar({
                   <span className="truncate font-semibold">{user.name}</span>
                   <div className="flex items-center gap-1.5 overflow-hidden">
                     <span className="truncate text-xs text-sidebar-foreground/50">{user.email}</span>
-                    {warningType !== 'none' && (
-                      <span className={cn(
-                        "text-xs font-extrabold px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider",
-                        warningType === 'trial'
-                          ? "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20"
-                          : "bg-amber-500/10 text-amber-500 dark:bg-amber-500/20"
-                      )}>
-                        {billingLabel}
-                      </span>
-                    )}
                   </div>
                 </div>
                 <MoreVertical className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />

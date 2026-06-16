@@ -55,6 +55,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Deve ter um `.env.example` com a estrutura (sem valores reais)
 - RLS deve estar habilitado em TODAS as tabelas do Supabase
 - TODAS as Views do Supabase expostas na API REST devem ser definidas como 'Security Invoker' (usando 'WITH (security_invoker = true)') para garantir que obedeçam às políticas de RLS das tabelas físicas subjacentes e evitar vazamento público de dados.
+- Ao criar ou alterar funções do Supabase executadas como superusuário (`SECURITY DEFINER`), defina explicitamente o search_path como vazio (`SET search_path = ''`) para impedir vulnerabilidades de Search Path Hijacking.
+- Revogue a permissão padrão de execução pública (`REVOKE EXECUTE ON FUNCTION ... FROM PUBLIC, anon`) para todas as funções sensíveis com `SECURITY DEFINER`, e conceda acesso (`GRANT EXECUTE`) de forma restrita apenas aos papéis necessários (ex: `authenticated`, `service_role`).
+- Prefira definir funções como `SECURITY INVOKER` em vez de `SECURITY DEFINER` sempre que a operação puder ser executada sob as permissões e políticas de RLS do próprio usuário chamador no banco.
+- Nas políticas de RLS do Supabase, envolva as chamadas de funções de contexto (como `auth.uid()` ou `auth.role()`) em uma subquery (ex: `(SELECT auth.uid())`) para que o PostgreSQL realize cache do resultado, otimizando o plano de consulta (evitando reavaliação redundante a cada linha).
 - Toda API route deve verificar **autenticação**
 - Toda API route deve verificar **autorização** (quem pode fazer o quê)
 - IDs públicos devem ser UUIDs, não integers sequenciais

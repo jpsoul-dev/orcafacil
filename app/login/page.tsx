@@ -7,13 +7,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { FileText, Zap, ArrowRight, Loader2 } from 'lucide-react'
+import {
+  Zap,
+  ArrowRight,
+  Loader2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  FileText,
+  CheckCircle2,
+} from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginSchema } from '@/lib/validations/auth'
 
 export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -40,10 +51,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-blue-700 flex-col justify-between p-12 text-white">
-        <div className="absolute inset-0 bg-linear-to-br from-blue-700 via-blue-800 to-blue-950 z-0" />
+      {/* Lado esquerdo — Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-950 flex-col justify-between p-12 text-white">
+        {/* Camada de Gradiente e Grid */}
+        <div className="absolute inset-0 bg-linear-to-br from-indigo-950 via-slate-900 to-black z-0" />
         <div
-          className="absolute inset-0 opacity-10 z-0"
+          className="absolute inset-0 opacity-5 z-0"
           style={{
             backgroundImage:
               'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
@@ -52,43 +65,43 @@ export default function LoginPage() {
         />
 
         <div className="relative z-10">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-105 transition-transform duration-200">
               <Zap
-                className="h-6 w-6 text-white"
-                fill="white"
+                className="h-6 w-6 text-indigo-400"
+                fill="currentColor"
                 strokeWidth={0}
               />
             </div>
             <span className="font-bold text-2xl tracking-tighter text-white">
               OrçaFácil
             </span>
-          </div>
+          </Link>
         </div>
 
         <div className="relative z-10 space-y-10">
           <div className="space-y-4">
-            <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight text-white">
-              Bem-vindo !.
+            <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              Seus orçamentos em outro nível.
             </h1>
-            <p className="text-blue-100 text-xl max-w-md font-medium leading-relaxed">
+            <p className="text-slate-400 text-lg max-w-md font-medium leading-relaxed">
               Continue simplificando suas vendas e encantando seus clientes com
-              orçamentos impecáveis.
+              orçamentos profissionais e impecáveis.
             </p>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-4 pt-2">
             {[
               { icon: FileText, text: 'Gerencie seus orçamentos ativos' },
-              { icon: Zap, text: 'Acesse seu catálogo atualizado' },
-              { icon: ArrowRight, text: 'Acompanhe o status de fechamento' },
+              { icon: Zap, text: 'Acesso completo ao catálogo de produtos' },
+              { icon: CheckCircle2, text: 'Acompanhe status e pagamentos' },
             ].map((item, i) => (
               <div
                 key={i}
-                className="flex items-center gap-4 text-blue-50/90 group"
+                className="flex items-center gap-4 text-slate-300 group"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 border border-white/10 group-hover:bg-white/20 transition-all">
-                  <item.icon className="h-5 w-5" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-300">
+                  <item.icon className="h-5 w-5 text-indigo-400" />
                 </div>
                 <span className="text-base font-medium">{item.text}</span>
               </div>
@@ -97,26 +110,26 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-8">
-          <p className="text-blue-200/50 text-sm font-medium">
+          <p className="text-slate-500 text-sm font-medium">
             © 2025 OrçaFácil
           </p>
-          <div className="flex gap-4">
-            <div className="h-1.5 w-8 rounded-full bg-white/40" />
-            <div className="h-1.5 w-4 rounded-full bg-white/10" />
-            <div className="h-1.5 w-4 rounded-full bg-white/10" />
+          <div className="flex gap-2">
+            <div className="h-1.5 w-8 rounded-full bg-indigo-500" />
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-700" />
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-700" />
           </div>
         </div>
       </div>
 
       {/* Lado direito — Formulário */}
       <div className="flex flex-1 flex-col items-center justify-center bg-background p-6 lg:p-12">
-        <div className="w-full max-w-sm space-y-8">
+        <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Logo mobile */}
-          <div className="flex items-center gap-2.5 lg:hidden mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-sm">
+          <div className="flex items-center gap-2.5 lg:hidden mb-4 justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-md">
               <Zap
-                className="h-6 w-6 text-white"
-                fill="white"
+                className="h-6 w-6 text-indigo-400"
+                fill="currentColor"
                 strokeWidth={0}
               />
             </div>
@@ -125,58 +138,80 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="space-y-1.5">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Entrar na conta
+          <div className="space-y-2 text-center lg:text-left">
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
+              Bem-vindo de volta
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Ainda não tem conta?{' '}
-              <Link
-                href="/register"
-                className="font-semibold text-primary hover:underline underline-offset-4"
-              >
-                Criar grátis
-              </Link>
+            <p className="text-muted-foreground text-sm font-medium">
+              Acesse sua conta OrçaFácil
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-medium">
+              <Label htmlFor="email" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 E-mail
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                className="h-11"
-                {...register('email')}
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/60">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  className="pl-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
+                  {...register('email')}
+                />
+              </div>
               {errors.email && (
-                <p className="text-xs font-medium text-destructive">
+                <p className="text-xs font-semibold text-destructive px-1">
                   {errors.email.message}
                 </p>
               )}
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="password" title="Senha" className="font-medium">
+              <Label htmlFor="password" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 Senha
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="h-11"
-                {...register('password')}
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/60">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="pl-11 pr-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground/60 hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
               {errors.password && (
-                <p className="text-xs font-medium text-destructive">
+                <p className="text-xs font-semibold text-destructive px-1">
                   {errors.password.message}
                 </p>
               )}
             </div>
+
+            <div className="flex justify-end pt-1">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 transition-colors hover:underline underline-offset-4"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
+
             <Button
-              className="w-full h-11 font-semibold gap-2"
+              className="w-full h-12 rounded-xl font-bold gap-2 bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-md hover:scale-[1.01] active:scale-[0.99]"
               type="submit"
               disabled={isSubmitting}
             >
@@ -194,12 +229,12 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="relative">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" />
+              <div className="w-full border-t border-muted/80" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-3 text-muted-foreground font-medium">
+              <span className="bg-background px-4 text-muted-foreground font-semibold tracking-wider">
                 ou continue com
               </span>
             </div>
@@ -220,7 +255,7 @@ export default function LoginPage() {
           >
             <Button
               variant="outline"
-              className="w-full h-11 gap-2 font-medium"
+              className="w-full h-12 rounded-xl gap-2 font-semibold border-slate-200/80 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               type="submit"
               disabled={googleLoading}
             >
@@ -246,9 +281,19 @@ export default function LoginPage() {
                   />
                 </svg>
               )}
-              Continuar com Google
+              Entrar com Google
             </Button>
           </form>
+
+          <p className="text-center text-sm text-muted-foreground font-medium pt-2">
+            Ainda não tem conta?{' '}
+            <Link
+              href="/register"
+              className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors hover:underline underline-offset-4"
+            >
+              Criar grátis
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signup, signInWithGoogle } from '@/app/auth/actions'
+import Link from 'next/link'
+import { updatePassword } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,19 +12,29 @@ import {
   Zap,
   ArrowRight,
   Loader2,
-  CheckCircle2,
-  ShieldCheck,
-  Mail,
   Lock,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { authSchema, type AuthSchema } from '@/lib/validations/auth'
+import * as z from 'zod'
+import { passwordSchema } from '@/lib/validations/auth'
 
-export default function RegisterPage() {
-  const [googleLoading, setGoogleLoading] = useState(false)
+const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, 'A confirmação de senha é obrigatória'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
+
+type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>
+
+export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const router = useRouter()
@@ -33,27 +43,25 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<AuthSchema>({
-    resolver: zodResolver(authSchema),
+  } = useForm<ResetPasswordSchema>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      email: '',
       password: '',
       confirmPassword: '',
     },
   })
 
-  async function onSubmit(data: AuthSchema) {
-    const formData = new FormData()
-    formData.append('email', data.email)
-    formData.append('password', data.password)
-    formData.append('confirmPassword', data.confirmPassword)
-
-    const result = await signup(formData)
-    if (result?.error) {
-      toast.error(result.error)
-    } else {
-      toast.success('Conta criada! Verifique seu e-mail para confirmar.')
-      router.push('/login')
+  async function onSubmit(data: ResetPasswordSchema) {
+    try {
+      const result = await updatePassword(data.password)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Senha redefinida com sucesso!')
+        router.push('/app')
+      }
+    } catch {
+      toast.error('Ocorreu um erro ao atualizar a senha.')
     }
   }
 
@@ -87,46 +95,20 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <div className="relative z-10 space-y-10">
-          <div className="space-y-4">
-            <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-              Cresça seu negócio com profissionalismo.
-            </h1>
-            <p className="text-slate-400 text-lg max-w-md font-medium leading-relaxed">
-              Junte-se a milhares de empreendedores que já simplificaram suas
-              vendas e aumentaram seus fechamentos com o OrçaFácil.
-            </p>
-          </div>
-
-          <div className="grid gap-4 pt-2">
-            {[
-              'Orçamentos profissionais em segundos',
-              'Catálogo inteligente de produtos',
-              'Link de compartilhamento exclusivo',
-              'Personalização total com sua logo',
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 text-slate-300 group"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-300">
-                  <CheckCircle2 className="h-5 w-5 text-indigo-400" />
-                </div>
-                <span className="text-base font-medium">{item}</span>
-              </div>
-            ))}
-          </div>
+        <div className="relative z-10 space-y-4">
+          <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+            Segurança em primeiro lugar.
+          </h1>
+          <p className="text-slate-400 text-lg max-w-md font-medium leading-relaxed">
+            Redefina sua senha de forma simples e rápida para continuar emitindo
+            seus orçamentos com total tranquilidade.
+          </p>
         </div>
 
         <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-8">
           <p className="text-slate-500 text-sm font-medium">
             © 2025 OrçaFácil
           </p>
-          <div className="flex gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-            <div className="h-1.5 w-8 rounded-full bg-indigo-500" />
-            <div className="h-1.5 w-1.5 rounded-full bg-slate-700" />
-          </div>
         </div>
       </div>
 
@@ -149,40 +131,17 @@ export default function RegisterPage() {
 
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-              Criar sua conta
+              Redefinir Senha
             </h2>
             <p className="text-muted-foreground text-sm font-medium">
-              Comece a criar orçamentos profissionais grátis
+              Escolha uma nova senha segura para sua conta
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                E-mail
-              </Label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/60">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  className="pl-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
-                  {...register('email')}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-xs font-semibold text-destructive px-1">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="password" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                Senha
+                Nova Senha
               </Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/60">
@@ -217,7 +176,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                Confirmar Senha
+                Confirmar Nova Senha
               </Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground/60">
@@ -253,92 +212,24 @@ export default function RegisterPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Criando conta...
+                  Redefinindo...
                 </>
               ) : (
                 <>
-                  Criar conta grátis
+                  Redefinir Senha
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
           </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-muted/80" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-4 text-muted-foreground font-semibold tracking-wider">
-                ou continue com
-              </span>
-            </div>
-          </div>
-
-          <form
-            action={async () => {
-              setGoogleLoading(true)
-              try {
-                const result = await signInWithGoogle(window.location.origin)
-                if (result?.error) {
-                  toast.error(result.error)
-                }
-              } finally {
-                setGoogleLoading(false)
-              }
-            }}
-          >
-            <Button
-              variant="outline"
-              className="w-full h-12 rounded-xl gap-2 font-semibold border-slate-200/80 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-              type="submit"
-              disabled={googleLoading}
-            >
-              {googleLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <svg className="h-4 w-4" viewBox="0 0 24 24">
-                  <path
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    fill="#FBBC05"
-                  />
-                  <path
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    fill="#EA4335"
-                  />
-                </svg>
-              )}
-              Entrar com Google
-            </Button>
-          </form>
-
           <p className="text-center text-sm text-muted-foreground font-medium pt-2">
-            Já tem uma conta?{' '}
+            Lembrou sua senha?{' '}
             <Link
               href="/login"
               className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors hover:underline underline-offset-4"
             >
               Fazer login
-            </Link>
-          </p>
-
-          <p className="text-center text-xs text-muted-foreground/85 leading-relaxed">
-            Ao criar uma conta, você concorda com nossos{' '}
-            <Link
-              href="/termos"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-4 hover:text-primary transition-colors font-medium"
-            >
-              Termos de Uso
             </Link>
           </p>
         </div>

@@ -121,6 +121,25 @@ export async function signInWithGoogle(origin?: string) {
   }
 }
 
+export async function sendPasswordReset(email: string, origin: string) {
+  if (!email || !email.includes('@')) {
+    return { error: 'E-mail inválido.' }
+  }
+
+  const supabase = await createClient()
+  const redirectUrl = `${origin}/auth/callback?next=/reset-password`
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  })
+
+  if (error) {
+    return { error: getAuthErrorMessage(error.message) }
+  }
+
+  return { success: true }
+}
+
 export async function updatePassword(password: string) {
   // Validação no servidor
   const validation = passwordSchema.safeParse(password)

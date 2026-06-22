@@ -93,6 +93,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Use os prefixos de breakpoint (`sm:`, `md:`, `lg:`, `xl:`) exclusivamente para escalar o layout para telas maiores. NUNCA construa para desktop primeiro tentando usar breakpoints para corrigir o mobile depois.
 - Prefira CSS Grid e Flexbox nativos do Tailwind para estruturação de layouts, evitando larguras e alturas fixas que quebram a responsividade.
 
+## UI / UX
+- sempre que precisar modificar a interface da aplicação é obrigatório consultar o arquivo: [Design System](file:///c:/DEV/orcafacil/.DOCS/Design%20System%20-%20OrcaFacil.md). 
+Este é o arquivo de design system da aplicação e deve ser seguido para manter consistencia visual em toda a aplicação e com a marcar OrçaFácil.
+
 ## Stack Tecnológica
 
 ### Fullstack & Core
@@ -123,5 +127,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-[plan.md](file:///c:/DEV/orcafacil/specs/001-budget-lifecycle-dashboard/plan.md)
+[plan.md](file:///c:/DEV/orcafacil/specs/004-catalog-and-branding/plan.md)
 <!-- SPECKIT END -->

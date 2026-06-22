@@ -30,9 +30,19 @@ import {
 } from 'lucide-react'
 
 const catalogSchema = z.object({
-  type: z.enum(['product', 'service']),
-  name: z.string().min(1, 'Nome é obrigatório'),
-  unit_price: z.coerce.number().min(0),
+  type: z.enum(['product', 'service'], {
+    message: 'O tipo do item é obrigatório.',
+  }),
+  name: z.string()
+    .min(2, 'O nome deve conter pelo menos 2 caracteres.')
+    .max(100, 'O nome deve conter no máximo 100 caracteres.'),
+  unit_price: z.coerce.number()
+    .min(0.01, 'O valor unitário deve ser estritamente maior que zero.'),
+  unit_measure: z.string()
+    .max(10, 'A unidade de medida deve conter no máximo 10 caracteres.')
+    .optional()
+    .nullable()
+    .or(z.literal('')),
 })
 
 type CatalogValues = z.infer<typeof catalogSchema>
@@ -73,6 +83,7 @@ export function CatalogForm({
       type: initialData?.type || 'product',
       name: initialData?.name || '',
       unit_price: initialData?.unit_price || 0,
+      unit_measure: initialData?.unit_measure || '',
     },
   })
 
@@ -83,6 +94,7 @@ export function CatalogForm({
         type: initialData?.type || 'product',
         name: initialData?.name || '',
         unit_price: initialData?.unit_price || 0,
+        unit_measure: initialData?.unit_measure || '',
       })
     }
   }, [open, initialData, form])
@@ -119,25 +131,25 @@ export function CatalogForm({
               <span className="sr-only">Editar</span>
             </Button>
           ) : (
-            <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg">
+            <Button className="gap-2 font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg cursor-pointer">
               <PackagePlus className="h-4 w-4" /> Novo item
             </Button>
           )
         }
       />
 
-      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl">
+      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-2xl border border-border bg-card text-foreground shadow-2xl">
         {/* Header no estilo inspirado na imagem */}
-        <DialogHeader className="px-6 py-5 border-b shrink-0 bg-white z-10 relative">
+        <DialogHeader className="px-6 py-5 border-b border-border shrink-0 bg-card z-10 relative">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950 shadow-md shadow-slate-950/20">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-md shadow-primary/20">
               <Package className="h-6 w-6 text-white" />
             </div>
             <div className="text-left space-y-0.5">
-              <DialogTitle className="text-xl font-bold text-slate-800">
+              <DialogTitle className="text-xl font-bold text-foreground">
                 {initialData ? 'Editar Item' : 'Novo Item'}
               </DialogTitle>
-              <DialogDescription className="text-sm text-slate-500 font-medium">
+              <DialogDescription className="text-sm text-muted-foreground font-medium">
                 {initialData
                   ? 'Atualize as informações do item'
                   : 'Adicione um produto ou serviço ao catálogo'}
@@ -147,7 +159,7 @@ export function CatalogForm({
         </DialogHeader>
 
         {/* Conteúdo */}
-        <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
+        <div className="flex-1 overflow-y-auto bg-background">
           <form
             id="catalog-form"
             onSubmit={form.handleSubmit(onSubmit)}
@@ -155,7 +167,7 @@ export function CatalogForm({
           >
             {/* Seletor de tipo com cards */}
             <div className="space-y-3">
-              <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Tipo do Item
               </Label>
               <div className="grid grid-cols-2 gap-4">
@@ -164,15 +176,15 @@ export function CatalogForm({
                     value: 'product',
                     label: 'Produto',
                     icon: Box,
-                    color: 'text-blue-600',
-                    bg: 'bg-blue-50',
+                    color: 'text-blue-600 dark:text-blue-400',
+                    bg: 'bg-blue-50 dark:bg-blue-950/40',
                   },
                   {
                     value: 'service',
                     label: 'Serviço',
                     icon: Wrench,
-                    color: 'text-orange-600',
-                    bg: 'bg-orange-50',
+                    color: 'text-orange-600 dark:text-orange-400',
+                    bg: 'bg-orange-50 dark:bg-orange-950/40',
                   },
                 ].map((opt) => {
                   const isSelected = watchType === opt.value
@@ -186,14 +198,14 @@ export function CatalogForm({
                           opt.value as 'product' | 'service',
                         )
                       }
-                      className={`flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all ${
+                      className={`flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-slate-950 bg-white shadow-sm'
-                          : 'border-slate-100 bg-white hover:border-slate-200 text-slate-400'
+                          ? 'border-foreground bg-card shadow-sm text-foreground'
+                          : 'border-border bg-card hover:border-border/80 text-muted-foreground'
                       }`}
                     >
                       <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${isSelected ? opt.bg : 'bg-slate-50'} ${isSelected ? opt.color : 'text-slate-400'}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${isSelected ? opt.bg : 'bg-muted'} ${isSelected ? opt.color : 'text-muted-foreground'}`}
                       >
                         <opt.icon className="h-5 w-5 shrink-0" />
                       </div>
@@ -214,14 +226,14 @@ export function CatalogForm({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="name"
-                  className="text-xs font-semibold text-slate-600 uppercase tracking-wider"
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                 >
                   Nome do Item <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
                   {...form.register('name')}
-                  className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                  className="h-11 rounded-xl bg-background border-input focus-visible:ring-1 focus-visible:ring-ring"
                 />
                 {form.formState.errors.name && (
                   <p className="text-xs text-red-500 font-medium">
@@ -230,52 +242,79 @@ export function CatalogForm({
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="unit_price"
-                  className="text-xs font-semibold text-slate-600 uppercase tracking-wider"
-                >
-                  Valor Unitário (R$)
-                </Label>
-                <Controller
-                  name="unit_price"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Input
-                      id="unit_price"
-                      type="text"
-                      placeholder="0,00"
-                      value={
-                        field.value
-                          ? maskCurrency(
-                              Math.round(field.value * 100).toString(),
-                            )
-                          : ''
-                      }
-                      onChange={(e) => {
-                        const masked = maskCurrency(e.target.value)
-                        const raw =
-                          parseFloat(
-                            masked.replace(/\./g, '').replace(',', '.'),
-                          ) || 0
-                        field.onChange(raw)
-                      }}
-                      className="h-11 rounded-xl bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
-                    />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="unit_price"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Valor Unitário (R$) <span className="text-red-500">*</span>
+                  </Label>
+                  <Controller
+                    name="unit_price"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        id="unit_price"
+                        type="text"
+                        placeholder="0,00"
+                        value={
+                          field.value
+                            ? maskCurrency(
+                                Math.round(field.value * 100).toString(),
+                              )
+                            : ''
+                        }
+                        onChange={(e) => {
+                          const masked = maskCurrency(e.target.value)
+                          const raw =
+                            parseFloat(
+                              masked.replace(/\./g, '').replace(',', '.'),
+                            ) || 0
+                          field.onChange(raw)
+                        }}
+                        className="h-11 rounded-xl bg-background border-input focus-visible:ring-1 focus-visible:ring-ring tabular-nums"
+                      />
+                    )}
+                  />
+                  {form.formState.errors.unit_price && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {form.formState.errors.unit_price.message}
+                    </p>
                   )}
-                />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="unit_measure"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Unidade de Medida
+                  </Label>
+                  <Input
+                    id="unit_measure"
+                    placeholder="Ex: un, m², h"
+                    {...form.register('unit_measure')}
+                    className="h-11 rounded-xl bg-background border-input focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                  {form.formState.errors.unit_measure && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {form.formState.errors.unit_measure.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </form>
         </div>
 
         {/* Footer fixo */}
-        <div className="shrink-0 border-t border-slate-200 bg-white p-6 rounded-b-2xl">
+        <div className="shrink-0 border-t border-border bg-card p-6 rounded-b-2xl">
           <Button
             form="catalog-form"
             type="submit"
             disabled={loading}
-            className="w-full h-12 font-bold text-base bg-slate-950 hover:bg-slate-800 text-white rounded-xl shadow-md shadow-slate-950/20 gap-2"
+            className="w-full h-12 font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md shadow-primary/20 gap-2 cursor-pointer"
           >
             {loading ? (
               <>

@@ -48,7 +48,7 @@ export const columns: ColumnDef<CatalogItem>[] = [
       <CatalogForm
         initialData={row.original}
         trigger={
-          <button className="font-bold text-slate-900 cursor-pointer hover:text-blue-600 transition-colors bg-transparent border-none p-0 text-left">
+          <button className="font-bold text-foreground cursor-pointer hover:text-primary transition-colors bg-transparent border-none p-0 text-left">
             {row.getValue('name')}
           </button>
         }
@@ -62,16 +62,24 @@ export const columns: ColumnDef<CatalogItem>[] = [
       const type = row.original.type
       if (type === 'product') {
         return (
-          <Badge className="bg-blue-900 text-white border-none shadow-sm font-bold text-[10px] px-3 py-0.5 rounded-md uppercase">
+          <Badge className="bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-none font-bold text-[10px] px-2.5 py-0.5 rounded-md uppercase hover:bg-blue-500/15">
             Produto
           </Badge>
         )
       }
       return (
-        <Badge className="bg-amber-900 text-white border-none shadow-sm font-bold text-[10px] px-3 py-0.5 rounded-md uppercase">
+        <Badge className="bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-none font-bold text-[10px] px-2.5 py-0.5 rounded-md uppercase hover:bg-orange-500/15">
           Serviço
         </Badge>
       )
+    },
+  },
+  {
+    accessorKey: 'unit_measure',
+    header: () => <div className="font-bold text-foreground">Unidade</div>,
+    cell: ({ row }) => {
+      const measure = row.original.unit_measure
+      return <div className="text-muted-foreground font-medium">{measure || '-'}</div>
     },
   },
   {

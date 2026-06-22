@@ -6,9 +6,9 @@ import { z } from 'zod'
 
 const catalogItemSchema = z.object({
   type: z.enum(['product', 'service']),
-  name: z.string().min(1, 'Nome é obrigatório'),
-  unit_price: z.coerce.number().min(0),
-  unit_measure: z.string().optional().nullable(),
+  name: z.string().min(2, 'O nome deve conter pelo menos 2 caracteres.').max(100, 'O nome deve conter no máximo 100 caracteres.'),
+  unit_price: z.coerce.number().min(0.01, 'O valor unitário deve ser estritamente maior que zero.'),
+  unit_measure: z.string().max(10, 'A unidade de medida deve conter no máximo 10 caracteres.').optional().nullable().or(z.literal('')),
 })
 
 export type CatalogItemInput = z.infer<typeof catalogItemSchema>

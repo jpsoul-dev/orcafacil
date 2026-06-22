@@ -1,16 +1,17 @@
 import { ReactNode } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { AppSidebar } from "@/components/app-sidebar"
+import { MobileTabBar } from "@/components/mobile-tab-bar"
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
 import { AppBreadcrumb } from "@/components/app-breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle } from "lucide-react"
+import { Settings } from "lucide-react"
 
 import { redirect } from "next/navigation"
 import { NotificationBell } from "@/components/notification-bell"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { headers } from "next/headers"
 import { SubscriptionProvider } from "@/components/subscription-provider"
 
@@ -62,21 +63,28 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           isExpired={isExpired}
         />
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 backdrop-blur-sm px-4 print:hidden">
-            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-            <Separator orientation="vertical" className="h-4" />
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur-sm px-4 print:hidden">
+            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground md:inline-flex hidden" />
+            <Separator orientation="vertical" className="h-4 md:block hidden" />
             <AppBreadcrumb />
             <div className="flex-1" />
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
               <NotificationBell />
-              <div className="text-right hidden sm:block">
-                <p className="text-lg font-bold text-foreground leading-none">{companyName}</p>
+              <Link href="/app/settings" title="Configurações">
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground cursor-pointer">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </Link>
+              <div className="text-right hidden sm:block ml-2 border-l pl-3 border-border">
+                <p className="text-sm font-bold text-foreground leading-none">{companyName}</p>
               </div>
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
+          <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6 pb-20 md:pb-6">
             {children}
           </div>
+          <MobileTabBar user={userData} />
         </SidebarInset>
       </SidebarProvider>
     </SubscriptionProvider>

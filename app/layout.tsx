@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Sora } from 'next/font/google'
 import './globals.css'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
@@ -29,12 +29,14 @@ export const viewport: Viewport = {
   themeColor: '#0f172a',
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
 }
 
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
+import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
+const sora = Sora({ subsets: ['latin'], variable: '--font-sans' })
 
 export default function RootLayout({
   children,
@@ -44,11 +46,14 @@ export default function RootLayout({
   return (
     <html
       lang="pt-br"
-      className={cn('h-full', 'antialiased', 'font-sans', inter.variable)}
+      className={cn('h-full', 'antialiased', 'font-sans', sora.variable)}
+      suppressHydrationWarning
     >
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

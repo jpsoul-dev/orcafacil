@@ -4,7 +4,6 @@ import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRig
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 
 import {
   Sidebar,
@@ -47,6 +46,18 @@ function isActive(pathname: string, url: string, exact?: boolean) {
   return pathname === url || pathname.startsWith(url + '/')
 }
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) {
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+  }
+  const single = parts[0]
+  if (single.length >= 2) {
+    return single.substring(0, 2).toUpperCase()
+  }
+  return single.toUpperCase() || 'U'
+}
+
 export function AppSidebar({
   user,
   isAdmin,
@@ -70,15 +81,17 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" className="print:hidden">
-      {/* Logo */}
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className="h-16 border-b border-sidebar-border flex items-center justify-start px-4 group-data-[collapsible=icon]:justify-center">
         <Link href="/app" className="flex items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary shadow-sm shrink-0">
-            <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
+          {/* Logo Horizontal (Expandido) */}
+          <div className="group-data-[collapsible=icon]:hidden">
+            <img src="/logo-horizontal-claro.svg" alt="OrçaFácil" className="dark:hidden block h-8 w-auto" />
+            <img src="/logo-horizontal-escuro.svg" alt="OrçaFácil" className="hidden dark:block h-8 w-auto" />
           </div>
-          <div className="flex flex-col leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-bold text-sidebar-foreground text-base tracking-tight">OrçaFácil</span>
-            <span className="text-[10px] text-sidebar-foreground/50 font-medium">Orçamentos profissionais</span>
+          {/* Logo Símbolo (Colapsado) */}
+          <div className="hidden group-data-[collapsible=icon]:block">
+            <img src="/logo-simbolo-claro.svg" alt="OrçaFácil" className="dark:hidden block h-7 w-7" />
+            <img src="/logo-simbolo-escuro.svg" alt="OrçaFácil" className="hidden dark:block h-7 w-7" />
           </div>
         </Link>
       </SidebarHeader>
@@ -98,7 +111,7 @@ export function AppSidebar({
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
                       isActive={active}
-                      className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium"
+                      className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-120"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
@@ -127,7 +140,7 @@ export function AppSidebar({
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
                       isActive={active}
-                      className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium"
+                      className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-120"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
@@ -142,7 +155,7 @@ export function AppSidebar({
                   <SidebarMenuButton
                     render={<Link href="/app/admin/users" />}
                     isActive={isActive(pathname, '/app/admin/users')}
-                    className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm font-medium mt-1"
+                    className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-120 mt-1"
                   >
                     <Users className="h-4 w-4 shrink-0" />
                     <span className="group-data-[collapsible=icon]:hidden font-medium">Usuários (Admin)</span>
@@ -185,10 +198,10 @@ export function AppSidebar({
                   />
                 }
               >
-                <Avatar className="h-8 w-8 rounded-lg after:rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} className="rounded-lg" />
-                  <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    {user.name.charAt(0).toUpperCase()}
+                <Avatar className="h-8 w-8 rounded-full after:rounded-full">
+                  <AvatarImage src={user.avatar} alt={user.name} className="rounded-full" />
+                  <AvatarFallback className="rounded-full bg-muted text-muted-foreground font-semibold">
+                    {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">

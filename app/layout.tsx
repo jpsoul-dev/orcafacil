@@ -4,9 +4,17 @@ import './globals.css'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const metadata: Metadata = {
-  title: 'Orça Fácil',
-  description: 'Sistema profissional de geração e gerenciamento de orçamentos rápidos e recibos',
+  title: 'OrçaFácil',
+  description: 'Orçamentos profissionais',
   applicationName: 'Orça Fácil',
+  icons: {
+    icon: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

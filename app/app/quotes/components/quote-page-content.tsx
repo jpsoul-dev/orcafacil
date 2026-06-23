@@ -92,12 +92,12 @@ export async function QuotePageContent({
   const { title, description } = titles[mode]
 
   return (
-    <div className="w-[80%] space-y-6 mx-auto">
+    <div className="max-w-[720px] w-full space-y-6 mx-auto">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
           {title}
         </h2>
-        <p className="text-muted-foreground text-sm mt-1">{description}</p>
+        <p className="text-muted-foreground text-ds-body-sm font-medium mt-1">{description}</p>
       </div>
       <QuoteForm
         customers={customers || []}

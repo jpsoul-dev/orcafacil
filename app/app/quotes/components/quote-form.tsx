@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   useForm,
   useFieldArray,
@@ -15,13 +15,15 @@ import { useRouter } from 'next/navigation'
 import { saveQuote } from '../actions'
 import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { FormError } from '@/components/ui/form-error'
+import { DatePicker } from '@/components/ui/date-picker'
+import { QuantityInput } from '@/components/ui/quantity-input'
+import { DiscountInput } from '@/components/ui/discount-input'
 import {
   Select,
   SelectContent,
@@ -44,6 +46,13 @@ import {
   Calendar as CalendarIcon,
   Search,
   Edit2,
+  HelpCircle,
+  QrCode,
+  Banknote,
+  CreditCard,
+  Wallet,
+  Barcode,
+  FileSignature,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -61,7 +70,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { Customer } from '../../customers/customer-form'
+import type { Customer } from '@/lib/services/customer-service'
 import { CatalogItem } from '../../catalog/columns'
 import { CustomerSelector } from './customer-selector'
 
@@ -88,7 +97,7 @@ export interface QuoteWithItems {
 
 const quoteItemSchema = z.object({
   catalog_item_id: z.string().optional().nullable(),
-  item_name: z.string().min(1, 'Nome do item obrigatório'),
+  item_name: z.string().min(1, 'Descrição do item obrigatória'),
   quantity: z.coerce.number().min(0.01),
   unit_price: z.coerce.number().min(0),
   subtotal: z.number(),
@@ -134,6 +143,15 @@ const brl = (val: number) =>
 
 const round2 = (num: number): number => {
   return Math.round((num + Number.EPSILON) * 100) / 100
+}
+
+const paymentMethodIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  'Pix': QrCode,
+  'Dinheiro': Banknote,
+  'Cartão de Crédito': CreditCard,
+  'Cartão de Débito': Wallet,
+  'Boleto Bancário': Barcode,
+  'Cheque': FileSignature,
 }
 
 export function QuoteForm({
@@ -242,6 +260,50 @@ export function QuoteForm({
     }
   }, [watchItems, watchDiscountType, watchDiscountValue])
 
+  // Limita o desconto global se o subtotal final diminuir para menos do que o desconto aplicado
+  useEffect(() => {
+    const discType = form.getValues('discount_type')
+    const discVal = Number(form.getValues('discount_value')) || 0
+    if (discType === 'R$' && discVal > subtotalFinal) {
+      form.setValue('discount_value', subtotalFinal)
+    } else if (discType === '%' && discVal > 100) {
+      form.setValue('discount_value', 100)
+    }
+  }, [subtotalFinal, form])
+
+  const handleRecalculate = (
+    index: number,
+    currentQty?: number,
+    currentPrice?: number,
+    currentDiscType?: 'none' | '%' | 'R$',
+    currentDiscVal?: number
+  ) => {
+    const qty = currentQty !== undefined ? currentQty : (Number(form.getValues(`items.${index}.quantity`)) || 0)
+    const price = currentPrice !== undefined ? currentPrice : (Number(form.getValues(`items.${index}.unit_price`)) || 0)
+    const type = currentDiscType !== undefined ? currentDiscType : (form.getValues(`items.${index}.discount_type`) || 'none')
+    let discVal = currentDiscVal !== undefined ? currentDiscVal : (Number(form.getValues(`items.${index}.discount_value`)) || 0)
+
+    const gross = round2(qty * price)
+
+    if (type === 'R$' && discVal > gross) {
+      form.setValue(`items.${index}.discount_value`, gross)
+      discVal = gross
+    }
+
+    let discountMoney = 0
+    if (type === '%') {
+      if (discVal > 100) {
+        form.setValue(`items.${index}.discount_value`, 100)
+        discVal = 100
+      }
+      discountMoney = round2(gross * (discVal / 100))
+    } else if (type === 'R$') {
+      discountMoney = round2(discVal)
+    }
+
+    form.setValue(`items.${index}.subtotal`, round2(gross - discountMoney))
+  }
+
   const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
 
   const handleAddCatalogItem = (item: CatalogItem) => {
@@ -274,6 +336,7 @@ export function QuoteForm({
   async function handleSave(
     status: 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'expired',
   ) {
+    if (loading) return
     const isValid = await form.trigger()
     if (!isValid) {
       toast.error('Preencha todos os campos obrigatórios corretamente.')
@@ -334,28 +397,27 @@ export function QuoteForm({
   }, [catalogItems, debouncedCatalogSearch])
 
   return (
-    <div className="space-y-6 w-full">
-      <Card className="rounded-md border-slate-200 shadow-sm overflow-hidden bg-white">
-        <CardContent className="p-6 space-y-6 pt-2">
+    <div className="space-y-6 w-full animate-in fade-in duration-ds-normal">
+      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
+        <CardContent className="p-6 space-y-6 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
               <Label
                 htmlFor="title"
-                className="text-sm font-semibold text-slate-700"
+                className="text-ds-body-sm font-semibold text-foreground"
               >
-                Título do orçamento{' '}
-                <span className="text-slate-400 text-xs">(opcional)</span>
+                Título do orçamento
+                <span className="text-muted-foreground text-ds-caption ml-1">(opcional)</span>
               </Label>
               <Input
                 id="title"
                 {...form.register('title')}
-                className="h-10 border-slate-200 rounded-md bg-white"
               />
             </div>
             <div className="space-y-2">
               <Label
                 htmlFor="valid_until"
-                className="text-sm font-semibold text-slate-700"
+                className="text-ds-body-sm font-semibold text-foreground"
               >
                 Validade
               </Label>
@@ -363,83 +425,23 @@ export function QuoteForm({
                 control={form.control}
                 name="valid_until"
                 render={({ field }) => (
-                  <div>
-                    <Popover>
-                      <PopoverTrigger
-                        id="valid_until"
-                        nativeButton={true}
-                        render={
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className={cn(
-                              'w-full justify-between text-left font-normal h-10 border-slate-200 rounded-md bg-white',
-                              !field.value && 'text-muted-foreground',
-                              form.formState.errors.valid_until &&
-                              'border-red-500 focus-visible:ring-red-500',
-                            )}
-                          />
-                        }
-                      >
-                        {field.value ? (
-                          format(
-                            new Date(field.value + 'T00:00:00'),
-                            'dd/MM/yyyy',
-                            { locale: ptBR },
-                          )
-                        ) : (
-                          <span>Selecione uma data</span>
-                        )}
-                        <CalendarIcon className="h-4 w-4 opacity-50" />
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={
-                            field.value
-                              ? new Date(field.value + 'T00:00:00')
-                              : undefined
-                          }
-                          onSelect={(date) => {
-                            if (date) {
-                              const year = date.getFullYear()
-                              const month = String(
-                                date.getMonth() + 1,
-                              ).padStart(2, '0')
-                              const day = String(date.getDate()).padStart(
-                                2,
-                                '0',
-                              )
-                              field.onChange(`${year}-${month}-${day}`)
-                            } else {
-                              field.onChange(null)
-                            }
-                          }}
-                          disabled={(date) => {
-                            const today = new Date()
-                            today.setHours(0, 0, 0, 0)
-                            return date < today
-                          }}
-                          initialFocus
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <DatePicker
+                    id="valid_until"
+                    value={field.value}
+                    onChange={field.onChange}
+                    minDate={new Date()}
+                    error={!!form.formState.errors.valid_until}
+                  />
                 )}
               />
-              {form.formState.errors.valid_until && (
-                <p className="text-xs text-red-500">
-                  {form.formState.errors.valid_until.message}
-                </p>
-              )}
+              <FormError message={form.formState.errors.valid_until?.message} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-full space-y-2">
-              <Label className="text-sm font-semibold text-slate-700">
-                Cliente <span className="text-red-500">*</span>
+              <Label className="text-ds-body-sm font-semibold text-foreground mb-2">
+                Cliente <span className="text-muted-foreground text-ds-caption ml-0.5">(obrigatório)</span>
               </Label>
               <Controller
                 control={form.control}
@@ -459,18 +461,18 @@ export function QuoteForm({
       </Card>
 
       {/* Itens do Pedido */}
-      <Card className="rounded-[12px] border-slate-200 shadow-sm overflow-hidden bg-white">
+      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
         <CardHeader className="p-6 pb-2">
-          <CardTitle className="text-[16px] font-bold text-slate-800">
+          <CardTitle className="text-ds-heading-xs font-bold text-foreground">
             Itens do Pedido
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-2">
           {/* Empty state ou tabela de itens */}
           {fields.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 border border-dashed border-slate-200 rounded-xl text-slate-400">
+            <div className="flex flex-col items-center justify-center py-10 border border-dashed border-border rounded-md text-muted-foreground">
               <Package className="h-8 w-8 mb-2 opacity-40" />
-              <p className="text-sm font-medium">Nenhum item adicionado</p>
+              <p className="text-ds-body-sm font-medium">Nenhum item adicionado</p>
               <p className="text-xs mt-1">
                 Use <span className="font-semibold">Catálogo</span> para buscar
                 um produto ou <span className="font-semibold">Novo item</span>{' '}
@@ -478,342 +480,168 @@ export function QuoteForm({
               </p>
             </div>
           ) : (
-            <div className="pb-4">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
-                  <tr>
-                    <th className="pr-2 pb-3 text-center w-[5%]">Nº</th>
-                    <th className="pr-2 pb-3 w-[30%]">Item</th>
-                    <th className="px-2 pb-3 text-center w-[10%]">Qtd</th>
-                    <th className="px-2 pb-3 text-center w-[18%]">
-                      Preço (R$)
-                    </th>
-                    <th className="px-2 pb-3 text-center w-[18%]">
-                      Desconto
-                    </th>
-                    <th className="px-2 pb-3 text-right w-[14%]">Total</th>
-                    <th className="w-[5%] pb-3 text-right"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {fields.map((field, index) => (
-                    <tr key={field.id} className="group">
-                      <td className="pr-2 py-4 align-top text-center text-slate-500 font-medium text-sm">
-                        <div className="h-10 flex items-center justify-center">
+            <div className="space-y-4">
+              {fields.map((field, index) => {
+                return (
+                  <div
+                    key={field.id}
+                    className="p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-neutral-900 shadow-sm relative space-y-6 animate-in fade-in duration-ds-fast"
+                  >
+                    {/* Cabeçalho do Card do Item */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold font-sans">
                           {index + 1}
-                        </div>
-                      </td>
-                      <td className="pr-2 py-4 align-top">
-                        <div className="relative">
+                        </span>
+                        <span className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
+                          Item do Orçamento
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 border border-input rounded-sm transition-colors duration-ds-fast cursor-pointer"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Corpo do Card com 2 linhas principais de campos */}
+                    <div className="space-y-4">
+                      {/* Linha 1: Descrição + Quantidade */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                        {/* Descrição do Item */}
+                        <div className="space-y-2 md:col-span-8 col-span-1">
+                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                            Descrição <span className="ml-1 font-normal">{'(obrigatório)'}</span>
+                          </Label>
                           <Input
-                            {...form.register(
-                              `items.${index}.item_name` as const,
-                            )}
-                            placeholder="Descrição"
-                            className={`h-10 text-sm border-slate-200 rounded-md ${form.formState.errors.items?.[index]?.item_name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            {...form.register(`items.${index}.item_name` as const)}
+                            aria-invalid={!!form.formState.errors.items?.[index]?.item_name}
                           />
-                          {form.formState.errors.items?.[index]?.item_name && (
-                            <p className="text-[10px] text-red-500 mt-1 font-medium ml-1">
-                              {
-                                form.formState.errors.items[index]?.item_name
-                                  ?.message
-                              }
-                            </p>
-                          )}
+                          <FormError message={form.formState.errors.items?.[index]?.item_name?.message} />
                         </div>
-                      </td>
-                      <td className="px-2 py-4 align-top">
-                        <div className="flex h-10 border border-slate-200 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
-                          <Input
-                            type="number"
-                            min="1"
-                            step="1"
-                            {...form.register(
-                              `items.${index}.quantity` as const,
-                              {
-                                onChange: () => {
-                                  const qty =
-                                    Number(
-                                      form.getValues(`items.${index}.quantity`),
-                                    ) || 0
-                                  const price =
-                                    Number(
-                                      form.getValues(
-                                        `items.${index}.unit_price`,
-                                      ),
-                                    ) || 0
-                                  const type =
-                                    form.getValues(
-                                      `items.${index}.discount_type`,
-                                    ) || 'none'
-                                  let discVal =
-                                    Number(
-                                      form.getValues(
-                                        `items.${index}.discount_value`,
-                                      ),
-                                    ) || 0
 
-                                  const gross = round2(qty * price)
-
-                                  if (type === 'R$' && discVal > gross) {
-                                    form.setValue(
-                                      `items.${index}.discount_value`,
-                                      gross,
-                                    )
-                                    discVal = gross
-                                  }
-
-                                  let discountMoney = 0
-                                  if (type === '%') {
-                                    discountMoney = round2(gross * (discVal / 100))
-                                  } else if (type === 'R$') {
-                                    discountMoney = round2(discVal)
-                                  }
-
-                                  form.setValue(
-                                    `items.${index}.subtotal`,
-                                    round2(gross - discountMoney),
-                                  )
-                                },
-                              },
-                            )}
-                            className="h-full border-0 rounded-none focus-visible:ring-0 text-center tabular-nums w-full px-1"
-                          />
-                          <div className="h-full px-1.5 bg-slate-100 text-slate-500 flex items-center justify-center text-[9px] font-bold border-l border-slate-200 shrink-0">
-                            Un
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-2 py-4 align-top">
-                        <div className="flex h-10 border border-slate-200 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+                        {/* Quantidade */}
+                        <div className="space-y-2 md:col-span-4 col-span-1">
+                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                            Quantidade
+                          </Label>
                           <Controller
-                            name={`items.${index}.unit_price` as const}
+                            name={`items.${index}.quantity` as const}
                             control={form.control}
                             render={({ field }) => (
-                              <Input
-                                type="text"
-                                placeholder="0,00"
-                                value={
-                                  field.value
-                                    ? maskCurrency(
-                                      Math.round(
-                                        field.value * 100,
-                                      ).toString(),
-                                    )
-                                    : ''
-                                }
-                                onChange={(e) => {
-                                  const masked = maskCurrency(e.target.value)
-                                  const raw =
-                                    parseFloat(
-                                      masked
-                                        .replace(/\./g, '')
-                                        .replace(',', '.'),
-                                    ) || 0
-                                  field.onChange(raw)
-
-                                  const qty =
-                                    Number(
-                                      form.getValues(`items.${index}.quantity`),
-                                    ) || 0
-                                  const type =
-                                    form.getValues(
-                                      `items.${index}.discount_type`,
-                                    ) || 'none'
-                                  let discVal =
-                                    Number(
-                                      form.getValues(
-                                        `items.${index}.discount_value`,
-                                      ),
-                                    ) || 0
-
-                                  const gross = round2(qty * raw)
-
-                                  if (type === 'R$' && discVal > gross) {
-                                    form.setValue(
-                                      `items.${index}.discount_value`,
-                                      gross,
-                                    )
-                                    discVal = gross
-                                  }
-
-                                  let discountMoney = 0
-                                  if (type === '%') {
-                                    discountMoney = round2(gross * (discVal / 100))
-                                  } else if (type === 'R$') {
-                                    discountMoney = round2(discVal)
-                                  }
-
-                                  form.setValue(
-                                    `items.${index}.subtotal`,
-                                    round2(gross - discountMoney),
-                                  )
+                              <QuantityInput
+                                value={field.value}
+                                onChange={(val) => {
+                                  field.onChange(val)
+                                  handleRecalculate(index, val)
                                 }}
-                                className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-1"
+                                min={1}
+                                max={999}
                               />
                             )}
                           />
-                          <div className="h-full px-1.5 bg-slate-100 text-slate-500 flex items-center justify-center text-[9px] font-bold border-l border-slate-200 shrink-0">
-                            R$
+                        </div>
+                      </div>
+
+                      {/* Linha 2: Preço Unitário + Desconto + Total */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                        {/* Preço Unitário */}
+                        <div className="space-y-2 md:col-span-5 col-span-1">
+                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                            Preço Unitário <span className="ml-1 font-normal uppercase">{'(r$)'}</span>
+                          </Label>
+                          <div className="flex h-10 border border-input rounded-sm overflow-hidden bg-card transition-[border-color,box-shadow] duration-ds-fast focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 outline-none">
+                            <Controller
+                              name={`items.${index}.unit_price` as const}
+                              control={form.control}
+                              render={({ field }) => (
+                                <Input
+                                  type="text"
+                                  placeholder="0,00"
+                                  value={
+                                    field.value
+                                      ? maskCurrency(Math.round(field.value * 100).toString())
+                                      : ''
+                                  }
+                                  onChange={(e) => {
+                                    const masked = maskCurrency(e.target.value)
+                                    const raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
+                                    field.onChange(raw)
+                                    handleRecalculate(index, undefined, raw)
+                                  }}
+                                  className="h-full border-0 rounded-none focus-visible:ring-0 text-right bg-card text-ds-body-md tabular-nums w-full px-2"
+                                />
+                              )}
+                            />
                           </div>
                         </div>
-                      </td>
-                      <td className="px-2 py-4 align-top">
-                        <div className="flex h-10 border border-slate-200 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+
+                        {/* Desconto */}
+                        <div className="space-y-2 md:col-span-5 col-span-1">
+                          <div className="flex items-center gap-1">
+                            <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                              Desconto
+                            </Label>
+                            <Popover>
+                              <PopoverTrigger
+                                render={
+                                  <button
+                                    type="button"
+                                    className="text-slate-500 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400 cursor-pointer rounded-full outline-none focus:ring-1 focus:ring-ring shrink-0 flex items-center justify-center p-0.5"
+                                  />
+                                }
+                              >
+                                <HelpCircle className="h-4 w-4" />
+                                <span className="sr-only">Ajuda desconto</span>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-60 p-3 bg-card border-border rounded-md shadow-md text-xs text-muted-foreground">
+                                Você pode aplicar um desconto percentual (%) ou valor fixo em reais (R$) para cada item individualmente.
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
                           <Controller
                             name={`items.${index}.discount_type` as const}
                             control={form.control}
-                            render={({ field }) => (
-                              <select
-                                value={field.value || 'none'}
-                                onChange={(e) => {
-                                  const newType = e.target.value as 'none' | '%' | 'R$'
-                                  field.onChange(newType)
-
-                                  const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
-                                  const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
-                                  let discVal = Number(form.getValues(`items.${index}.discount_value`)) || 0
-
-                                  if (newType === 'none') {
-                                    form.setValue(`items.${index}.discount_value`, 0)
-                                    discVal = 0
-                                  }
-
-                                  const gross = round2(qty * price)
-                                  let discountMoney = 0
-                                  if (newType === '%') {
-                                    if (discVal > 100) {
-                                      form.setValue(`items.${index}.discount_value`, 100)
-                                      discVal = 100
-                                    }
-                                    discountMoney = round2(gross * (discVal / 100))
-                                  } else if (newType === 'R$') {
-                                    if (discVal > gross) {
-                                      form.setValue(`items.${index}.discount_value`, gross)
-                                      discVal = gross
-                                    }
-                                    discountMoney = round2(discVal)
-                                  }
-
-                                  form.setValue(
-                                    `items.${index}.subtotal`,
-                                    round2(gross - discountMoney),
-                                  )
-                                }}
-                                className="h-full bg-slate-100 text-slate-700 text-xs px-2 border-r border-slate-200 outline-none shrink-0 font-medium cursor-pointer"
-                              >
-                                <option value="none">Sem desc.</option>
-                                <option value="%">%</option>
-                                <option value="R$">R$</option>
-                              </select>
-                            )}
-                          />
-
-                          <Controller
-                            name={`items.${index}.discount_value` as const}
-                            control={form.control}
-                            render={({ field }) => {
-                              const type = form.watch(`items.${index}.discount_type`) || 'none'
-                              const isNone = type === 'none'
+                            render={({ field: typeField }) => {
+                              const discountValue = form.watch(`items.${index}.discount_value`) || 0
 
                               return (
-                                <Input
-                                  type={type === 'R$' ? 'text' : 'number'}
-                                  disabled={isNone}
-                                  placeholder={isNone ? '---' : type === 'R$' ? '0,00' : '0'}
-                                  min="0"
-                                  max={type === '%' ? '100' : undefined}
-                                  step={type === '%' ? '1' : '0.01'}
-                                  value={
-                                    isNone
-                                      ? ''
-                                      : type === 'R$'
-                                        ? field.value
-                                          ? maskCurrency(Math.round(field.value * 100).toString())
-                                          : ''
-                                        : field.value || ''
-                                  }
-                                  onChange={(e) => {
-                                    let raw = 0
-                                    if (type === 'R$') {
-                                      const masked = maskCurrency(e.target.value)
-                                      raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
-                                    } else {
-                                      raw = parseFloat(e.target.value) || 0
-                                    }
-
-                                    raw = Math.max(0, raw)
-
-                                    const qty = Number(form.getValues(`items.${index}.quantity`)) || 0
-                                    const price = Number(form.getValues(`items.${index}.unit_price`)) || 0
-                                    const gross = round2(qty * price)
-
-                                    if (type === '%') {
-                                      if (raw > 100) raw = 100
-                                    } else if (type === 'R$') {
-                                      if (raw > gross) raw = gross
-                                    }
-
-                                    field.onChange(raw)
-
-                                    let discountMoney = 0
-                                    if (type === '%') {
-                                      discountMoney = round2(gross * (raw / 100))
-                                    } else if (type === 'R$') {
-                                      discountMoney = round2(raw)
-                                    }
-
-                                    form.setValue(
-                                      `items.${index}.subtotal`,
-                                      round2(gross - discountMoney),
-                                    )
+                                <DiscountInput
+                                  type={typeField.value || 'none'}
+                                  value={discountValue}
+                                  onChange={(newType, newVal) => {
+                                    typeField.onChange(newType)
+                                    form.setValue(`items.${index}.discount_value`, newVal)
+                                    handleRecalculate(index, undefined, undefined, newType, newVal)
                                   }}
-                                  className="h-full border-0 rounded-none focus-visible:ring-0 text-right tabular-nums w-full px-2 disabled:bg-slate-50 disabled:text-slate-400"
                                 />
                               )
                             }}
                           />
                         </div>
-                      </td>
-                      <td className="px-2 py-4 align-top text-right">
-                        <div className="h-10 flex flex-col items-end justify-center">
-                          <span className="text-[14px] text-slate-800 font-bold tabular-nums">
-                            {brl(watchItems[index]?.subtotal || 0)}
-                          </span>
-                          {Number(watchItems[index]?.discount_value) > 0 && (
-                            <span className="text-[10px] text-slate-400 font-medium tabular-nums mt-0.5">
-                              {(() => {
-                                const qty = Number(watchItems[index]?.quantity) || 0
-                                const price = Number(watchItems[index]?.unit_price) || 0
-                                const gross = round2(qty * price)
-                                const discVal = Number(watchItems[index]?.discount_value) || 0
-                                const type = watchItems[index]?.discount_type || 'none'
 
-                                const discountMoney = type === '%'
-                                  ? round2(gross * (discVal / 100))
-                                  : round2(discVal)
-
-                                return `(- ${brl(discountMoney)})`
-                              })()}
-                            </span>
-                          )}
+                        {/* Total (R$) */}
+                        <div className="space-y-2 md:col-span-2 col-span-1">
+                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                            Total <span className="ml-1 font-normal uppercase">(r$)</span>
+                          </Label>
+                          <Input
+                            type="text"
+                            disabled
+                            value={brl(watchItems[index]?.subtotal || 0)}
+                            className="h-10 text-right bg-muted/40 font-semibold text-foreground dark:text-foreground tabular-nums border-input"
+                          />
                         </div>
-                      </td>
-                      <td className="pl-2 py-4 align-top text-right">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                          onClick={() => remove(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
 
@@ -835,16 +663,16 @@ export function QuoteForm({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-md transition-colors"
+                    className="flex items-center gap-1.5 h-9 px-3 text-ds-body-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/5 dark:hover:bg-primary/10 rounded-sm transition-all duration-ds-fast cursor-pointer"
                   >
                     <Package className="h-4 w-4" />
                     Catálogo
                   </Button>
                 }
               />
-              <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl shadow-2xl border-slate-200">
-                <DialogHeader className="px-5 pt-5 pb-4 border-b border-slate-50">
-                  <DialogTitle className="text-base font-bold text-slate-800">
+              <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-lg shadow-lg border-border bg-card">
+                <DialogHeader className="px-5 pt-5 pb-4 border-b border-border">
+                  <DialogTitle className="text-ds-heading-xs font-bold text-foreground">
                     Adicionar do Catálogo
                   </DialogTitle>
                 </DialogHeader>
@@ -858,13 +686,13 @@ export function QuoteForm({
                   />
                   <CommandList className="max-h-[400px] p-2 no-scrollbar">
                     <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
-                      <div className="bg-slate-50 p-3 rounded-full mb-3">
-                        <Search className="h-6 w-6 text-slate-300" />
+                      <div className="bg-muted p-3 rounded-full mb-3">
+                        <Search className="h-6 w-6 text-muted-foreground" />
                       </div>
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-ds-body-md font-semibold text-foreground">
                         Nenhum item encontrado
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-ds-body-sm text-muted-foreground mt-1">
                         Tente buscar por um termo diferente
                       </p>
                     </CommandEmpty>
@@ -875,38 +703,35 @@ export function QuoteForm({
                           key={item.id}
                           value={item.id}
                           onSelect={() => handleAddCatalogItem(item)}
-                          className="flex items-center justify-between p-3 cursor-pointer rounded-md data-[selected=true]:bg-slate-100 transition-all border border-transparent data-[selected=true]:border-slate-200"
+                          className="flex items-center justify-between p-3 cursor-pointer rounded-md data-[selected=true]:bg-muted transition-all duration-ds-fast border border-transparent data-[selected=true]:border-border"
                         >
                           <div className="flex flex-col min-w-0 flex-1 mr-4">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-semibold text-slate-900 truncate">
+                              <span className="text-ds-body-md font-semibold text-foreground truncate">
                                 {item.name}
                               </span>
                               <Badge
-                                variant="secondary"
+                                variant="outline"
                                 className={cn(
-                                  'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider',
+                                  'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider rounded-sm',
                                   item.type === 'product'
-                                    ? 'bg-blue-50 text-blue-600 border-blue-100'
-                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                                    ? 'bg-blue-50/10 text-blue-600 border-blue-200/50 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50'
+                                    : 'bg-muted text-muted-foreground border-border',
                                 )}
                               >
                                 {item.type === 'product' ? 'PROD' : 'SERV'}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-[13px] font-bold text-slate-700">
+                              <span className="text-ds-body-md font-bold text-foreground">
                                 {brl(item.unit_price)}
                               </span>
                               {item.unit_measure && (
-                                <span className="text-[11px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+                                <span className="text-ds-caption text-muted-foreground font-medium bg-muted px-1.5 py-0.5 rounded-sm border border-border">
                                   {item.unit_measure}
                                 </span>
                               )}
                             </div>
-                          </div>
-                          <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center group-data-[selected=true]:bg-white group-data-[selected=true]:shadow-sm transition-all">
-                            <Plus className="h-4 w-4 text-slate-400 group-data-[selected=true]:text-blue-600" />
                           </div>
                         </CommandItem>
                       ))}
@@ -920,14 +745,14 @@ export function QuoteForm({
               type="button"
               variant="outline"
               onClick={handleAddManualItem}
-              className="h-9 px-4 border-slate-200 rounded-md text-slate-700 hover:bg-slate-50 gap-2 text-[13px] font-medium"
+              className="h-9 px-4 border-border rounded-md text-foreground hover:bg-muted gap-2 text-ds-body-sm font-semibold transition-all duration-ds-fast cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Novo item
             </Button>
           </div>
 
           {form.formState.errors.items?.root && (
-            <div className="pt-4 text-sm text-red-500">
+            <div className="pt-4 text-ds-body-sm text-destructive">
               {form.formState.errors.items.root.message}
             </div>
           )}
@@ -935,19 +760,19 @@ export function QuoteForm({
       </Card>
 
       {/* Resumo e Pagamento */}
-      <Card className="rounded-[12px] border-slate-200 shadow-sm overflow-hidden bg-white relative">
+      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card relative">
         <CardHeader className="p-6 pb-2">
-          <CardTitle className="text-[16px] font-bold text-slate-800">
+          <CardTitle className="text-ds-heading-xs font-bold text-foreground">
             Resumo e Pagamento
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6 pt-2">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-2 col-span-full">
-              <Label className="text-[13px] font-semibold text-slate-700">
-                Formas de pagamento disponibilizadas para o cliente
+              <Label className="text-ds-body-sm font-semibold text-foreground">
+                Formas de pagamento disponibilizadas
               </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              <div className="flex flex-wrap gap-2.5">
                 {[
                   'Pix',
                   'Dinheiro',
@@ -958,6 +783,8 @@ export function QuoteForm({
                 ].map((method) => {
                   const currentMethods = Array.isArray(watchPaymentMethod) ? watchPaymentMethod : []
                   const isSelected = currentMethods.includes(method)
+                  const Icon = paymentMethodIcons[method] || CreditCard
+
                   return (
                     <button
                       key={method}
@@ -972,13 +799,14 @@ export function QuoteForm({
                         form.setValue('payment_method', newMethods)
                       }}
                       className={cn(
-                        "flex items-center justify-center text-center px-3 h-10 text-xs font-bold rounded-lg border transition-all cursor-pointer",
+                        "flex items-center gap-2 px-4 h-10 text-ds-body-sm font-semibold rounded-sm border transition-all cursor-pointer select-none",
                         isSelected
-                          ? "bg-slate-900 border-slate-900 text-white shadow-sm"
-                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                          ? "bg-primary/10 border-primary text-primary shadow-xs"
+                          : "bg-card border-border text-muted-foreground hover:bg-muted/50 hover:border-border/80"
                       )}
                     >
-                      {method}
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span>{method}</span>
                     </button>
                   )
                 })}
@@ -986,21 +814,21 @@ export function QuoteForm({
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-end">
+          <div className="mt-8 pt-6 border-t border-border flex flex-col items-end">
             <div className="w-full max-w-[320px] space-y-3">
-              <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium border-b border-slate-100/50 pb-2">
+              <div className="flex justify-between items-center text-ds-body-sm text-muted-foreground font-medium border-b border-border/50 pb-2">
                 <span>Total de itens</span>
-                <span className="tabular-nums text-slate-700">
+                <span className="tabular-nums text-foreground">
                   {totalItemsCount}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
+              <div className="flex justify-between items-center text-ds-body-sm text-muted-foreground font-medium">
                 <span>Subtotal</span>
-                <span className="tabular-nums text-slate-700">
+                <span className="tabular-nums text-foreground">
                   {brl(subtotalFinal)}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-[13px] text-slate-500 font-medium">
+              <div className="flex justify-between items-center text-ds-body-sm text-muted-foreground font-medium">
                 <div className="flex items-center gap-2">
                   <span>
                     Desconto{' '}
@@ -1020,90 +848,50 @@ export function QuoteForm({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                          className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-muted rounded-full transition-all duration-ds-fast cursor-pointer"
                         />
                       }
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                       <span className="sr-only">Editar desconto</span>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[400px] rounded-xl">
+                    <DialogContent className="sm:max-w-[400px] rounded-lg bg-card border-border shadow-lg p-6">
                       <DialogHeader>
-                        <DialogTitle className="text-lg font-bold">
+                        <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
                           Aplicar Desconto
                         </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label className="text-sm font-semibold">Tipo</Label>
-                          <Select
-                            onValueChange={(val) =>
-                              form.setValue(
-                                'discount_type',
-                                val as 'none' | '%' | 'R$',
-                              )
-                            }
-                            value={watchDiscountType}
-                          >
-                            <SelectTrigger className="w-full border-slate-200 rounded-lg">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200">
-                              <SelectItem value="%">Porcentagem (%)</SelectItem>
-                              <SelectItem value="R$">
-                                Valor Fixo (R$)
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-semibold">Valor</Label>
+                          <Label className="text-ds-body-sm font-semibold text-foreground">Desconto</Label>
                           <Controller
-                            name="discount_value"
+                            name="discount_type"
                             control={form.control}
-                            render={({ field }) => (
-                              <Input
-                                type={
-                                  watchDiscountType === 'R$' ? 'text' : 'number'
-                                }
-                                step="0.01"
-                                placeholder={
-                                  watchDiscountType === 'R$' ? '0,00' : '0'
-                                }
-                                value={
-                                  watchDiscountType === 'R$'
-                                    ? field.value
-                                      ? maskCurrency(
-                                        Math.round(
-                                          field.value * 100,
-                                        ).toString(),
-                                      )
-                                      : ''
-                                    : field.value || ''
-                                }
-                                onChange={(e) => {
-                                  if (watchDiscountType === 'R$') {
-                                    const masked = maskCurrency(e.target.value)
-                                    field.onChange(
-                                      parseFloat(
-                                        masked
-                                          .replace(/\./g, '')
-                                          .replace(',', '.'),
-                                      ) || 0,
-                                    )
-                                  } else {
-                                    field.onChange(e.target.value)
-                                  }
-                                }}
-                                className="w-full border-slate-200 rounded-lg"
-                                autoFocus={true}
-                              />
-                            )}
+                            render={({ field: typeField }) => {
+                              const discountValue = form.watch("discount_value") || 0
+
+                              return (
+                                <DiscountInput
+                                  type={typeField.value || 'none'}
+                                  value={discountValue}
+                                  onChange={(newType, newVal) => {
+                                    let adjustedVal = newVal
+                                    if (newType === '%') {
+                                      adjustedVal = Math.min(100, newVal)
+                                    } else if (newType === 'R$') {
+                                      adjustedVal = Math.min(subtotalFinal, newVal)
+                                    }
+                                    typeField.onChange(newType)
+                                    form.setValue("discount_value", adjustedVal)
+                                  }}
+                                />
+                              )
+                            }}
                           />
                         </div>
                         <Button
                           type="button"
-                          className="w-full bg-slate-900 text-white font-bold h-11 rounded-lg mt-2"
+                          className="w-full bg-primary text-primary-foreground font-semibold h-10 rounded-sm mt-2 transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                           onClick={() => setOpenDiscountModal(false)}
                         >
                           Confirmar
@@ -1123,11 +911,11 @@ export function QuoteForm({
                   </span>
                 </div>
               </div>
-              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
-                <span className="text-[14px] font-bold text-slate-900 uppercase tracking-tight">
+              <div className="flex justify-between items-center pt-3 border-t border-border">
+                <span className="text-ds-body-sm font-bold text-foreground uppercase tracking-tight">
                   Total
                 </span>
-                <span className="text-lg font-black text-blue-900 tabular-nums tracking-tighter">
+                <span className="text-ds-heading-md font-bold text-primary tabular-nums tracking-tighter">
                   {brl(totalFinal)}
                 </span>
               </div>
@@ -1137,9 +925,9 @@ export function QuoteForm({
       </Card>
 
       {/* Observações */}
-      <Card className="rounded-[12px] border-slate-200 shadow-sm overflow-hidden bg-white">
+      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
         <CardHeader className="p-6 pb-2">
-          <CardTitle className="text-[16px] font-bold text-slate-800">
+          <CardTitle className="text-ds-heading-xs font-bold text-foreground">
             Termos e condições
           </CardTitle>
         </CardHeader>
@@ -1147,35 +935,35 @@ export function QuoteForm({
           <Textarea
             id="notes"
             {...form.register('notes')}
-            className="resize-none text-sm p-4 border-slate-200 rounded-md bg-white min-h-[100px]"
+            className="resize-none min-h-25"
           />
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-border w-full">
         <Button
           type="button"
           disabled={loading}
           variant="ghost"
           onClick={() => router.back()}
-          className="h-11 px-8 rounded-xl font-bold text-slate-500"
+          className="h-10 px-6 w-full sm:w-auto font-semibold text-muted-foreground transition-all duration-ds-fast cursor-pointer"
         >
           Cancelar
         </Button>
         <Button
           type="button"
-          disabled={loading || fields.length === 0}
+          disabled={loading}
           variant="outline"
           onClick={() => handleSave('draft')}
-          className="h-11 px-8 rounded-xl font-bold border-slate-200"
+          className="h-10 px-6 w-full sm:w-auto font-semibold transition-all duration-ds-fast  cursor-pointer"
         >
           Salvar Rascunho
         </Button>
         <Button
           type="button"
-          disabled={loading || fields.length === 0}
+          disabled={loading}
           onClick={() => handleSave('pending')}
-          className="h-11 px-8 rounded-xl font-bold bg-slate-950 hover:bg-slate-800 text-white shadow-lg shadow-slate-200"
+          className="h-10 px-6 w-full sm:w-auto font-semibold bg-primary text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm"
         >
           {loading
             ? 'Processando...'

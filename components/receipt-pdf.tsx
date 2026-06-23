@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#404040', // neutral-700
+    backgroundColor: '#18181b',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 2,
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   totalBox: {
-    backgroundColor: '#404040',
+    backgroundColor: '#18181b',
     paddingVertical: 6,
     paddingHorizontal: 16,
     borderRadius: 2,

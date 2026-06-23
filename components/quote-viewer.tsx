@@ -82,38 +82,38 @@ const STATUS_MAP: Record<
 > = {
   draft: {
     label: 'Rascunho',
-    color: 'bg-slate-100 text-slate-700 border-slate-200',
-    dot: 'bg-slate-400',
+    color: 'bg-muted text-muted-foreground border-border',
+    dot: 'bg-neutral-400',
   },
   pending: {
     label: 'Pendente',
-    color: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    dot: 'bg-indigo-600',
+    color: 'bg-status-pending-bg text-status-pending-fg border-status-pending/20',
+    dot: 'bg-status-pending',
   },
   approved: {
     label: 'Aprovado',
-    color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-600',
+    color: 'bg-status-approved-bg text-status-approved-fg border-status-approved/20',
+    dot: 'bg-status-approved',
   },
   rejected: {
     label: 'Rejeitado',
-    color: 'bg-rose-100 text-rose-700 border-rose-200',
-    dot: 'bg-rose-600',
+    color: 'bg-status-rejected-bg text-status-rejected-fg border-status-rejected/20',
+    dot: 'bg-status-rejected',
   },
   cancelled: {
     label: 'Cancelado',
-    color: 'bg-red-100 text-red-700 border-red-200',
-    dot: 'bg-red-600',
+    color: 'bg-status-cancelled-bg text-status-cancelled-fg border-status-cancelled/20',
+    dot: 'bg-status-cancelled',
   },
   completed: {
     label: 'Finalizado',
-    color: 'bg-teal-100 text-teal-700 border-teal-200',
-    dot: 'bg-teal-600',
+    color: 'bg-status-completed-bg text-status-completed-fg border-status-completed/20',
+    dot: 'bg-status-completed',
   },
   expired: {
     label: 'Vencido',
-    color: 'bg-gray-100 text-gray-700 border-gray-200',
-    dot: 'bg-gray-600',
+    color: 'bg-muted text-muted-foreground border-border',
+    dot: 'bg-neutral-500',
   },
 }
 
@@ -187,13 +187,13 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-4 sm:py-8 px-0 sm:px-4 print:bg-white print:py-0 print:px-0">
+    <div className="min-h-screen bg-background py-4 sm:py-8 px-0 sm:px-4 print:bg-white print:py-0 print:px-0">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center print:block print:max-w-none">
         
         {/* DOCUMENT CONTAINER (ESQUERDA) */}
-        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none">
+        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none order-2 lg:order-none">
           {/* DOCUMENT CONTAINER */}
-          <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-sm min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
+          <div className="max-w-[21cm] mx-auto bg-card border border-border shadow-lg rounded-md min-h-0 sm:min-h-[29.7cm] p-4 sm:p-12 md:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
@@ -335,8 +335,8 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           </div>
 
           {/* ITEMS TABLE */}
-          <div className="border border-neutral-800 rounded-none overflow-hidden my-6">
-            <table className="w-full text-left border-collapse text-xs">
+          <div className="border border-neutral-800 rounded-none my-6 w-full overflow-x-auto no-scrollbar">
+            <table className="w-full text-left border-collapse text-xs min-w-[500px] sm:min-w-0">
               <thead>
                 <tr className="bg-neutral-800 text-white font-bold uppercase tracking-wider text-[11px] border-b border-neutral-800">
                   <th className="py-2 px-3 text-left w-[50%] border-r border-neutral-800 bg-neutral-800 text-white">DESCRIÇÃO</th>
@@ -467,10 +467,10 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     </div>
 
     {/* SIDEBAR DE STATUS E AÇÕES (DIREITA) */}
-    <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0">
-      <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-md flex flex-col gap-4">
+    <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0 order-1 lg:order-none">
+      <div className="bg-card rounded-md border border-border p-6 shadow-sm flex flex-col gap-4">
         <div className="space-y-2">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+          <span className="text-ds-caption font-bold text-muted-foreground uppercase tracking-wider block">
             Status
           </span>
           <div className="flex items-center gap-2">
@@ -481,7 +481,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             >
               <SelectTrigger
                 className={cn(
-                  "h-10 w-full rounded-lg px-3 border shadow-none focus:ring-0 transition-all font-semibold justify-between",
+                  "h-10 w-full rounded-sm px-3 border shadow-none focus:ring-0 transition-all font-semibold justify-between",
                   STATUS_MAP[currentStatus]?.color
                 )}
               >
@@ -494,7 +494,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                   <SelectValue>{STATUS_MAP[currentStatus]?.label}</SelectValue>
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200">
+              <SelectContent className="rounded-sm border-border bg-card">
                 {Object.entries(STATUS_MAP)
                   .filter(([value]) => {
                     if (currentStatus === 'draft') {
@@ -529,19 +529,19 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             {currentStatus === 'cancelled' && currentCancellationReason && (
               <Popover>
                 <PopoverTrigger
-                  className="h-10 w-10 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  className="h-10 w-10 border border-border bg-muted hover:bg-muted/80 text-foreground rounded-sm shrink-0 cursor-pointer flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   title="Ver motivo do cancelamento"
                 >
                   <Info className="h-5 w-5" />
                 </PopoverTrigger>
-                <PopoverContent className="w-80 bg-white border-slate-200 rounded-xl shadow-md p-4">
+                <PopoverContent className="w-80 bg-card border-border rounded-md shadow-md p-4">
                   <PopoverHeader className="mb-2">
-                    <PopoverTitle className="text-sm font-bold text-red-600 flex items-center gap-2">
+                    <PopoverTitle className="text-ds-body-sm font-bold text-destructive flex items-center gap-2">
                       <Info className="h-4 w-4" />
                       Motivo do Cancelamento
                     </PopoverTitle>
                   </PopoverHeader>
-                  <PopoverDescription className="text-sm text-slate-700 italic">
+                  <PopoverDescription className="text-ds-body-sm text-foreground italic">
                     "{currentCancellationReason}"
                   </PopoverDescription>
                 </PopoverContent>
@@ -550,14 +550,14 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           </div>
         </div>
 
-        <Separator className="bg-slate-100" />
+        <Separator className="bg-border" />
 
         <div className="flex flex-col gap-2.5">
           {/* Botão Reabrir Orçamento */}
           {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
             <Button
               onClick={() => setIsReopenOpen(true)}
-              className="w-full h-10 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg cursor-pointer"
+              className="w-full h-10 gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-md cursor-pointer transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             >
               <RotateCcw className="h-4.5 w-4.5" />
               Reabrir Orçamento
@@ -571,7 +571,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             rel="noopener noreferrer"
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
+              "w-full h-10 gap-2 border-border font-semibold rounded-md hover:bg-muted cursor-pointer text-foreground flex items-center justify-center transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             )}
           >
             <Printer className="h-4.5 w-4.5" />
@@ -585,7 +585,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 href={`/app/quotes/${quote.id}/receipt`}
                 className={cn(
                   buttonVariants({ variant: 'default' }),
-                  "w-full h-10 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg flex items-center justify-center cursor-pointer"
+                  "w-full h-10 gap-2 bg-status-completed text-white hover:bg-status-completed/90 font-semibold rounded-md flex items-center justify-center cursor-pointer transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                 )}
               >
                 <FileText className="h-4.5 w-4.5" />
@@ -596,7 +596,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 href={`/app/quotes/${quote.id}/receipt/edit`}
                 className={cn(
                   buttonVariants({ variant: 'default' }),
-                  "w-full h-10 gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg flex items-center justify-center cursor-pointer"
+                  "w-full h-10 gap-2 bg-status-completed text-white hover:bg-status-completed/90 font-semibold rounded-md flex items-center justify-center cursor-pointer transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                 )}
               >
                 <Receipt className="h-4.5 w-4.5" />
@@ -612,7 +612,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             rel="noopener noreferrer"
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
+              "w-full h-10 gap-2 border-border font-semibold rounded-md hover:bg-muted cursor-pointer text-foreground flex items-center justify-center transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             )}
           >
             <CloudDownload className="h-4.5 w-4.5" />
@@ -636,26 +636,26 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
 
       {/* Dialog de Motivo de Cancelamento */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-xl bg-white border-slate-200">
+        <DialogContent className="sm:max-w-[425px] rounded-lg bg-card border-border shadow-lg p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900">Cancelar Orçamento</DialogTitle>
-            <DialogDescription className="text-slate-500">
+            <DialogTitle className="text-ds-heading-sm font-bold text-foreground">Cancelar Orçamento</DialogTitle>
+            <DialogDescription className="text-ds-body-sm text-muted-foreground">
               Por favor, informe o motivo do cancelamento deste orçamento. Esta justificativa ficará registrada no documento.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="reason" className="text-sm font-semibold text-slate-700">
-                Motivo do Cancelamento <span className="text-red-500">*</span>
+              <label htmlFor="reason" className="text-ds-body-sm font-semibold text-foreground">
+                Motivo do Cancelamento <span className="text-destructive">*</span>
               </label>
               <Textarea
                 id="reason"
                 placeholder="Ex: Cliente fechou com outro concorrente / Orçamento fora do limite planejado"
                 value={cancellationReason}
                 onChange={(e) => setCancellationReason(e.target.value)}
-                className="min-h-[100px] resize-none border-slate-200 rounded-lg focus:ring-slate-500"
+                className="min-h-[100px] resize-none border-border rounded-sm bg-card text-ds-body-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 duration-ds-fast"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-ds-caption text-muted-foreground">
                 O motivo deve possuir no mínimo 5 caracteres.
               </p>
             </div>
@@ -668,7 +668,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 setCancelDialogOpen(false)
                 setCancellationReason('')
               }}
-              className="rounded-lg"
+              className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
               Voltar
             </Button>
@@ -677,7 +677,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               variant="destructive"
               disabled={cancellationReason.trim().length < 5}
               onClick={handleConfirmCancel}
-              className="rounded-lg bg-red-600 hover:bg-red-700 text-white"
+              className="rounded-md font-semibold bg-destructive text-destructive-foreground transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
               Confirmar Cancelamento
             </Button>

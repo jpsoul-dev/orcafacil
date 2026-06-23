@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { FormError } from '@/components/ui/form-error'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Select,
@@ -37,7 +38,7 @@ import { Badge } from '@/components/ui/badge'
 import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
-import { Customer } from '../../customers/customer-form'
+import type { Customer } from '@/lib/services/customer-service'
 import { CatalogItem } from '../../catalog/columns'
 import { CustomerSelector } from '../../quotes/components/customer-selector'
 import { standaloneReceiptSchema, type StandaloneReceiptInput } from '../../quotes/schemas'
@@ -218,11 +219,9 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                 <Input
                   id="title"
                   {...register('title')}
-                  className={`h-10 border-slate-200 rounded-lg bg-white ${errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  aria-invalid={!!errors.title}
                 />
-                {errors.title && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.title.message}</p>
-                )}
+                <FormError message={errors.title?.message} />
               </div>
 
               <div className="space-y-2 md:col-span-2">
@@ -252,10 +251,10 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                   name="paymentMethod"
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className={`h-10 border-slate-200 rounded-lg bg-white ${errors.paymentMethod ? 'border-red-500' : ''}`}>
+                      <SelectTrigger className={cn("h-10 border-input rounded-sm bg-card transition-[border-color,box-shadow] duration-ds-fast focus:border-ring focus:ring-2 focus:ring-ring/20 outline-none", errors.paymentMethod ? "border-destructive focus:ring-destructive/20 focus:border-destructive" : "")}>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-slate-200 bg-white">
+                      <SelectContent className="rounded-sm border-input bg-card">
                         {[
                           'Pix',
                           'Dinheiro',
@@ -272,9 +271,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                     </Select>
                   )}
                 />
-                {errors.paymentMethod && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.paymentMethod.message}</p>
-                )}
+                <FormError message={errors.paymentMethod?.message} />
               </div>
 
               <div className="space-y-2">
@@ -285,11 +282,9 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                   id="issuedAt"
                   type="date"
                   {...register('issuedAt')}
-                  className={`h-10 border-slate-200 rounded-lg bg-white ${errors.issuedAt ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  aria-invalid={!!errors.issuedAt}
                 />
-                {errors.issuedAt && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.issuedAt.message}</p>
-                )}
+                <FormError message={errors.issuedAt?.message} />
               </div>
             </div>
           </CardContent>
@@ -340,17 +335,13 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                             <Input
                               {...register(`items.${index}.item_name` as const)}
                               placeholder="Ex: Pintura da parede da sala"
-                              className={`h-10 text-sm border-slate-200 rounded-lg ${errors.items?.[index]?.item_name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                              aria-invalid={!!errors.items?.[index]?.item_name}
                             />
-                            {errors.items?.[index]?.item_name && (
-                              <p className="text-[10px] text-red-500 mt-1 font-semibold ml-1">
-                                {errors.items[index]?.item_name?.message}
-                              </p>
-                            )}
+                            <FormError message={errors.items?.[index]?.item_name?.message} />
                           </div>
                         </td>
                         <td className="px-2 py-4 align-top">
-                          <div className="flex h-10 border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+                          <div className="flex h-10 border border-input rounded-sm overflow-hidden bg-card transition-[border-color,box-shadow] duration-ds-fast focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 outline-none">
                             <Input
                               type="number"
                               min="0.01"
@@ -367,7 +358,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                           </div>
                         </td>
                         <td className="px-2 py-4 align-top">
-                          <div className="flex h-10 border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-2">
+                          <div className="flex h-10 border border-input rounded-sm overflow-hidden bg-card transition-[border-color,box-shadow] duration-ds-fast focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 outline-none">
                             <Controller
                               name={`items.${index}.unit_price` as const}
                               control={control}
@@ -392,7 +383,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                                 />
                               )}
                             />
-                            <div className="h-full px-2 bg-slate-50 text-slate-400 flex items-center justify-center text-[10px] font-bold border-l border-slate-200 shrink-0">
+                            <div className="h-full px-2.5 bg-slate-50 dark:bg-neutral-800/40 text-slate-500 dark:text-slate-400 flex items-center justify-center text-[10px] font-bold border-l border-input shrink-0 font-sans select-none">
                               R$
                             </div>
                           </div>
@@ -410,7 +401,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                            className="h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 border border-input rounded-sm transition-colors duration-ds-fast cursor-pointer flex items-center justify-center"
                             onClick={() => remove(index)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -561,14 +552,13 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                 id="servicesDescription"
                 placeholder="Confirmamos o recebimento dos valores descritos referente aos serviços/produtos..."
                 {...register('servicesDescription')}
-                className={`min-h-[120px] resize-none border-slate-200 rounded-lg bg-white ${errors.servicesDescription ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className="min-h-[120px] resize-none"
+                aria-invalid={!!errors.servicesDescription}
               />
               <p className="text-xs text-slate-400 font-medium">
                 Esta mensagem sairá impressa no corpo do recibo, detalhando o que está sendo quitado.
               </p>
-              {errors.servicesDescription && (
-                <p className="text-xs text-red-500 font-semibold">{errors.servicesDescription.message}</p>
-              )}
+              <FormError message={errors.servicesDescription?.message} />
             </div>
 
             <div className="pt-6 border-t border-slate-100 flex flex-col items-end">

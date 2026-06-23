@@ -76,7 +76,7 @@ export const columns: ColumnDef<Quote>[] = [
         : `/app/quotes/${row.original.id}`
       return (
         <Link href={targetUrl} target="_blank">
-          <Badge variant="secondary">#{row.original.quote_number}</Badge>
+          <Badge variant="outline" className="text-ds-caption font-semibold rounded-sm border-border bg-muted/30 text-muted-foreground">#{row.original.quote_number}</Badge>
         </Link>
       )
     },
@@ -85,7 +85,7 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'title',
     header: 'Título',
     cell: ({ row }) => (
-      <div className="font-semibold text-slate-800 line-clamp-1 max-w-[200px]">
+      <div className="text-ds-body-md font-semibold text-foreground line-clamp-1 max-w-[200px]">
         {row.getValue('title')}
       </div>
     ),
@@ -95,7 +95,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Cliente',
     cell: ({ row }) => {
       return (
-        <div className="text-slate-00 font-medium">
+        <div className="text-ds-body-md font-medium text-foreground">
           {row.original.customers?.name}
         </div>
       )
@@ -106,10 +106,10 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Validade',
     cell: ({ row }) => {
       const dateStr = row.getValue('valid_until') as string | null
-      if (!dateStr) return <span className="text-slate-400">-</span>
+      if (!dateStr) return <span className="text-ds-body-md text-ds-color-text-disabled">-</span>
       const date = new Date(dateStr + 'T00:00:00')
       return (
-        <div className="text-slate-800">{date.toLocaleDateString('pt-BR')}</div>
+        <div className="text-ds-body-md text-foreground">{date.toLocaleDateString('pt-BR')}</div>
       )
     },
   },
@@ -130,7 +130,7 @@ export const columns: ColumnDef<Quote>[] = [
     cell: ({ row }) => {
       const date = new Date(row.getValue('created_at'))
       return (
-        <div className="text-slate-800">{date.toLocaleDateString('pt-BR')}</div>
+        <div className="text-ds-body-md text-foreground">{date.toLocaleDateString('pt-BR')}</div>
       )
     },
   },
@@ -139,7 +139,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Valor Total',
     cell: ({ row }) => {
       const total = parseFloat(row.getValue('total'))
-      return <div className="font-semibold text-slate-800">{brl(total)}</div>
+      return <div className="text-ds-body-md font-semibold text-foreground tabular-nums">{brl(total)}</div>
     },
   },
   {
@@ -413,26 +413,26 @@ export const columns: ColumnDef<Quote>[] = [
           />
 
           <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
-            <DialogContent className="sm:max-w-[425px] rounded-xl bg-white border-slate-200">
+            <DialogContent className="sm:max-w-[425px] rounded-lg bg-card border-border shadow-lg p-6">
               <DialogHeader>
-                <DialogTitle className="text-lg font-bold text-slate-900">Cancelar Orçamento</DialogTitle>
-                <DialogDescription className="text-slate-500">
+                <DialogTitle className="text-ds-heading-sm font-bold text-foreground">Cancelar Orçamento</DialogTitle>
+                <DialogDescription className="text-ds-body-sm text-muted-foreground">
                   Por favor, informe o motivo do cancelamento deste orçamento. Esta justificativa ficará registrada no documento.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label htmlFor="list-cancel-reason" className="text-sm font-semibold text-slate-700">
-                    Motivo do Cancelamento <span className="text-red-500">*</span>
+                  <label htmlFor="list-cancel-reason" className="text-ds-body-sm font-semibold text-foreground">
+                    Motivo do Cancelamento <span className="text-destructive">*</span>
                   </label>
                   <Textarea
                     id="list-cancel-reason"
                     placeholder="Ex: Cliente fechou com outro concorrente / Orçamento fora do limite planejado"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="min-h-[100px] resize-none border-slate-200 rounded-lg focus:ring-slate-500"
+                    className="min-h-[100px] resize-none border-border rounded-sm bg-card text-ds-body-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 duration-ds-fast"
                   />
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-ds-caption text-muted-foreground">
                     O motivo deve possuir no mínimo 5 caracteres.
                   </p>
                 </div>
@@ -445,7 +445,7 @@ export const columns: ColumnDef<Quote>[] = [
                     setCancelOpen(false)
                     setReason('')
                   }}
-                  className="rounded-lg"
+                  className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                 >
                   Voltar
                 </Button>
@@ -454,7 +454,7 @@ export const columns: ColumnDef<Quote>[] = [
                   variant="destructive"
                   disabled={reason.trim().length < 5}
                   onClick={handleCancelConfirm}
-                  className="rounded-lg bg-red-600 hover:bg-red-700 text-white"
+                  className="rounded-md font-semibold bg-destructive text-destructive-foreground transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                 >
                   Confirmar Cancelamento
                 </Button>

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { FormError } from '@/components/ui/form-error'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Select,
@@ -21,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { receiptSchema, type ReceiptInput } from '../schemas'
 import { saveReceiptAction } from '../receipt-actions'
-import { formatBRL } from '@/lib/utils'
+import { formatBRL, cn } from '@/lib/utils'
 
 interface ReceiptFormProps {
   quote: {
@@ -141,7 +142,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card className="border-slate-200 shadow-sm overflow-hidden bg-white rounded-xl">
+        <Card className="border-border shadow-sm overflow-hidden bg-card rounded-md">
           <CardHeader className="p-6 pb-2">
             <CardTitle className="text-base font-bold text-slate-800">Dados do Recibo</CardTitle>
             <CardDescription className="text-xs">
@@ -152,16 +153,14 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="title" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Título do Recibo <span className="text-red-500">*</span>
+                  Título do Recibo <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="title"
                   {...register('title')}
-                  className={`h-10 border-slate-200 rounded-lg bg-white ${errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  aria-invalid={!!errors.title}
                 />
-                {errors.title && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.title.message}</p>
-                )}
+                <FormError message={errors.title?.message} />
               </div>
 
               {/* Valor do Recibo registrado de forma oculta */}
@@ -169,17 +168,17 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="paymentMethod" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Forma de Pagamento <span className="text-red-500">*</span>
+                  Forma de Pagamento <span className="text-destructive">*</span>
                 </Label>
                 <Controller
                   control={control}
                   name="paymentMethod"
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className={`h-10 border-slate-200 rounded-lg bg-white ${errors.paymentMethod ? 'border-red-500' : ''}`}>
+                      <SelectTrigger className={cn("h-10 border-input rounded-sm bg-card transition-[border-color,box-shadow] duration-ds-fast focus:border-ring focus:ring-2 focus:ring-ring/20 outline-none", errors.paymentMethod ? "border-destructive focus:ring-destructive/20 focus:border-destructive" : "")}>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-slate-200">
+                      <SelectContent className="rounded-sm border-input bg-card">
                         {(availableMethods.length > 0
                           ? availableMethods
                           : [
@@ -199,42 +198,37 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
                     </Select>
                   )}
                 />
-                {errors.paymentMethod && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.paymentMethod.message}</p>
-                )}
+                <FormError message={errors.paymentMethod?.message} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="issuedAt" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Data do Recibo <span className="text-red-500">*</span>
+                  Data do Recibo <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="issuedAt"
                   type="date"
                   {...register('issuedAt')}
-                  className={`h-10 border-slate-200 rounded-lg bg-white ${errors.issuedAt ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  aria-invalid={!!errors.issuedAt}
                 />
-                {errors.issuedAt && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.issuedAt.message}</p>
-                )}
+                <FormError message={errors.issuedAt?.message} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="servicesDescription" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Descrição <span className="text-red-500">*</span>
+                Descrição <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="servicesDescription"
                 placeholder="Confirmamos o recebimento dos produtos/serviços descritos."
                 {...register('servicesDescription')}
-                className={`min-h-[140px] resize-none border-slate-200 rounded-lg bg-white ${errors.servicesDescription ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className="min-h-[140px] resize-none"
+                aria-invalid={!!errors.servicesDescription}
               />
               <p className="text-xs text-slate-400 font-medium">
                 Esta descrição sairá impressa no corpo do recibo.
               </p>
-              {errors.servicesDescription && (
-                <p className="text-xs text-red-500 font-semibold">{errors.servicesDescription.message}</p>
-              )}
+              <FormError message={errors.servicesDescription?.message} />
             </div>
           </CardContent>
         </Card>

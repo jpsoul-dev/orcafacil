@@ -90,9 +90,9 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center print:block print:max-w-none">
 
         {/* CONTAINER DO RECIBO FÍSICO (ESQUERDA) */}
-        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none">
+        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none order-2 lg:order-none">
           {/* CONTAINER DO RECIBO FÍSICO (A4 OTIMIZADO) */}
-          <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-md min-h-[29.7cm] p-12 sm:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative overflow-hidden flex flex-col justify-between print:min-h-0 print:h-full">
+          <div className="max-w-[21cm] mx-auto bg-white shadow-xl rounded-none sm:rounded-md min-h-0 sm:min-h-[29.7cm] p-4 sm:p-12 md:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative overflow-hidden flex flex-col justify-between print:min-h-0 print:h-full">
             <div>
               {/* TOPO: CABEÇALHO DO RECIBO */}
               <div className="flex justify-between items-start mb-10 pb-6 border-b border-neutral-100">
@@ -136,8 +136,8 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
 
               {/* TABELA DE ITENS */}
               {quote.items && quote.items.length > 0 && (
-                <div className="border border-neutral-300 rounded-none overflow-hidden">
-                  <table className="w-full text-left border-collapse text-xs">
+                <div className="border border-neutral-300 rounded-none w-full overflow-x-auto no-scrollbar">
+                  <table className="w-full text-left border-collapse text-xs min-w-[500px] sm:min-w-0">
                     <thead>
                       <tr className="bg-neutral-700 text-white font-bold uppercase tracking-wider text-[11px] border-b border-neutral-300">
                         <th className="p-3 text-left w-[45%] border-r border-neutral-300 bg-neutral-700 print:bg-neutral-700 text-white">Descrição</th>
@@ -202,7 +202,7 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
         </div>
 
         {/* SIDEBAR DE AÇÕES (DIREITA) */}
-        <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0">
+        <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0 order-1 lg:order-none">
           <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-md flex flex-col gap-4">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
               Ações

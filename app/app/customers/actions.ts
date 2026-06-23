@@ -2,35 +2,18 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
-
-const customerSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  document_type: z.enum(['cpf', 'cnpj']).optional(),
-  document: z.string().optional().nullable(),
-  email: z.string().email('E-mail inválido').optional().nullable().or(z.literal('')),
-  phone: z.string().optional().nullable(),
-  whatsapp: z.string().optional().nullable(),
-  address_zip: z.string().optional().nullable(),
-  address_street: z.string().optional().nullable(),
-  address_number: z.string().optional().nullable(),
-  address_complement: z.string().optional().nullable(),
-  address_neighborhood: z.string().optional().nullable(),
-  address_city: z.string().optional().nullable(),
-  address_state: z.string().optional().nullable(),
-})
-
-export type CustomerInput = z.infer<typeof customerSchema>
-
+import { CustomerService, CustomerInput, customerSchema } from '@/lib/services/customer-service'
+import type { CustomerServiceResult } from '@/lib/services/customer-service'
 
 export async function saveCustomer(data: CustomerInput, id?: string) {
   try {
     const validation = customerSchema.safeParse(data)
     if (!validation.success) {
-      return { success: false, error: 'Dados do cliente inválidos' }
+      const fieldErrors = validation.error.flatten().fieldErrors
+      const firstError = Object.values(fieldErrors)[0]?.[0] || 'Dados inválidos'
+      return { success: false, error: firstError }
     }
 
-    const validatedData = validation.data
     const supabase = await createClient()
     const {
       data: { user },
@@ -40,37 +23,18 @@ export async function saveCustomer(data: CustomerInput, id?: string) {
       return { success: false, error: 'Usuário não autenticado' }
     }
 
-    const customerData = {
-      ...validatedData,
-      user_id: user.id,
-    }
+    const result = await CustomerService.saveCustomer(validation.data, user.id, id)
 
-
-    if (id) {
-      const { error } = await supabase
-        .from('customers')
-        .update(customerData)
-        .eq('id', id)
-        .eq('user_id', user.id)
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-    } else {
-      const { error } = await supabase
-        .from('customers')
-        .insert(customerData)
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
+    if (!result.success) {
+      return { success: false, error: result.error }
     }
 
     revalidatePath('/app/customers')
     if (id) revalidatePath(`/app/customers/${id}`)
-    return { success: true }
+    
+    return { success: true, data: result.data }
   } catch (error) {
-    console.error('Error in saveCustomer:', error)
+    console.error('Error in saveCustomer Action:', error)
     return {
       success: false,
       error: 'Ocorreu um erro inesperado ao salvar o cliente.',
@@ -93,24 +57,39 @@ export async function deleteCustomer(id: string) {
       return { success: false, error: 'Usuário não autenticado' }
     }
 
-    const { error } = await supabase
-      .from('customers')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id)
+    const result = await CustomerService.deleteCustomer(id, user.id)
 
-    if (error) {
-      return { success: false, error: error.message }
+    if (!result.success) {
+      return { success: false, error: result.error }
     }
 
     revalidatePath('/app/customers')
     revalidatePath(`/app/customers/${id}`)
+    
     return { success: true }
   } catch (error) {
-    console.error('Error in deleteCustomer:', error)
+    console.error('Error in deleteCustomer Action:', error)
     return {
       success: false,
       error: 'Ocorreu um erro inesperado ao excluir o cliente.',
     }
+  }
+}
+
+export async function checkCustomerRelations(customerId: string): Promise<CustomerServiceResult<boolean>> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false as const, error: 'Usuário não autenticado' }
+    }
+
+    return await CustomerService.hasActiveBudgets(customerId, user.id)
+  } catch (error) {
+    console.error('Error in checkCustomerRelations:', error)
+    return { success: false as const, error: 'Erro ao verificar dependências do cliente.' }
   }
 }

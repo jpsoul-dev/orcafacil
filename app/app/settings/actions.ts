@@ -56,9 +56,53 @@ export async function saveCompanySettings(formData: FormData) {
 
     const validatedData = validation.data
 
-    const companyData = {
+    let logoUrl = undefined
+    const logoFile = formData.get('logo') as File | null
+    const removeLogo = formData.get('remove_logo') === 'true'
+
+    if (logoFile && logoFile.size > 0) {
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp']
+      if (!validTypes.includes(logoFile.type)) {
+        return { success: false, error: 'Formato de imagem inválido. Use PNG, JPG, WEBP ou SVG.' }
+      }
+      if (logoFile.size > 2 * 1024 * 1024) {
+        return { success: false, error: 'O tamanho da imagem não deve exceder 2MB.' }
+      }
+
+      const ext = logoFile.name.split('.').pop() || 'png'
+      const filePath = `${user.id}/logo-${Date.now()}.${ext}`
+
+      const arrayBuffer = await logoFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      const { error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(filePath, buffer, {
+          contentType: logoFile.type,
+          upsert: true,
+        })
+
+      if (uploadError) {
+        logger.error('Error uploading logo:', uploadError)
+        return { success: false, error: 'Erro ao fazer upload do logotipo.' }
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(filePath)
+
+      logoUrl = publicUrlData.publicUrl
+    }
+
+    const companyData: any = {
       user_id: user.id,
       ...validatedData,
+    }
+
+    if (logoUrl) {
+      companyData.logo_url = logoUrl
+    } else if (removeLogo) {
+      companyData.logo_url = null
     }
 
     // Check if company exists

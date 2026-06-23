@@ -30,11 +30,11 @@ const columns: ColumnDef<Quote>[] = [
         <Link
           href={`/app/quotes/${row.original.id}`}
           target="_blank"
-          className="font-bold text-slate-900 hover:underline"
+          className="font-bold text-foreground hover:text-primary hover:underline transition-colors font-display"
         >
           {row.original.title}
         </Link>
-        <span className="text-sm text-slate-400 font-mono">
+        <span className="text-sm text-muted-foreground font-mono">
           #{row.original.quote_number}
         </span>
       </div>
@@ -69,7 +69,7 @@ const columns: ColumnDef<Quote>[] = [
     accessorKey: 'total',
     header: 'Valor Total',
     cell: ({ row }) => (
-      <div className="font-semibold text-slate-900">
+      <div className="font-semibold text-foreground tabular-nums">
         {brl(row.original.total)}
       </div>
     ),
@@ -79,9 +79,9 @@ const columns: ColumnDef<Quote>[] = [
     header: 'Vencimento',
     cell: ({ row }) => {
       if (!row.original.valid_until)
-        return <span className="text-slate-400">-</span>
+        return <span className="text-muted-foreground">—</span>
       return (
-        <div className="text-slate-600 text-sm">
+        <div className="text-muted-foreground font-medium tabular-nums">
           {new Date(row.original.valid_until + 'T00:00:00').toLocaleDateString(
             'pt-BR',
           )}
@@ -93,7 +93,7 @@ const columns: ColumnDef<Quote>[] = [
     accessorKey: 'created_at',
     header: 'Criado em',
     cell: ({ row }) => (
-      <div className="text-slate-600 text-sm">
+      <div className="text-muted-foreground font-medium tabular-nums">
         {new Date(row.original.created_at).toLocaleDateString('pt-BR')}
       </div>
     ),
@@ -103,14 +103,14 @@ const columns: ColumnDef<Quote>[] = [
 export function CustomerQuotesClient({ quotes }: { quotes: Quote[] }) {
   if (!quotes || quotes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center bg-white border border-dashed rounded-xl border-slate-200">
+      <div className="flex flex-col items-center justify-center py-12 text-center bg-card border border-dashed rounded-xl border-border">
         <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-4">
-          <FileText className="h-6 w-6" />
+          <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h4 className="font-medium text-slate-900">
+        <h4 className="font-semibold text-foreground font-display">
           Nenhum orçamento encontrado
         </h4>
-        <p className="text-sm text-slate-500 mt-1 max-w-[250px]">
+        <p className="text-sm text-muted-foreground mt-1 max-w-[250px]">
           Este cliente ainda não possui orçamentos registrados.
         </p>
       </div>
@@ -118,7 +118,7 @@ export function CustomerQuotesClient({ quotes }: { quotes: Quote[] }) {
   }
 
   return (
-    <div className="bg-white rounded-xl">
+    <div className="bg-card rounded-xl">
       <DataTable columns={columns} data={quotes} />
     </div>
   )

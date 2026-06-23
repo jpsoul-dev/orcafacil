@@ -89,7 +89,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     <div className="space-y-8">
       {/* Welcome / Upgrade Banner (only shown for users without an active subscription) */}
       {!isActive && (
-        <Card className="relative overflow-hidden border-none shadow-xl bg-primary text-primary-foreground">
+        <Card className="relative overflow-hidden border-none shadow-lg bg-primary text-primary-foreground rounded-lg">
           {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-50" />
 
@@ -97,10 +97,10 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="space-y-4 flex-1">
                 <div className="space-y-1">
-                  <h1 className="text-3xl font-bold tracking-tight">
+                  <h1 className="text-ds-display font-bold leading-ds-tight tracking-tight">
                     Olá, {firstName}! 👋
                   </h1>
-                  <p className="text-primary-foreground/80 text-lg">
+                  <p className="text-primary-foreground/80 text-ds-body-lg leading-ds-relaxed">
                     {isExpired
                       ? 'Seu período de teste acabou. Faça a assinatura para continuar!'
                       : 'Bom ver você novamente. Aproveite seu período de teste grátis.'}
@@ -108,7 +108,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                 </div>
 
                 <div className="max-w-md pt-2">
-                  <div className="flex items-center justify-between text-sm mb-2 font-medium">
+                  <div className="flex items-center justify-between text-ds-body-sm mb-2 font-medium">
                     <span className="opacity-90">Tempo Restante de Teste</span>
                     <span>
                       {daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'} de {TRIAL_DURATION_DAYS}
@@ -116,23 +116,23 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                   </div>
                   <div className="h-3 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
                     <div
-                      className={`h-full transition-all duration-700 ease-out rounded-full ${
+                      className={`h-full transition-all duration-ds-slow ease-out rounded-full ${
                         isExpired
-                          ? 'bg-red-400'
+                          ? 'bg-destructive'
                           : isNearLimit
-                            ? 'bg-yellow-400'
+                            ? 'bg-warning'
                             : 'bg-white'
                       }`}
                       style={{ width: `${trialPercentage}%` }}
                     />
                   </div>
                   {isNearLimit && !isExpired && (
-                    <p className="text-xs text-yellow-200 mt-2 font-medium animate-pulse">
+                    <p className="text-ds-caption text-yellow-200 mt-2 font-medium animate-pulse">
                       Atenção: Seu período de teste acaba em breve!
                     </p>
                   )}
                   {isExpired && (
-                    <p className="text-xs text-red-200 mt-2 font-bold uppercase tracking-wider">
+                    <p className="text-ds-caption text-red-200 mt-2 font-bold uppercase tracking-wider">
                       Teste Expirado - Assine para continuar criando orçamentos
                     </p>
                   )}
@@ -144,7 +144,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                   <Link href="/app/quotes/new">
                     <Button
                       size="lg"
-                      className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold shadow-lg h-12 px-8"
+                      className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold shadow-md h-12 px-8 rounded-md transition-all duration-ds-fast hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <Plus className="mr-2 h-5 w-5" />
                       Novo Orçamento
@@ -155,9 +155,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto border-white/30 bg-white/10 hover:bg-white/20 text-white font-bold h-12 px-8 backdrop-blur-sm group"
+                    className="w-full sm:w-auto border-white/30 bg-white/10 hover:bg-white/20 text-white font-bold h-12 px-8 backdrop-blur-sm group rounded-md transition-all duration-ds-fast hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <TrendingUp className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <TrendingUp className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform duration-ds-fast" />
                     Assinar Plano Pro
                   </Button>
                 </Link>
@@ -176,11 +176,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-bold tracking-tight text-slate-800">
+            <h2 className="text-ds-heading-md font-bold tracking-tight text-foreground">
               Desempenho e Métricas
             </h2>
             {isActive && (
-              <p className="text-sm font-medium text-slate-500">
+              <p className="text-ds-body-sm font-medium text-muted-foreground">
                 Olá, {firstName}! Bem-vindo de volta ao seu painel.
               </p>
             )}
@@ -188,7 +188,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           <div className="flex items-center gap-2">
             <SubscriptionGuard>
               <Link href="/app/quotes/new">
-                <Button size="sm" className="font-bold">
+                <Button size="sm" className="font-semibold rounded-md transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]">
                   <Plus className="mr-2 h-4 w-4" />
                   Novo
                 </Button>
@@ -198,7 +198,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               href="/app/quotes"
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'sm' }),
-                'text-slate-500 font-bold hover:text-primary',
+                'text-muted-foreground font-semibold hover:text-primary rounded-md transition-all duration-ds-fast',
               )}
             >
               Ver todos <ArrowRight className="ml-2 h-4 w-4" />

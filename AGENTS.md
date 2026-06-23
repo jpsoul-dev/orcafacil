@@ -94,8 +94,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Prefira CSS Grid e Flexbox nativos do Tailwind para estruturação de layouts, evitando larguras e alturas fixas que quebram a responsividade.
 
 ## UI / UX
-- sempre que precisar modificar a interface da aplicação é obrigatório consultar o arquivo: [Design System](file:///c:/DEV/orcafacil/.DOCS/Design%20System%20-%20OrcaFacil.md). 
-Este é o arquivo de design system da aplicação e deve ser seguido para manter consistencia visual em toda a aplicação e com a marcar OrçaFácil.
+- sempre que precisar criar ou modificar um compoente da aplicação é obrigatório consultar o arquivo: [Design System](file:///c:/DEV/orcafacil/.DOCS/Design-System-OrcaFacil.md).
+Este é o arquivo de design system completo da aplicação (cores, tipografia, radius, espaçamento, componentes) e deve ser seguido para manter consistencia visual em toda a aplicação e com a marca OrçaFácil.
+- Para implementação rápida de componentes, consulte a referência de tokens: [DESIGN_TOKENS.md](file:///c:/DEV/orcafacil/.DOCS/DESIGN_TOKENS.md).
+Este arquivo contém as classes e tokens CSS corretos para cada componente, paleta de cores, exemplos de código e regras de "faça/evite".
+- **Regras de implementação de UI que devem ser seguidas sempre:**
+  - Use `<Button variant="default">` para ação primária — no máximo UMA por contexto
+  - Use `<QuoteStatusBadge status="..." />` para exibir status de orçamentos/recibos — nunca invente cores ad-hoc
+  - Nunca use cores Tailwind arbitrárias para status (`bg-emerald-700`, `bg-indigo-700`, etc.) — use os tokens `--ds-color-status-*`
+  - Nunca escreva hex soltos no código — sempre referencie um token `--ds-*`
+  - Nunca use valores de espaçamento fora da escala do DS (4, 8, 12, 16, 24, 32, 48, 64, 96px)
+  - Antes de criar um novo componente verifique se já não existe um reutilizavel e é possível utiliza-lo
 
 ## Stack Tecnológica
 
@@ -127,5 +136,5 @@ Este é o arquivo de design system da aplicação e deve ser seguido para manter
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-[plan.md](file:///c:/DEV/orcafacil/specs/004-catalog-and-branding/plan.md)
+[plan.md](file:///c:/DEV/orcafacil/specs/005-refact-customers-fase3/plan.md)
 <!-- SPECKIT END -->

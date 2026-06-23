@@ -64,20 +64,20 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         />
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur-sm px-4 print:hidden">
-            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground md:inline-flex hidden" />
-            <Separator orientation="vertical" className="h-4 md:block hidden" />
+            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground md:inline-flex hidden transition-colors duration-ds-fast" />
+            <Separator orientation="vertical" className="h-4 md:block hidden bg-border" />
             <AppBreadcrumb />
             <div className="flex-1" />
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <NotificationBell />
               <Link href="/app/settings" title="Configurações">
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground cursor-pointer">
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground transition-all duration-ds-fast cursor-pointer rounded-md">
                   <Settings className="h-4 w-4" />
                 </Button>
               </Link>
               <div className="text-right hidden sm:block ml-2 border-l pl-3 border-border">
-                <p className="text-sm font-bold text-foreground leading-none">{companyName}</p>
+                <p className="text-ds-body-sm font-bold text-foreground leading-none">{companyName}</p>
               </div>
             </div>
           </header>

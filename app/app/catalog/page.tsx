@@ -33,10 +33,10 @@ export default async function CatalogPage({
       {/* Header da Página */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
             Gerenciar Catálogo
           </h2>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-ds-body-sm font-medium mt-1">
             Cadastre e gerencie seus produtos e serviços.
           </p>
         </div>
@@ -63,29 +63,23 @@ export default async function CatalogPage({
             {items.map((item) => (
               <div
                 key={item.id}
-                className="bg-card border border-border p-4 rounded-xl flex items-center justify-between gap-4 shadow-sm"
+                className="bg-card border border-border p-4 rounded-md flex items-center justify-between gap-4 shadow-sm"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <CatalogForm
                       initialData={item}
                       trigger={
-                        <button className="font-bold text-foreground cursor-pointer hover:text-primary transition-colors text-left text-sm">
+                        <button className="font-semibold text-foreground cursor-pointer hover:text-primary transition-all duration-ds-fast text-left text-ds-body-md">
                           {item.name}
                         </button>
                       }
                     />
-                    {item.type === 'product' ? (
-                      <Badge className="bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-none font-bold text-[8px] px-1.5 py-0 rounded uppercase">
-                        Prod
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-none font-bold text-[8px] px-1.5 py-0 rounded uppercase">
-                        Serv
-                      </Badge>
-                    )}
+                    <Badge variant={item.type === 'product' ? 'outline' : 'secondary'} className="rounded-sm font-semibold text-[10px] uppercase">
+                      {item.type === 'product' ? 'Prod' : 'Serv'}
+                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground font-medium">
+                  <p className="text-ds-body-sm text-muted-foreground font-medium">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unit_price)}
                     {item.unit_measure ? ` / ${item.unit_measure}` : ''}
                   </p>
@@ -100,12 +94,12 @@ export default async function CatalogPage({
         </>
       ) : (
         /* Empty State */
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card py-16 text-center shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
-            <Package className="h-7 w-7 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-card py-20 text-center shadow-sm">
+          <div className="flex h-16 w-16 items-center justify-center rounded-md bg-muted mb-4">
+            <Package className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold text-lg">Catálogo vazio</h3>
-          <p className="text-muted-foreground text-sm mt-1 max-w-xs">
+          <h3 className="font-bold text-ds-heading-xs text-foreground">Catálogo vazio</h3>
+          <p className="text-muted-foreground text-ds-body-sm mt-2 max-w-xs font-medium">
             Adicione produtos ou serviços ao catálogo.
           </p>
           <div className="mt-5">

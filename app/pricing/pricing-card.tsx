@@ -31,9 +31,8 @@ function SubmitButton({
   return (
     <Button
       type="submit"
-      size="lg"
       disabled={!isConfigured || pending}
-      className="w-full text-sm sm:text-base font-bold h-12 flex items-center justify-center gap-2 cursor-pointer transition-colors duration-200"
+      className="w-full h-11 rounded-md font-semibold gap-2 bg-primary hover:bg-primary-hover text-primary-foreground transition-all duration-ds-fast shadow-sm hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
     >
       {pending ? (
         <>
@@ -69,10 +68,10 @@ export function PricingPlansCard({
     <div className="w-full max-w-md mx-auto space-y-8">
       {/* Minimalist header */}
       <div className="text-center space-y-3">
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
+        <h1 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
           Escolha seu plano
         </h1>
-        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+        <p className="text-muted-foreground text-ds-body-sm font-medium leading-relaxed">
           {productDescription || 'Experimente grátis por 15 dias. Cancele quando quiser.'}
         </p>
       </div>
@@ -84,14 +83,20 @@ export function PricingPlansCard({
           onValueChange={(value) => setBillingInterval(value as 'month' | 'year')}
           className="w-full max-w-[280px]"
         >
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="month" className="text-xs sm:text-sm font-medium py-1.5">
+          <TabsList className="flex flex-nowrap h-auto bg-muted/50 p-1 rounded-md gap-1 border border-border/50 w-full">
+            <TabsTrigger
+              value="month"
+              className="text-ds-body-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm px-3 py-1.5 rounded-sm transition-all duration-ds-fast shrink-0 flex items-center justify-center gap-1.5 cursor-pointer flex-1"
+            >
               Mensal
             </TabsTrigger>
-            <TabsTrigger value="year" className="text-xs sm:text-sm font-medium py-1.5 flex items-center justify-center gap-1.5">
+            <TabsTrigger
+              value="year"
+              className="text-ds-body-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm px-3 py-1.5 rounded-sm transition-all duration-ds-fast shrink-0 flex items-center justify-center gap-1.5 cursor-pointer flex-1"
+            >
               Anual
               {discountPercent > 0 && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-status-approved-bg text-status-approved-fg">
                   -{discountPercent}%
                 </span>
               )}
@@ -101,23 +106,23 @@ export function PricingPlansCard({
       </div>
 
       {/* Single Pro Plan Card */}
-      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300">
+      <div className="bg-card border border-border rounded-md p-6 sm:p-8 shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-ds-fast">
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="text-ds-heading-xs font-bold tracking-tight text-foreground">
               {productName || 'Plano Pro'}
             </h3>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30">
+            <span className="text-ds-caption font-semibold px-2 py-0.5 rounded-sm bg-accent text-accent-foreground border border-accent-foreground/10">
               Mais Popular
             </span>
           </div>
 
           {/* Dynamic Price Display */}
           <div className="flex items-baseline gap-2 mb-6">
-            <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground transition-all duration-300">
+            <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground transition-all duration-ds-fast">
               {activePriceAmount}
             </span>
-            <span className="text-muted-foreground text-sm font-medium">
+            <span className="text-muted-foreground text-ds-body-sm font-medium">
               /{billingInterval === 'month' ? 'mês' : 'ano'}
             </span>
           </div>
@@ -128,8 +133,8 @@ export function PricingPlansCard({
           <ul className="space-y-3.5 mb-8">
             {features.map((feature, i) => (
               <li key={i} className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" strokeWidth={2.5} />
-                <span className="text-sm font-medium text-foreground/90 leading-tight">
+                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" strokeWidth={2.5} />
+                <span className="text-ds-body-sm font-medium text-foreground leading-tight">
                   {feature}
                 </span>
               </li>

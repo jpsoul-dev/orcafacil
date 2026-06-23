@@ -18,20 +18,29 @@ export function CatalogFilter() {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 mb-2">
-      <Tabs value={currentType} onValueChange={handleFilter} className="w-fit">
-        <TabsList className="bg-muted/50 border border-border p-1 h-11">
-          <TabsTrigger value="all" className="px-4 py-2 gap-2 h-9 data-active:bg-white data-active:shadow-sm">
+    <div className="flex items-center justify-between gap-4 bg-card border border-border p-4 rounded-md shadow-sm">
+      <Tabs value={currentType} onValueChange={handleFilter} className="w-full sm:w-auto">
+        <TabsList className="flex flex-nowrap h-auto bg-muted/50 p-1 rounded-md gap-1 max-w-full justify-start border border-border/50">
+          <TabsTrigger
+            value="all"
+            className="text-ds-body-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm px-3 py-1.5 rounded-sm transition-all duration-ds-fast shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
             <LayoutGrid className="h-4 w-4" />
-            Todos
+            <span>Todos</span>
           </TabsTrigger>
-          <TabsTrigger value="product" className="px-4 py-2 gap-2 h-9 data-active:bg-white data-active:shadow-sm">
+          <TabsTrigger
+            value="product"
+            className="text-ds-body-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm px-3 py-1.5 rounded-sm transition-all duration-ds-fast shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
             <Box className="h-4 w-4" />
-            Produtos
+            <span>Produtos</span>
           </TabsTrigger>
-          <TabsTrigger value="service" className="px-4 py-2 gap-2 h-9 data-active:bg-white data-active:shadow-sm">
+          <TabsTrigger
+            value="service"
+            className="text-ds-body-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm px-3 py-1.5 rounded-sm transition-all duration-ds-fast shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
             <Wrench className="h-4 w-4" />
-            Serviços
+            <span>Serviços</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>

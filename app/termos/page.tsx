@@ -24,13 +24,13 @@ export default function TermosPage() {
           
           <div className="space-y-2">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
                 <Zap className="h-6 w-6 text-white" fill="white" strokeWidth={0} />
               </div>
               <span className="font-bold text-xl tracking-tighter text-primary">OrçaFácil</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Termos de Uso</h1>
-            <p className="text-muted-foreground font-medium">Última atualização: {lastUpdated}</p>
+            <h1 className="text-ds-heading-lg font-bold tracking-tight text-foreground">Termos de Uso</h1>
+            <p className="text-muted-foreground text-ds-body-sm font-medium">Última atualização: {lastUpdated}</p>
           </div>
         </header>
 
@@ -134,12 +134,12 @@ function Section({ icon, title, children }: { icon: React.ReactNode, title: stri
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-3 text-primary">
-        <div className="p-2 bg-primary/10 rounded-lg">
+        <div className="p-2 bg-primary/10 rounded-sm">
           {icon}
         </div>
-        <h2 className="text-xl font-bold tracking-tight text-foreground">{title}</h2>
+        <h2 className="text-ds-heading-xs font-bold tracking-tight text-foreground">{title}</h2>
       </div>
-      <div className="text-muted-foreground leading-relaxed pl-1">
+      <div className="text-muted-foreground leading-relaxed pl-1 text-ds-body-md">
         {children}
       </div>
     </section>

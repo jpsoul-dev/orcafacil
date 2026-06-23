@@ -131,28 +131,28 @@ export function CatalogForm({
               <span className="sr-only">Editar</span>
             </Button>
           ) : (
-            <Button className="gap-2 font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg cursor-pointer">
+            <Button variant="default" className="gap-2 rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]">
               <PackagePlus className="h-4 w-4" /> Novo item
             </Button>
           )
         }
       />
 
-      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-2xl border border-border bg-card text-foreground shadow-2xl">
+      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-xl border border-border bg-card text-foreground shadow-lg">
         {/* Header no estilo inspirado na imagem */}
         <DialogHeader className="px-6 py-5 border-b border-border shrink-0 bg-card z-10 relative">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-md shadow-primary/20">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
               <Package className="h-6 w-6 text-white" />
             </div>
             <div className="text-left space-y-0.5">
-              <DialogTitle className="text-xl font-bold text-foreground">
+              <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
                 {initialData ? 'Editar Item' : 'Novo Item'}
               </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground font-medium">
+              <DialogDescription className="text-ds-body-sm text-muted-foreground font-medium">
                 {initialData
                   ? 'Atualize as informações do item'
-                  : 'Adicione um produto ou serviço ao catálogo'}
+                  : 'Adicione um produto ou serviço ao catálogo.'}
               </DialogDescription>
             </div>
           </div>
@@ -198,20 +198,20 @@ export function CatalogForm({
                           opt.value as 'product' | 'service',
                         )
                       }
-                      className={`flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all cursor-pointer ${
+                      className={`flex items-center gap-3 rounded-md border-2 p-4 text-left transition-all duration-ds-fast cursor-pointer ${
                         isSelected
-                          ? 'border-foreground bg-card shadow-sm text-foreground'
+                          ? 'border-primary bg-card shadow-sm text-foreground'
                           : 'border-border bg-card hover:border-border/80 text-muted-foreground'
                       }`}
                     >
                       <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg ${isSelected ? opt.bg : 'bg-muted'} ${isSelected ? opt.color : 'text-muted-foreground'}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-sm ${isSelected ? opt.bg : 'bg-muted'} ${isSelected ? opt.color : 'text-muted-foreground'}`}
                       >
                         <opt.icon className="h-5 w-5 shrink-0" />
                       </div>
                       <div>
                         <p
-                          className={`text-sm font-bold leading-none ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}
+                          className={`text-ds-body-sm font-bold leading-none ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}
                         >
                           {opt.label}
                         </p>
@@ -233,7 +233,7 @@ export function CatalogForm({
                 <Input
                   id="name"
                   {...form.register('name')}
-                  className="h-11 rounded-xl bg-background border-input focus-visible:ring-1 focus-visible:ring-ring"
+                  className="h-10 rounded-sm bg-background border-input focus-visible:ring-1 focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md"
                 />
                 {form.formState.errors.name && (
                   <p className="text-xs text-red-500 font-medium">
@@ -273,7 +273,7 @@ export function CatalogForm({
                             ) || 0
                           field.onChange(raw)
                         }}
-                        className="h-11 rounded-xl bg-background border-input focus-visible:ring-1 focus-visible:ring-ring tabular-nums"
+                        className="h-10 rounded-sm bg-background border-input focus-visible:ring-1 focus-visible:ring-ring tabular-nums transition-all duration-ds-fast text-ds-body-md"
                       />
                     )}
                   />
@@ -295,7 +295,7 @@ export function CatalogForm({
                     id="unit_measure"
                     placeholder="Ex: un, m², h"
                     {...form.register('unit_measure')}
-                    className="h-11 rounded-xl bg-background border-input focus-visible:ring-1 focus-visible:ring-ring"
+                    className="h-10 rounded-sm bg-background border-input focus-visible:ring-1 focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md"
                   />
                   {form.formState.errors.unit_measure && (
                     <p className="text-xs text-red-500 font-medium">
@@ -309,12 +309,12 @@ export function CatalogForm({
         </div>
 
         {/* Footer fixo */}
-        <div className="shrink-0 border-t border-border bg-card p-6 rounded-b-2xl">
+        <div className="shrink-0 border-t border-border bg-card p-6 rounded-b-xl">
           <Button
             form="catalog-form"
             type="submit"
             disabled={loading}
-            className="w-full h-12 font-bold text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md shadow-primary/20 gap-2 cursor-pointer"
+            className="w-full rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
           >
             {loading ? (
               <>

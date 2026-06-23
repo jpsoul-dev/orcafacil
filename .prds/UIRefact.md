@@ -29,28 +29,30 @@ Para mitigar riscos de regressão no fluxo de trabalho ativo dos usuários e gar
 Foco exclusivo na navegação estrutural e visual da casca do aplicativo.
 *   **Header, Sidebar e Mobile Tab Bar**: Ajustes tipográficos (Sora), semântica de cores e navegação inferior responsiva em telas móveis (`< 768px`).
 
-### Fase 2: Identidade Visual Oficial & Catálogo de Produtos e Serviços (Fase Atual)
+### Fase 2: Identidade Visual Oficial & Catálogo de Produtos e Serviços (Concluída)
 Esta etapa visa integrar os logotipos e favicons oficiais à estrutura e realizar a refatoração completa do módulo de **Catálogo** (`app/catalog`), servindo como piloto para a reformulação de telas funcionais internas.
 
-> [!IMPORTANT]
-> **Escopo da Fase 2:** Esta etapa engloba a modificação dos assets de marca da aplicação (logos da sidebar e favicon) e a refatoração completa do módulo de Catálogo de Produtos e Serviços (listagem responsiva, filtros/busca, formulário de cadastro e edição e exclusão). As telas de orçamentos, recibos e clientes permanecem congeladas e inalteradas neste momento.
+### Fase 3: Refatoração do Módulo de Clientes (Fase Atual)
+Esta etapa foca na reformulação do módulo de **Clientes** (`app/customers` e sub-rotas), alinhando a listagem, o formulário de cadastro/edição, a tela de detalhe e histórico do cliente ao Design System.
 
-*   **No Escopo da Fase 2:**
-    *   **Identidade Visual (Logos & Favicon):**
-        *   Uso do logotipo oficial [horizontal-fundo-claro.svg](file:///.DOCS/SVG/horizontal-fundo-claro.svg) no topo da Sidebar (podendo alternar para a variação escura ou monocromática dependendo do tema ativo do sistema).
-        *   Uso do favicon oficial [favicon-fundo-escuro.svg](file:///.DOCS/SVG/favicon-fundo-escuro.svg) como o ícone da aba do navegador.
-    *   **Catálogo - Listagem (`app/catalog`):**
-        *   Tabela moderna no desktop com suporte a busca em tempo real, filtros por tipo (Produto/Serviço) e paginação.
-        *   Conversão automática da listagem em cards táteis responsivos no mobile (`< 768px`) contendo nome, preço, unidade de medida e tipo.
-    *   **Catálogo - Cadastro/Edição (`app/catalog/new` ou em Modal/Formulário):**
-        *   Formulário de cadastro e edição de produtos/serviços com campos de Nome, Tipo (Produto/Serviço), Preço Unitário e Unidade de Medida.
-        *   Uso de `shadcn/ui`, `React Hook Form` e validação de schema com `Zod`.
-        *   Conexão segura com o Supabase respeitando as políticas de RLS e o isolamento por usuário.
+> [!IMPORTANT]
+> **Escopo da Fase 3:** Esta etapa engloba a refatoração completa das telas de Clientes (tabela desktop/cards mobile de clientes, formulário de cadastro/edição com máscaras dinâmicas e validação Zod, tela de perfil e detalhe do cliente contendo histórico de orçamentos e recibos). As telas de orçamentos e recibos gerais permanecem congeladas e inalteradas neste momento.
+
+*   **No Escopo da Fase 3:**
+    *   **Clientes - Listagem (`app/customers`):**
+        *   Tabela moderna no desktop com suporte a busca em tempo real por nome/e-mail/telefone e paginação.
+        *   Conversão automática da listagem em cards táteis responsivos no mobile (`< 768px`) com iniciais em destaque, botões rápidos de contato (WhatsApp/E-mail) e ações.
+    *   **Clientes - Cadastro/Edição (Modal/Formulário):**
+        *   Formulário de dados integrado com `React Hook Form` e validação Zod para Nome, E-mail, Telefone (com máscara), CPF/CNPJ (com máscara dinâmica) e campos de endereço.
+        *   Integração segura com o Supabase respeitando o isolamento multi-tenant via RLS.
+    *   **Clientes - Detalhe (`app/customers/[id]`):**
+        *   Visualização de perfil com abas (Tabs) para exibir os orçamentos e recibos associados àquele cliente, formatados com as regras de status corretas.
     *   **UX & Feedback:**
-        *   Loading states (spinners em botões de submissão, skeletons para buscas e carregamento inicial).
-        *   Toasts semânticos de feedback para ações de criação, atualização ou deleção.
-*   **Fora do Escopo da Fase 2 (Modificações Bloqueadas):**
-    *   Listagens e formulários de Orçamentos, Recibos e Clientes (Data Tables e formulários de emissão).
+        *   Loading states (shimmer skeletons em tabelas/listas e loaders em botões).
+        *   Alert Dialog de confirmação segura antes de excluir clientes.
+        *   Toasts semânticos de feedback para ações de cadastro, edição ou remoção.
+*   **Fora do Escopo da Fase 3 (Modificações Bloqueadas):**
+    *   Listagens e formulários de Orçamentos e Recibos globais.
     *   Gráficos e painéis de dados do Dashboard principal.
     *   Configuração do manifesto PWA offline (Service Workers).
 
@@ -111,6 +113,28 @@ Esta etapa visa integrar os logotipos e favicons oficiais à estrutura e realiza
     *   **Operações de Banco de Dados:** Vinculado diretamente à tabela `catalog_items` no Supabase com isolamento total pelo ID do usuário autenticado.
 *   **Exclusão de Itens:**
     *   Ação de exclusão acionável na listagem, protegida por um modal de confirmação de segurança (Alert Dialog) para evitar cliques acidentais.
+
+### 3.6. Módulo de Clientes (Fase 3)
+*   **Listagem de Clientes (`app/customers`):**
+    *   **Desktop:** Exibir tabela contendo Nome, E-mail, Telefone, Documento (CPF/CNPJ formatado) e Ações (Editar, Excluir).
+    *   **Mobile (< 768px):** Substituir a tabela por cards de toque ergonômico contendo Avatar com iniciais, Nome, links para WhatsApp e E-mail diretos, e botão de ações contextuais.
+    *   **Busca & Filtros:** Adicionar campo de busca rápida unificada filtrando por nome, e-mail ou telefone.
+*   **Formulário de Cadastro e Edição (Modal ou Rota):**
+    *   Formulário integrado com `React Hook Form` e `Zod`.
+    *   **Campos de Entrada:**
+        *   *Nome:* texto obrigatório (mínimo de 3 caracteres).
+        *   *E-mail:* formato válido de e-mail (opcional).
+        *   *Telefone:* formato internacional/nacional com máscara (opcional).
+        *   *Documento:* máscara dinâmica alternando entre CPF (11 dígitos) e CNPJ (14 dígitos), opcional, com validação de formato.
+        *   *Endereço:* bloco opcional incluindo CEP, Logradouro, Número, Complemento, Bairro, Cidade e UF.
+    *   **Persistência:** Conectado à tabela `customers` no Supabase, garantindo isolamento pelo `user_id` ativo.
+*   **Tela de Detalhes do Cliente (`app/customers/[id]`):**
+    *   Perfil do cliente em destaque no topo utilizando tipografia Sora e Avatar correspondente.
+    *   Navegação por abas (Tabs):
+        *   *Aba 1 (Orçamentos):* Tabela/Lista responsiva contendo os orçamentos emitidos para este cliente, com seus respectivos valores e Badges de Status.
+        *   *Aba 2 (Recibos):* Lista de recibos emitidos para este cliente, valores e status de vínculo.
+*   **Exclusão de Clientes:**
+    *   Disparo de confirmação preventiva via Alert Dialog do shadcn/ui. O diálogo deve alertar caso o cliente possua orçamentos associados ativos no sistema.
 
 ---
 

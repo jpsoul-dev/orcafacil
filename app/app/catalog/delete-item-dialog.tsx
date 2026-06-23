@@ -48,22 +48,22 @@ export function DeleteItemDialog({ id, name }: { id: string; name: string }) {
           </Button>
         }
       />
-      <AlertDialogContent>
+      <AlertDialogContent className="rounded-xl border border-border bg-card text-foreground shadow-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>Excluir item do catálogo?</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-ds-heading-sm font-bold text-foreground">Excluir item do catálogo?</AlertDialogTitle>
+          <AlertDialogDescription className="text-ds-body-sm text-muted-foreground font-medium">
             Você está prestes a excluir <strong>{name}</strong>. Esta ação não
             pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading} className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]">Cancelar</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault()
               onDelete()
             }}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             disabled={loading}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Excluir'}

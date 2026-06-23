@@ -3,10 +3,11 @@
 import { useState, useEffect, ReactElement, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { toast } from 'sonner'
 import { saveCustomer } from './actions'
-import { maskCPF, maskCNPJ, maskPhone, maskCEP } from '@/lib/masks'
+import { maskCPFCNPJ, maskPhone, maskCEP } from '@/lib/masks'
+import { customerSchema, CustomerInput } from '@/lib/validations/customer-schema'
+import type { Customer } from '@/lib/services/customer-service'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,41 +29,6 @@ import {
   DialogHeader,
   DialogClose,
 } from '@/components/ui/dialog'
-
-const customerSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  document_type: z.enum(['cpf', 'cnpj']).optional(),
-  document: z.string().optional(),
-  email: z.string().email('E-mail inválido').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  whatsapp: z.string().optional(),
-  address_zip: z.string().optional(),
-  address_street: z.string().optional(),
-  address_number: z.string().optional(),
-  address_complement: z.string().optional(),
-  address_neighborhood: z.string().optional(),
-  address_city: z.string().optional(),
-  address_state: z.string().optional(),
-})
-
-type CustomerValues = z.infer<typeof customerSchema>
-
-export interface Customer {
-  id: string
-  name: string
-  document_type: 'cpf' | 'cnpj'
-  document?: string | null
-  email?: string | null
-  phone?: string | null
-  whatsapp?: string | null
-  address_zip?: string | null
-  address_street?: string | null
-  address_number?: string | null
-  address_complement?: string | null
-  address_neighborhood?: string | null
-  address_city?: string | null
-  address_state?: string | null
-}
 
 export function CustomerForm({
   initialData,
@@ -88,11 +54,11 @@ export function CustomerForm({
     setOpen(newOpen)
   }
 
-  const form = useForm<CustomerValues>({
+  const form = useForm<CustomerInput>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
       name: initialData?.name || '',
-      document_type: initialData?.document_type || 'cpf',
+      document_type: initialData?.document_type ?? 'cpf',
       document: initialData?.document || '',
       email: initialData?.email || '',
       phone: initialData?.phone || '',
@@ -112,7 +78,7 @@ export function CustomerForm({
     if (open) {
       form.reset({
         name: initialData?.name || '',
-        document_type: initialData?.document_type || 'cpf',
+        document_type: initialData?.document_type ?? 'cpf',
         document: initialData?.document || '',
         email: initialData?.email || '',
         phone: initialData?.phone || '',
@@ -128,7 +94,7 @@ export function CustomerForm({
     }
   }, [open, initialData, form])
 
-  async function onSubmit(data: CustomerValues) {
+  async function onSubmit(data: CustomerInput) {
     setLoading(true)
     const result = await saveCustomer(data, initialData?.id)
     setLoading(false)
@@ -185,13 +151,13 @@ export function CustomerForm({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-blue-50 rounded-full shrink-0"
             >
               <Pencil className="h-4 w-4" />
               <span className="sr-only">Editar</span>
             </Button>
           ) : (
-            <Button className="gap-2 font-bold bg-slate-950 hover:bg-slate-800 text-white rounded-lg">
+            <Button variant="default" className="gap-2">
               <UserPlus className="h-4 w-4" /> Novo cliente
             </Button>
           )
@@ -201,12 +167,12 @@ export function CustomerForm({
       <DialogContent className="p-0 flex flex-col sm:max-w-3xl max-h-[95vh] overflow-hidden gap-0 rounded-2xl border-none shadow-2xl bg-white">
         <DialogHeader className="px-6 py-6 border-none shrink-0 bg-white z-10 relative">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold text-slate-800">
+            <DialogTitle className="text-xl font-bold text-foreground font-display">
               {initialData ? 'Editar cliente' : 'Novo cliente'}
             </DialogTitle>
             <DialogClose
               render={
-                <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                <button className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
                   <Plus className="h-6 w-6 rotate-45" />
                   <span className="sr-only">Fechar</span>
                 </button>
@@ -232,7 +198,7 @@ export function CustomerForm({
                   <div className="w-full border-t border-slate-100"></div>
                 </div>
                 <div className="relative flex justify-start">
-                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">
+                  <span className="bg-white pr-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider font-display">
                     Dados gerais
                   </span>
                 </div>
@@ -242,17 +208,18 @@ export function CustomerForm({
                 <div className="col-span-12 space-y-1.5">
                   <Label
                     htmlFor="name"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Nome <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
                     {...form.register('name')}
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    placeholder="Nome completo ou Razão Social"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                   />
                   {form.formState.errors.name && (
-                    <p className="text-xs text-red-500">
+                    <p className="text-xs text-red-500 mt-1">
                       {form.formState.errors.name.message}
                     </p>
                   )}
@@ -261,7 +228,7 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="phone"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Telefone
                   </Label>
@@ -272,11 +239,12 @@ export function CustomerForm({
                       <Input
                         id="phone"
                         {...field}
+                        value={field.value || ''}
                         onChange={(e) =>
                           field.onChange(maskPhone(e.target.value))
                         }
-                        className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
-                        placeholder="(00) 0 0000-0000"
+                        className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium tabular-nums"
+                        placeholder="(00) 00000-0000"
                         maxLength={15}
                       />
                     )}
@@ -286,7 +254,7 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="document"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     CPF/CNPJ
                   </Label>
@@ -298,15 +266,12 @@ export function CustomerForm({
                         <Input
                           id="document"
                           {...field}
+                          value={field.value || ''}
                           onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '')
-                            let masked = e.target.value
-                            if (val.length <= 11)
-                              masked = maskCPF(e.target.value)
-                            else masked = maskCNPJ(e.target.value)
-                            field.onChange(masked)
+                            field.onChange(maskCPFCNPJ(e.target.value))
                           }}
-                          className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
+                          placeholder="000.000.000-00"
+                          className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium tabular-nums"
                           maxLength={18}
                         />
                       )
@@ -317,7 +282,7 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="email"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Email
                   </Label>
@@ -325,10 +290,11 @@ export function CustomerForm({
                     id="email"
                     type="email"
                     {...form.register('email')}
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    placeholder="email@cliente.com"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                   />
                   {form.formState.errors.email && (
-                    <p className="text-xs text-red-500">
+                    <p className="text-xs text-red-500 mt-1">
                       {form.formState.errors.email.message}
                     </p>
                   )}
@@ -337,7 +303,7 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="whatsapp"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     WhatsApp
                   </Label>
@@ -348,11 +314,12 @@ export function CustomerForm({
                       <Input
                         id="whatsapp"
                         {...field}
+                        value={field.value || ''}
                         onChange={(e) =>
                           field.onChange(maskPhone(e.target.value))
                         }
-                        className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums"
-                        placeholder="(00) 0 0000-0000"
+                        className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium tabular-nums"
+                        placeholder="(00) 00000-0000"
                         maxLength={15}
                       />
                     )}
@@ -371,7 +338,7 @@ export function CustomerForm({
                   <div className="w-full border-t border-slate-100"></div>
                 </div>
                 <div className="relative flex justify-start">
-                  <span className="bg-white pr-3 text-xs font-medium text-slate-400">
+                  <span className="bg-white pr-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider font-display">
                     Dados de endereço
                   </span>
                 </div>
@@ -381,7 +348,7 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="address_zip"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     CEP
                   </Label>
@@ -393,12 +360,13 @@ export function CustomerForm({
                         <Input
                           id="address_zip"
                           {...field}
+                          value={field.value || ''}
                           onChange={(e) =>
                             field.onChange(maskCEP(e.target.value))
                           }
                           onBlur={handleSearchCEP}
                           placeholder="00000-000"
-                          className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950 tabular-nums pr-8"
+                          className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium tabular-nums pr-8"
                           maxLength={9}
                         />
                       )}
@@ -417,14 +385,14 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-8 space-y-1.5">
                   <Label
                     htmlFor="address_street"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Logradouro
                   </Label>
                   <Input
                     id="address_street"
                     {...form.register('address_street')}
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                     placeholder="Rua, Av., etc."
                   />
                 </div>
@@ -432,7 +400,7 @@ export function CustomerForm({
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="address_number"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Número
                   </Label>
@@ -440,14 +408,14 @@ export function CustomerForm({
                     id="address_number"
                     {...form.register('address_number')}
                     placeholder="123"
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                   />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="address_complement"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Complemento
                   </Label>
@@ -455,14 +423,14 @@ export function CustomerForm({
                     id="address_complement"
                     {...form.register('address_complement')}
                     placeholder="Apto, sala, etc."
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                   />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="address_neighborhood"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Bairro
                   </Label>
@@ -470,14 +438,14 @@ export function CustomerForm({
                     id="address_neighborhood"
                     {...form.register('address_neighborhood')}
                     placeholder="Bairro"
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                   />
                 </div>
 
                 <div className="col-span-12 sm:col-span-8 space-y-1.5">
                   <Label
                     htmlFor="address_city"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Cidade
                   </Label>
@@ -485,14 +453,14 @@ export function CustomerForm({
                     id="address_city"
                     {...form.register('address_city')}
                     placeholder="Cidade"
-                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-950"
+                    className="h-10 rounded-lg bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground font-medium"
                   />
                 </div>
 
                 <div className="col-span-12 sm:col-span-4 space-y-1.5">
                   <Label
                     htmlFor="address_state"
-                    className="text-sm font-bold text-slate-800"
+                    className="text-sm font-bold text-foreground font-display"
                   >
                     Estado
                   </Label>
@@ -502,7 +470,7 @@ export function CustomerForm({
                     }
                     value={form.watch('address_state') ?? undefined}
                   >
-                    <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-slate-950 text-slate-700">
+                    <SelectTrigger className="h-10 rounded-lg bg-white border-slate-200 focus:ring-1 focus:ring-blue-500 text-slate-700 font-medium">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -554,7 +522,7 @@ export function CustomerForm({
               form="customer-form"
               type="submit"
               disabled={loading}
-              className="h-10 px-10 font-bold text-sm bg-slate-950 hover:bg-slate-800 text-white rounded-lg shadow-sm"
+              className="px-10"
             >
               {loading ? (
                 <>

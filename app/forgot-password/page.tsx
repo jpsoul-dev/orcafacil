@@ -105,40 +105,40 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Logo mobile */}
           <div className="flex items-center gap-2.5 lg:hidden mb-4 justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-md">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
               <Zap
-                className="h-6 w-6 text-indigo-400"
+                className="h-6 w-6 text-white"
                 fill="currentColor"
                 strokeWidth={0}
               />
             </div>
-            <span className="font-bold text-xl tracking-tighter">
+            <span className="font-bold text-xl tracking-tighter text-foreground">
               OrçaFácil
             </span>
           </div>
 
           <div className="space-y-2 text-center lg:text-left">
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
+            <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
               Recuperar Senha
             </h2>
-            <p className="text-muted-foreground text-sm font-medium">
-              Insira seu e-mail para receber o link de redefinição
+            <p className="text-muted-foreground text-ds-body-sm font-medium">
+              Insira seu e-mail para receber o link de redefinição.
             </p>
           </div>
 
           {success ? (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 text-center space-y-4">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-md p-6 text-center space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500 mx-auto">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-foreground">E-mail enviado!</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <h3 className="text-ds-heading-xs font-bold text-foreground">E-mail enviado!</h3>
+                <p className="text-ds-body-sm text-muted-foreground leading-relaxed">
                   Enviamos as instruções de recuperação. Por favor, verifique sua caixa de entrada e spam.
                 </p>
               </div>
               <Link href="/login" className="inline-block w-full">
-                <Button className="w-full h-12 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-white gap-2 transition-all">
+                <Button className="w-full h-11 rounded-md font-semibold bg-primary hover:bg-primary-hover text-primary-foreground gap-2 transition-all duration-ds-fast shadow-sm hover:scale-[1.01] active:scale-[0.99]">
                   <ArrowLeft className="h-4 w-4" /> Voltar para o login
                 </Button>
               </Link>
@@ -157,7 +157,7 @@ export default function ForgotPasswordPage() {
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
-                    className="pl-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
+                    className="pl-11 h-11 rounded-sm bg-card border-border focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md placeholder:text-muted-foreground/50"
                     {...register('email')}
                   />
                 </div>
@@ -169,7 +169,7 @@ export default function ForgotPasswordPage() {
               </div>
 
               <Button
-                className="w-full h-12 rounded-xl font-bold gap-2 bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-md hover:scale-[1.01] active:scale-[0.99] pt-1"
+                className="w-full h-11 rounded-md font-semibold gap-2 bg-primary hover:bg-primary-hover text-primary-foreground transition-all duration-ds-fast shadow-sm hover:scale-[1.01] active:scale-[0.99]"
                 type="submit"
                 disabled={isSubmitting}
               >
@@ -189,7 +189,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors hover:underline underline-offset-4"
+                  className="inline-flex items-center gap-1.5 text-ds-body-sm font-bold text-primary hover:text-primary-hover transition-colors hover:underline underline-offset-4"
                 >
                   <ArrowLeft className="h-4 w-4" /> Voltar para o login
                 </Link>

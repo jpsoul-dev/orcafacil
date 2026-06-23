@@ -191,37 +191,37 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="max-w-md w-full space-y-8 animate-in fade-in duration-500">
         <div className="text-center space-y-3">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-slate-200 shadow-xs mb-2">
-            <Rocket className="h-6 w-6 text-slate-800" />
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-md bg-card border border-border shadow-sm mb-2">
+            <Rocket className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
             Bem-vindo ao OrçaFácil
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-muted-foreground text-ds-body-sm font-medium">
             Estamos quase prontos. Conte-nos um pouco sobre o seu negócio para
             começar.
           </p>
         </div>
 
-        <Card className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xl">
+        <Card className="border border-border rounded-md overflow-hidden bg-card shadow-sm">
           <CardContent className="p-8">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-5">
                 <div className="space-y-2">
                   <Label
                     htmlFor="name"
-                    className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2"
                   >
-                    <Store className="h-3.5 w-3.5 text-slate-400" /> Nome do seu Negócio
+                    <Store className="h-3.5 w-3.5 text-muted-foreground" /> Nome do seu Negócio
                   </Label>
                   <Input
                     id="name"
                     {...form.register('name')}
                     placeholder="Ex: Pinturas Silva ou Tech Solutions"
-                    className="h-11 rounded-lg border-slate-200 bg-white focus-visible:border-slate-400 focus-visible:ring-0 text-slate-900 placeholder-slate-400 transition-all text-sm"
+                    className="h-10 rounded-sm border-border bg-background text-ds-body-md focus-visible:ring-ring placeholder:text-muted-foreground/50 transition-all duration-ds-fast"
                     disabled={loading}
                   />
                   {form.formState.errors.name && (
@@ -234,15 +234,15 @@ export default function OnboardingPage() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="industry"
-                    className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2"
                   >
-                    <Briefcase className="h-3.5 w-3.5 text-slate-400" /> Seguimento de mercado
+                    <Briefcase className="h-3.5 w-3.5 text-muted-foreground" /> Seguimento de mercado
                   </Label>
                   <div className="relative">
                     <select
                       id="industry"
                       {...form.register('industry')}
-                      className="w-full h-11 px-3 rounded-lg border border-slate-200 bg-white focus:border-slate-400 focus:ring-0 text-slate-900 transition-all text-sm appearance-none cursor-pointer"
+                      className="w-full h-10 px-3 rounded-sm border border-border bg-background text-ds-body-md focus:border-primary focus:ring-1 focus:ring-ring transition-all duration-ds-fast appearance-none cursor-pointer text-foreground"
                       disabled={loading}
                       defaultValue=""
                     >
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                         </optgroup>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground">
                       <svg
                         className="fill-current h-4 w-4"
                         xmlns="http://www.w3.org/2000/svg"
@@ -279,7 +279,7 @@ export default function OnboardingPage() {
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm rounded-lg transition-all active:scale-95 group flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-10 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-md transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] group flex items-center justify-center gap-2 cursor-pointer"
                 disabled={loading}
               >
                 {loading ? (
@@ -295,7 +295,7 @@ export default function OnboardingPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-slate-400 font-medium italic">
+        <p className="text-center text-ds-caption text-muted-foreground font-medium italic">
           Você poderá alterar essas informações mais tarde.
         </p>
       </div>

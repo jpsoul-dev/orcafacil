@@ -84,13 +84,13 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
   }, [quotes, view])
 
   return (
-    <Card className="border-border/60 shadow-sm overflow-hidden">
+    <Card className="border-border/60 shadow-sm overflow-hidden rounded-lg">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle className="text-lg font-bold tracking-tight">
+          <CardTitle className="text-ds-heading-xs font-bold tracking-tight text-foreground">
             Histórico de Orçamentos
           </CardTitle>
-          <CardDescription className="text-xs font-medium text-muted-foreground">
+          <CardDescription className="text-ds-body-sm font-medium text-muted-foreground">
             Acompanhe o volume de orçamentos criados
           </CardDescription>
         </div>
@@ -99,16 +99,16 @@ export function QuotesChart({ quotes }: QuotesChartProps) {
             value={view}
             onValueChange={(v) => setView(v as 'day' | 'month')}
           >
-            <TabsList className="bg-muted/50 h-9">
+            <TabsList className="bg-muted/50 h-9 rounded-md">
               <TabsTrigger
                 value="day"
-                className="text-xs font-semibold px-4 h-7"
+                className="text-ds-body-sm font-semibold px-4 h-7 rounded-sm transition-all duration-ds-fast"
               >
                 Dia
               </TabsTrigger>
               <TabsTrigger
                 value="month"
-                className="text-xs font-semibold px-4 h-7"
+                className="text-ds-body-sm font-semibold px-4 h-7 rounded-sm transition-all duration-ds-fast"
               >
                 Mês
               </TabsTrigger>

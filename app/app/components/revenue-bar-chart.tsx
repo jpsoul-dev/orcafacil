@@ -22,7 +22,7 @@ import { formatBRL } from '@/lib/utils'
 const chartConfig = {
   revenue: {
     label: 'Faturamento Faturado',
-    color: '#14b8a6', // Teal-500
+    color: 'var(--color-status-completed)',
   },
 } satisfies ChartConfig
 
@@ -61,17 +61,17 @@ export function RevenueBarChart({ quotes }: RevenueBarChartProps) {
   }, [chartData])
 
   return (
-    <Card className="border-border/60 shadow-sm overflow-hidden flex flex-col h-full">
+    <Card className="border-border/60 shadow-sm overflow-hidden flex flex-col h-full rounded-lg">
       <CardHeader className="px-6 py-5 pb-2">
-        <CardTitle className="text-lg font-bold tracking-tight">Faturamento Faturado</CardTitle>
-        <CardDescription className="text-xs font-medium text-muted-foreground">
+        <CardTitle className="text-ds-heading-xs font-bold tracking-tight text-foreground">Faturamento Faturado</CardTitle>
+        <CardDescription className="text-ds-body-sm font-medium text-muted-foreground">
           Soma do valor de orçamentos com status 'Finalizado'
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-6 pt-4 sm:px-6 sm:pt-6 flex flex-col justify-between">
         <div className="mb-4">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Acumulado (12M)</span>
-          <span className="text-2xl font-black text-slate-800 tracking-tighter tabular-nums">
+          <span className="text-ds-caption font-bold text-muted-foreground uppercase tracking-wider block">Acumulado (12M)</span>
+          <span className="text-ds-heading-md font-bold text-foreground tracking-tighter tabular-nums">
             {formatBRL(totalRevenue)}
           </span>
         </div>

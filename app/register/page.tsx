@@ -135,24 +135,24 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Logo mobile */}
           <div className="flex items-center gap-2.5 lg:hidden mb-4 justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-md">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
               <Zap
-                className="h-6 w-6 text-indigo-400"
+                className="h-6 w-6 text-white"
                 fill="currentColor"
                 strokeWidth={0}
               />
             </div>
-            <span className="font-bold text-xl tracking-tighter">
+            <span className="font-bold text-xl tracking-tighter text-foreground">
               OrçaFácil
             </span>
           </div>
 
           <div className="space-y-2 text-center lg:text-left">
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
+            <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
               Criar sua conta
             </h2>
-            <p className="text-muted-foreground text-sm font-medium">
-              Comece a criar orçamentos profissionais grátis
+            <p className="text-muted-foreground text-ds-body-sm font-medium">
+              Comece a criar orçamentos profissionais grátis.
             </p>
           </div>
 
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
-                  className="pl-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
+                  className="pl-11 h-11 rounded-sm bg-card border-border focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md placeholder:text-muted-foreground/50"
                   {...register('email')}
                 />
               </div>
@@ -192,13 +192,13 @@ export default function RegisterPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="pl-11 pr-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
+                  className="pl-11 pr-11 h-11 rounded-sm bg-card border-border focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md placeholder:text-muted-foreground/50"
                   {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground/60 hover:text-foreground transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground/60 hover:text-foreground transition-all duration-ds-fast"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -208,8 +208,8 @@ export default function RegisterPage() {
                   {errors.password.message}
                 </p>
               ) : (
-                <div className="flex items-start gap-1.5 text-xs text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-muted-foreground/5">
-                  <ShieldCheck className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-1.5 text-ds-body-sm text-muted-foreground bg-muted/30 p-2.5 rounded-md border border-border/50">
+                  <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <span>Mínimo 6 caracteres, com letra maiúscula, minúscula e número.</span>
                 </div>
               )}
@@ -227,13 +227,13 @@ export default function RegisterPage() {
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="pl-11 pr-11 h-12 rounded-xl bg-muted/40 border-muted-foreground/10 focus-visible:ring-primary/20 placeholder:text-muted-foreground/50"
+                  className="pl-11 pr-11 h-11 rounded-sm bg-card border-border focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md placeholder:text-muted-foreground/50"
                   {...register('confirmPassword')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground/60 hover:text-foreground transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground/60 hover:text-foreground transition-all duration-ds-fast"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -246,7 +246,7 @@ export default function RegisterPage() {
             </div>
 
             <Button
-              className="w-full h-12 rounded-xl font-bold gap-2 bg-slate-900 hover:bg-slate-800 text-white transition-all duration-200 shadow-md hover:scale-[1.01] active:scale-[0.99] pt-1"
+              className="w-full h-11 rounded-md font-semibold gap-2 bg-primary hover:bg-primary-hover text-primary-foreground transition-all duration-ds-fast shadow-sm hover:scale-[1.01] active:scale-[0.99]"
               type="submit"
               disabled={isSubmitting}
             >
@@ -290,7 +290,7 @@ export default function RegisterPage() {
           >
             <Button
               variant="outline"
-              className="w-full h-12 rounded-xl gap-2 font-semibold border-slate-200/80 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              className="w-full h-11 rounded-md gap-2 font-semibold border-border bg-card hover:bg-muted/50 text-foreground transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               type="submit"
               disabled={googleLoading}
             >
@@ -320,11 +320,11 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground font-medium pt-2">
+          <p className="text-center text-ds-body-sm text-muted-foreground font-medium pt-2">
             Já tem uma conta?{' '}
             <Link
               href="/login"
-              className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors hover:underline underline-offset-4"
+              className="font-bold text-primary hover:text-primary-hover transition-colors hover:underline underline-offset-4"
             >
               Fazer login
             </Link>

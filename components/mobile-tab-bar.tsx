@@ -89,7 +89,7 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
             key={item.title}
             href={item.url}
             className={cn(
-              "flex flex-col items-center justify-center flex-1 h-full py-2 gap-1 transition-all duration-120 text-[10px] font-medium cursor-pointer min-w-11 min-h-11",
+              "flex flex-col items-center justify-center flex-1 h-full py-2 gap-1 transition-all duration-ds-fast text-[10px] font-medium cursor-pointer min-w-11 min-h-11",
               active ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -106,7 +106,7 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
           render={
             <button
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full py-2 gap-1 transition-all duration-120 text-[10px] font-medium cursor-pointer min-w-11 min-h-11 border-none bg-transparent outline-none",
+                "flex flex-col items-center justify-center flex-1 h-full py-2 gap-1 transition-all duration-ds-fast text-[10px] font-medium cursor-pointer min-w-11 min-h-11 border-none bg-transparent outline-none",
                 isSecondaryActive || open ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -147,9 +147,9 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
                   href={item.url}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all duration-120 cursor-pointer text-sm font-semibold",
+                    "flex items-center gap-3.5 px-4 py-3.5 rounded-md transition-all duration-ds-fast cursor-pointer text-ds-body-md font-semibold",
                     active 
-                      ? "bg-primary/10 text-primary border-l-[3px] border-primary rounded-l-none pl-3.5" 
+                      ? "bg-primary/10 text-primary border-l-3 border-primary rounded-l-none pl-3.5" 
                       : "text-foreground hover:bg-muted/40"
                   )}
                 >

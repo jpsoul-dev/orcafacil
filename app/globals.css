@@ -7,182 +7,477 @@
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
+
+  /* ── Shadcn core ──────────────────────────────────────────────────── */
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* ── Sidebar ──────────────────────────────────────────────────────── */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ── Charts ───────────────────────────────────────────────────────── */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* ── Feedback ─────────────────────────────────────────────────────── */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* ── Status de orçamento ──────────────────────────────────────────── */
+  --color-status-pending: var(--ds-color-status-pending);
+  --color-status-pending-bg: var(--ds-color-status-pending-bg);
+  --color-status-pending-fg: var(--ds-color-status-pending-fg);
+  --color-status-approved: var(--ds-color-status-approved);
+  --color-status-approved-bg: var(--ds-color-status-approved-bg);
+  --color-status-approved-fg: var(--ds-color-status-approved-fg);
+  --color-status-rejected: var(--ds-color-status-rejected);
+  --color-status-rejected-bg: var(--ds-color-status-rejected-bg);
+  --color-status-rejected-fg: var(--ds-color-status-rejected-fg);
+  --color-status-cancelled: var(--ds-color-status-cancelled);
+  --color-status-cancelled-bg: var(--ds-color-status-cancelled-bg);
+  --color-status-cancelled-fg: var(--ds-color-status-cancelled-fg);
+  --color-status-completed: var(--ds-color-status-completed);
+  --color-status-completed-bg: var(--ds-color-status-completed-bg);
+  --color-status-completed-fg: var(--ds-color-status-completed-fg);
+
+  /* ── Radius ──────────────────────────────────────────
+     rounded-sm   = 8px    (inputs, checkbox)
+     rounded-md   = 12px   (botões, cards padrão)
+     rounded-lg   = 16px   (cards grandes, painéis)
+     rounded-xl   = 24px   (modais)
+     rounded-full = 9999px (avatares, pills de status)
+     ──────────────────────────────────────────────────────────────────── */
+  --radius-sm: calc(var(--radius) * 0.667);
+  /* ~8px  */
+  --radius-md: var(--radius);
+  /* 12px  */
+  --radius-lg: calc(var(--radius) * 1.333);
+  /* ~16px */
+  --radius-xl: calc(var(--radius) * 2);
+  /* 24px  */
+  --radius-2xl: calc(var(--radius) * 2.667);
+  --radius-3xl: calc(var(--radius) * 3.333);
+  --radius-4xl: calc(var(--radius) * 4);
+  --radius-full: 9999px;
+
+  /* ── Sombras — substituem defaults do Tailwind pelos valores do DS ──
+     DS Seção 5: sombras são funcionais (indicam camada), nunca decorativas.
+     shadow-sm → card em repouso
+     shadow-md → dropdown, popover, menu
+     shadow-lg → modal, painel PDF, toast
+     ──────────────────────────────────────────────────────────────────── */
+  --shadow-sm: var(--ds-shadow-sm);
+  --shadow-md: var(--ds-shadow-md);
+  --shadow-lg: var(--ds-shadow-lg);
+
+  /* ── Cor de texto desabilitado ────────────────────────────────────── */
+  --color-text-disabled: var(--text-disabled);
+
+  /* ── Tipografia — tamanhos DS como classes Tailwind ──────────────────
+     Uso: className="text-ds-body-md" (0.875rem / 14px)
+     ──────────────────────────────────────────────────────────────────── */
+  --text-ds-display: var(--ds-text-display);
+  --text-ds-heading-lg: var(--ds-text-heading-lg);
+  --text-ds-heading-md: var(--ds-text-heading-md);
+  --text-ds-heading-sm: var(--ds-text-heading-sm);
+  --text-ds-heading-xs: var(--ds-text-heading-xs);
+  --text-ds-body-lg: var(--ds-text-body-lg);
+  --text-ds-body-md: var(--ds-text-body-md);
+  --text-ds-body-sm: var(--ds-text-body-sm);
+  --text-ds-caption: var(--ds-text-caption);
+
+  /* ── Tipografia — line-height DS (prefixo ds- preserva defaults Tailwind)
+     Uso: className="leading-ds-normal" (1.4 — headings)
+          className="leading-ds-relaxed" (1.5 — body corrido)
+     ──────────────────────────────────────────────────────────────────── */
+  --leading-ds-tight: 1.2;
+  /* display, heading-lg */
+  --leading-ds-snug: 1.3;
+  /* heading-md, data-value */
+  --leading-ds-normal: 1.4;
+  /* heading-sm/xs, caption */
+  --leading-ds-relaxed: 1.5;
+  /* body — texto corrido padrão */
+
+  /* ── Movimento — durações como classes Tailwind ───────────────────────
+     Uso: className="duration-ds-fast transition-colors" (120ms hover)
+          className="duration-ds-normal" (200ms dropdowns)
+          className="duration-ds-slow" (320ms modais)
+     ──────────────────────────────────────────────────────────────────── */
+  --duration-ds-fast: var(--ds-motion-fast);
+  --duration-ds-normal: var(--ds-motion-normal);
+  --duration-ds-slow: var(--ds-motion-slow);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DESIGN SYSTEM — Primitivas (fonte de verdade)
+   Definidas ANTES dos tokens shadcn para que eles possam referenciar via var()
+   ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #111827;
+  /* ── Primitivas — Neutro (Grafite) ───────────────────────────────── */
+  --ds-color-neutral-0: #FFFFFF;
+  --ds-color-neutral-50: #F8FAFC;
+  --ds-color-neutral-100: #F1F5F9;
+  --ds-color-neutral-200: #E2E8F0;
+  --ds-color-neutral-300: #CBD5E1;
+  --ds-color-neutral-400: #94A3B8;
+  --ds-color-neutral-500: #6B7280;
+  --ds-color-neutral-600: #475569;
+  --ds-color-neutral-700: #334155;
+  --ds-color-neutral-800: #1E293B;
+  --ds-color-neutral-900: #111827;
+  --ds-color-neutral-950: #0A0E16;
 
-  --card: #FFFFFF;
-  --card-foreground: #111827;
+  /* ── Primitivas — Azul (Primária) ────────────────────────────────── */
+  --ds-color-blue-50: #EEF3FF;
+  --ds-color-blue-100: #DCE7FF;
+  --ds-color-blue-200: #B9CFFF;
+  --ds-color-blue-400: #5C87FF;
+  --ds-color-blue-500: #1E5EFF;
+  --ds-color-blue-600: #1648D6;
+  --ds-color-blue-700: #1136AD;
 
-  --popover: #FFFFFF;
-  --popover-foreground: #111827;
+  /* ── Primitivas — Status de orçamento/recibo (modo claro) ─────────
+     NUNCA usar a cor base (*) como texto — usar -fg sobre -bg.
+     ──────────────────────────────────────────────────────────────────── */
+  --ds-color-status-pending: #F59E0B;
+  --ds-color-status-pending-bg: #FEF3C7;
+  --ds-color-status-pending-fg: #92400E;
 
-  --primary: #1E5EFF;
-  --primary-foreground: #FFFFFF;
+  --ds-color-status-approved: #16A34A;
+  --ds-color-status-approved-bg: #DCFCE7;
+  --ds-color-status-approved-fg: #15803D;
 
-  --secondary: #F1F5F9;
-  --secondary-foreground: #111827;
+  --ds-color-status-rejected: #DC2626;
+  --ds-color-status-rejected-bg: #FEE2E2;
+  --ds-color-status-rejected-fg: #B91C1C;
 
-  --muted: #F1F5F9;
-  --muted-foreground: #6B7280;
+  --ds-color-status-cancelled: #64748B;
+  --ds-color-status-cancelled-bg: #F1F5F9;
+  --ds-color-status-cancelled-fg: #475569;
 
-  --accent: #F1F5F9;
-  --accent-foreground: #1E5EFF;
+  --ds-color-status-completed: #0D9488;
+  --ds-color-status-completed-bg: #CCFBF1;
+  --ds-color-status-completed-fg: #0F766E;
 
-  --destructive: #DC2626;
-  --destructive-foreground: #FFFFFF;
-  
-  --success: #16A34A;
-  --success-foreground: #FFFFFF;
-  --warning: #F59E0B;
-  --warning-foreground: #FFFFFF;
-  --info: #0EA5E9;
-  --info-foreground: #FFFFFF;
+  /* ── DS Semânticas — Feedback ─────────────────────────────────────── */
+  --ds-color-success: #16A34A;
+  --ds-color-warning: #F59E0B;
+  --ds-color-danger: #DC2626;
+  --ds-color-info: #0EA5E9;
 
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #1E5EFF;
+  /* ── DS Semânticas — Texto desabilitado ──────────────────────────── */
+  --ds-color-text-disabled: var(--ds-color-neutral-400);
+  /* modo claro */
 
-  --radius: 0.625rem;
+  /* ── DS Tipografia — Família ─────────────────────────────────────── */
+  --ds-font-family: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --sidebar: #F8FAFC;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #1E5EFF;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F5F9;
-  --sidebar-accent-foreground: #1E5EFF;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #1E5EFF;
+  /* ── DS Tipografia — Tamanhos ────────────────────────────────────── */
+  --ds-text-display: 2.25rem;
+  /* 36px — empty state, boas-vindas */
+  --ds-text-heading-lg: 1.875rem;
+  /* 30px — título de página */
+  --ds-text-heading-md: 1.5rem;
+  /* 24px — título de seção/card grande */
+  --ds-text-heading-sm: 1.25rem;
+  /* 20px — subtítulo, título de modal */
+  --ds-text-heading-xs: 1.125rem;
+  /* 18px — cabeçalho de tabela */
+  --ds-text-body-lg: 1rem;
+  /* 16px — texto corrido padrão */
+  --ds-text-body-md: 0.875rem;
+  /* 14px — interface compacta (tabelas) */
+  --ds-text-body-sm: 0.8125rem;
+  /* 13px — texto secundário, descrições */
+  --ds-text-caption: 0.75rem;
+  /* 12px — labels, metadados, timestamps */
+
+  /* ── DS Tipografia — Line-height ─────────────────────────────────── */
+  --ds-leading-tight: 1.2;
+  /* display, heading-lg */
+  --ds-leading-snug: 1.3;
+  /* heading-md, data-value */
+  --ds-leading-normal: 1.4;
+  /* heading-sm/xs, caption */
+  --ds-leading-relaxed: 1.5;
+  /* body — texto corrido */
+
+  /* ── DS Tipografia — Peso ────────────────────────────────────────── */
+  --ds-weight-regular: 400;
+  --ds-weight-medium: 500;
+  --ds-weight-semibold: 600;
+  /* valores monetários, labels de ação */
+  --ds-weight-bold: 700;
+  /* headings, títulos */
+
+  /* ── DS Sombras (modo claro) ─────────────────────────────────────── */
+  --ds-shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
+  /* card em repouso */
+  --ds-shadow-md: 0 4px 12px rgba(17, 24, 39, 0.10);
+  /* dropdown, popover */
+  --ds-shadow-lg: 0 12px 32px rgba(17, 24, 39, 0.16);
+  /* modal, painel PDF */
+
+  /* ── DS Espaçamento (base 8px) ────────────────────────────────────── */
+  --ds-space-1: 4px;
+  /* gap entre ícone e texto */
+  --ds-space-2: 8px;
+  /* padding compacto (botão sm, badge) */
+  --ds-space-3: 12px;
+  /* padding de inputs, botão md */
+  --ds-space-4: 16px;
+  /* padding de cards, gap entre campos */
+  --ds-space-6: 24px;
+  /* espaço entre blocos relacionados */
+  --ds-space-8: 32px;
+  /* espaço entre seções de página */
+  --ds-space-12: 48px;
+  /* grandes blocos, padding de header */
+  --ds-space-16: 64px;
+  /* respiro de página em telas grandes */
+  --ds-space-24: 96px;
+  /* espaço hero/empty state em desktop */
+
+  /* ── DS Movimento ────────────────────────────────────────────────── */
+  --ds-motion-fast: 120ms;
+  --ds-motion-normal: 200ms;
+  --ds-motion-slow: 320ms;
+  --ds-easing-out: ease-out;
+  --ds-easing-inout: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ─────────────────────────────────────────────────────────────────────
+     TOKENS SHADCN — referenciam primitivas DS
+     Todos os componentes shadcn existentes continuam funcionando porque
+     os tokens têm os mesmos nomes e agora apontam para os valores do DS.
+     ──────────────────────────────────────────────────────────────────── */
+
+  --background: var(--ds-color-neutral-50);
+  --foreground: var(--ds-color-neutral-900);
+
+  --card: var(--ds-color-neutral-0);
+  --card-foreground: var(--ds-color-neutral-900);
+
+  --popover: var(--ds-color-neutral-0);
+  --popover-foreground: var(--ds-color-neutral-900);
+
+  --primary: var(--ds-color-blue-500);
+  --primary-foreground: var(--ds-color-neutral-0);
+  --primary-hover: var(--ds-color-blue-600);
+  /* hover dedicado — DS §10 */
+  --primary-active: var(--ds-color-blue-700);
+  /* active — DS §10 */
+
+  --secondary: var(--ds-color-neutral-100);
+  --secondary-foreground: var(--ds-color-neutral-900);
+
+  --muted: var(--ds-color-neutral-100);
+  --muted-foreground: var(--ds-color-neutral-500);
+
+  --accent: var(--ds-color-blue-50);
+  --accent-foreground: var(--ds-color-blue-500);
+
+  --destructive: var(--ds-color-danger);
+  --destructive-foreground: var(--ds-color-neutral-0);
+
+  --success: var(--ds-color-success);
+  --success-foreground: var(--ds-color-neutral-0);
+  --warning: var(--ds-color-warning);
+  --warning-foreground: var(--ds-color-neutral-0);
+  --info: var(--ds-color-info);
+  --info-foreground: var(--ds-color-neutral-0);
+
+  --border: var(--ds-color-neutral-200);
+  --input: var(--ds-color-neutral-200);
+  --ring: var(--ds-color-blue-500);
+
+  /* Texto desabilitado — DS §2: neutral-400 no modo claro */
+  --text-disabled: var(--ds-color-neutral-400);
+
+  --radius: 0.75rem;
+
+  --sidebar: var(--ds-color-neutral-50);
+  --sidebar-foreground: var(--ds-color-neutral-900);
+  --sidebar-primary: var(--ds-color-blue-500);
+  --sidebar-primary-foreground: var(--ds-color-neutral-0);
+  --sidebar-accent: var(--ds-color-blue-50);
+  --sidebar-accent-foreground: var(--ds-color-blue-500);
+  --sidebar-border: var(--ds-color-neutral-200);
+  --sidebar-ring: var(--ds-color-blue-500);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MODO ESCURO — shadcn tokens + DS status tokens
+   ──────────────────────────────────────────────────────────────────────────── */
 
 .dark {
-  --background: #0A0E16;
-  --foreground: #F8FAFC;
+  --background: var(--ds-color-neutral-950);
+  --foreground: var(--ds-color-neutral-50);
 
-  --card: #111827;
-  --card-foreground: #F8FAFC;
+  --card: var(--ds-color-neutral-900);
+  --card-foreground: var(--ds-color-neutral-50);
 
-  --popover: #111827;
-  --popover-foreground: #F8FAFC;
+  --popover: var(--ds-color-neutral-900);
+  --popover-foreground: var(--ds-color-neutral-50);
 
-  --primary: #5C87FF;
-  --primary-foreground: #0A0E16;
+  /* Azul fica mais claro no escuro — mantém contraste sobre fundo escuro */
+  --primary: var(--ds-color-blue-400);
+  --primary-foreground: var(--ds-color-neutral-950);
+  --primary-hover: var(--ds-color-blue-400);
+  /* clarear via filter se necessário */
+  --primary-active: var(--ds-color-blue-500);
 
-  --secondary: #1E293B;
-  --secondary-foreground: #F8FAFC;
+  --secondary: var(--ds-color-neutral-800);
+  --secondary-foreground: var(--ds-color-neutral-50);
 
-  --muted: #1E293B;
-  --muted-foreground: #94A3B8;
+  --muted: var(--ds-color-neutral-800);
+  --muted-foreground: var(--ds-color-neutral-400);
 
-  --accent: #1E293B;
-  --accent-foreground: #5C87FF;
+  --accent: var(--ds-color-neutral-800);
+  --accent-foreground: var(--ds-color-blue-400);
 
   --destructive: #F87171;
-  --destructive-foreground: #0A0E16;
+  --destructive-foreground: var(--ds-color-neutral-950);
 
   --success: #4ADE80;
-  --success-foreground: #0A0E16;
+  --success-foreground: var(--ds-color-neutral-950);
   --warning: #FBBF24;
-  --warning-foreground: #0A0E16;
+  --warning-foreground: var(--ds-color-neutral-950);
   --info: #38BDF8;
-  --info-foreground: #0A0E16;
+  --info-foreground: var(--ds-color-neutral-950);
 
-  --border: #1E293B;
-  --input: #1E293B;
-  --ring: #5C87FF;
+  --border: var(--ds-color-neutral-800);
+  --input: var(--ds-color-neutral-800);
+  --ring: var(--ds-color-blue-400);
 
-  --sidebar: #111827;
-  --sidebar-foreground: #94A3B8;
-  --sidebar-primary: #5C87FF;
-  --sidebar-primary-foreground: #0A0E16;
-  --sidebar-accent: #1E293B;
-  --sidebar-accent-foreground: #5C87FF;
-  --sidebar-border: #1E293B;
-  --sidebar-ring: #5C87FF;
+  --sidebar: var(--ds-color-neutral-900);
+  --sidebar-foreground: var(--ds-color-neutral-400);
+  --sidebar-primary: var(--ds-color-blue-400);
+  --sidebar-primary-foreground: var(--ds-color-neutral-950);
+  --sidebar-accent: var(--ds-color-neutral-800);
+  --sidebar-accent-foreground: var(--ds-color-blue-400);
+  --sidebar-border: var(--ds-color-neutral-800);
+  --sidebar-ring: var(--ds-color-blue-400);
+
+  /* ── Status escuro — rgba translúcido + texto claro ────────────────── */
+  --ds-color-status-pending-bg: rgba(245, 158, 11, 0.16);
+  --ds-color-status-pending-fg: #FBBF24;
+
+  --ds-color-status-approved-bg: rgba(22, 163, 74, 0.16);
+  --ds-color-status-approved-fg: #4ADE80;
+
+  --ds-color-status-rejected-bg: rgba(220, 38, 38, 0.16);
+  --ds-color-status-rejected-fg: #F87171;
+
+  --ds-color-status-cancelled-bg: rgba(100, 116, 139, 0.20);
+  --ds-color-status-cancelled-fg: #94A3B8;
+
+  --ds-color-status-completed-bg: rgba(13, 148, 136, 0.18);
+  --ds-color-status-completed-fg: #2DD4BF;
+
+  /* ── Texto desabilitado — DS §2: neutral-600 no modo escuro ─────────── */
+  --ds-color-text-disabled: var(--ds-color-neutral-600);
+  --text-disabled: var(--ds-color-neutral-600);
+
+  /* ── Sombras — modo escuro (elevação via diferença de superfície) ────
+     No escuro, sombra perde força — elevação comunicada principalmente
+     por diferença de --card vs --background e borda --border.
+     Sombra mantida apenas como reforço sutil (opacidade maior).
+     ──────────────────────────────────────────────────────────────────── */
+  --ds-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
+  --ds-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.40);
+  --ds-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.50);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BASE STYLES
+   ──────────────────────────────────────────────────────────────────────────── */
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
+
   html {
     @apply font-sans;
   }
 }
 
-/* Utilitários customizados */
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILITÁRIOS CUSTOMIZADOS
+   ──────────────────────────────────────────────────────────────────────────── */
+
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(
-      135deg,
-      oklch(0.5 0.22 250),
-      oklch(0.42 0.2 270)
-    );
+    background: linear-gradient(135deg,
+        var(--ds-color-blue-500),
+        var(--ds-color-blue-700));
   }
+
   .gradient-text {
-    background: linear-gradient(
-      135deg,
-      oklch(0.5 0.22 250),
-      oklch(0.55 0.2 230)
-    );
+    background: linear-gradient(135deg,
+        var(--ds-color-blue-500),
+        var(--ds-color-blue-400));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
   .card-hover {
     @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
   }
 
+  /* Toasts — estilo OrçaFácil */
   .cn-toast {
-    @apply !backdrop-blur-md !bg-white/80 dark:!bg-slate-900/80 !border-slate-200/50 dark:!border-slate-800/50 !shadow-xl !rounded-2xl !p-4 !font-sans;
+    @apply !backdrop-blur-md !bg-white/80 !border-slate-200/50 !shadow-xl !rounded-2xl !p-4 !font-sans;
     border-left-width: 4px !important;
+  }
+
+  .dark .cn-toast {
+    @apply !bg-slate-900/80 !border-slate-800/50;
   }
 
   .cn-toast-success {
@@ -205,6 +500,10 @@
     border-left-color: var(--info) !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRINT
+   ──────────────────────────────────────────────────────────────────────────── */
 
 @layer base {
   @page {
@@ -235,5 +534,21 @@
     tr {
       break-inside: avoid;
     }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   REDUCED MOTION — DS §6
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -111,7 +111,7 @@ export function AppSidebar({
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
                       isActive={active}
-                      className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-120"
+                      className="h-9 rounded-md text-ds-body-md font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-3 data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-ds-fast"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
@@ -140,7 +140,7 @@ export function AppSidebar({
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
                       isActive={active}
-                      className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-120"
+                      className="h-9 rounded-md text-ds-body-md font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-3 data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-ds-fast"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
@@ -155,7 +155,7 @@ export function AppSidebar({
                   <SidebarMenuButton
                     render={<Link href="/app/admin/users" />}
                     isActive={isActive(pathname, '/app/admin/users')}
-                    className="h-9 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-120 mt-1"
+                    className="h-9 rounded-md text-ds-body-md font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold relative pl-3 data-[active=true]:border-l-3 data-[active=true]:border-primary data-[active=true]:rounded-l-none transition-all duration-ds-fast mt-1"
                   >
                     <Users className="h-4 w-4 shrink-0" />
                     <span className="group-data-[collapsible=icon]:hidden font-medium">Usuários (Admin)</span>
@@ -168,16 +168,16 @@ export function AppSidebar({
 
         {/* Banner de Upgrade Expirado */}
         {isExpired && (
-          <div className="mx-2 my-2 p-4 rounded-xl gradient-primary text-white space-y-3 shadow-md group-data-[collapsible=icon]:hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="mx-2 my-2 p-4 rounded-lg gradient-primary text-white space-y-3 shadow-md group-data-[collapsible=icon]:hidden animate-in fade-in slide-in-from-bottom-2 duration-ds-normal">
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-yellow-300 fill-yellow-300 shrink-0" />
-              <span className="font-extrabold text-[10px] tracking-wider uppercase">OrcaFácil Pro</span>
+              <span className="font-bold text-ds-caption tracking-wider uppercase">OrcaFácil Pro</span>
             </div>
-            <p className="text-xs font-semibold text-white/95 leading-relaxed">
+            <p className="text-ds-body-sm font-semibold text-white/95 leading-ds-relaxed">
               Sua avaliação expirou. Continue criando orçamentos profissionais.
             </p>
             <Link href="/pricing" className="block w-full">
-              <button className="w-full py-1.5 px-3 rounded-lg bg-white text-primary hover:bg-white/95 font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+              <button className="w-full py-1.5 px-3 rounded-md bg-white text-primary hover:bg-white/95 font-bold text-ds-body-sm shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] duration-ds-fast cursor-pointer">
                 Ativar Minha Assinatura
               </button>
             </Link>

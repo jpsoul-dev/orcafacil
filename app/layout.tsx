@@ -14,10 +14,17 @@ export const metadata: Metadata = {
         type: 'image/svg+xml',
       },
     ],
+    apple: [
+      {
+        url: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'Orça Fácil',
   },
   formatDetection: {
@@ -30,11 +37,14 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 }
 
 import { Toaster } from '@/components/ui/sonner'
 import { cn } from '@/lib/utils'
 import { ThemeProvider } from '@/components/theme-provider'
+import { PwaRegister } from '@/components/pwa-register'
 
 const sora = Sora({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -53,6 +63,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <TooltipProvider>{children}</TooltipProvider>
           <Toaster />
+          <PwaRegister />
         </ThemeProvider>
       </body>
     </html>

@@ -30,9 +30,9 @@ import {
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 
-const brl = (val: number) =>
+const formatCurrencyBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-    val,
+    value,
   )
 
 const printViaIframe = (url: string) => {
@@ -70,10 +70,7 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'quote_number',
     header: 'Código',
     cell: ({ row }) => {
-      const isDraft = row.original.status === 'draft'
-      const targetUrl = isDraft
-        ? `/app/quotes/${row.original.id}/edit`
-        : `/app/quotes/${row.original.id}`
+      const targetUrl = `/app/quotes/${row.original.id}`
       return (
         <Link href={targetUrl} target="_blank">
           <Badge variant="outline" className="text-ds-caption font-semibold rounded-sm border-border bg-muted/30 text-muted-foreground">#{row.original.quote_number}</Badge>
@@ -85,7 +82,7 @@ export const columns: ColumnDef<Quote>[] = [
     accessorKey: 'title',
     header: 'Título',
     cell: ({ row }) => (
-      <div className="text-ds-body-md font-semibold text-foreground line-clamp-1 max-w-[200px]">
+      <div className="text-ds-body-md font-semibold text-foreground line-clamp-1 max-w-50">
         {row.getValue('title')}
       </div>
     ),
@@ -106,7 +103,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Validade',
     cell: ({ row }) => {
       const dateStr = row.getValue('valid_until') as string | null
-      if (!dateStr) return <span className="text-ds-body-md text-ds-color-text-disabled">-</span>
+      if (!dateStr) return <span className="text-ds-body-md text-(--ds-color-text-disabled)]">-</span>
       const date = new Date(dateStr + 'T00:00:00')
       return (
         <div className="text-ds-body-md text-foreground">{date.toLocaleDateString('pt-BR')}</div>
@@ -139,7 +136,7 @@ export const columns: ColumnDef<Quote>[] = [
     header: 'Valor Total',
     cell: ({ row }) => {
       const total = parseFloat(row.getValue('total'))
-      return <div className="text-ds-body-md font-semibold text-foreground tabular-nums">{brl(total)}</div>
+      return <div className="text-ds-body-md font-semibold text-foreground tabular-nums">{formatCurrencyBRL(total)}</div>
     },
   },
   {
@@ -227,9 +224,9 @@ export const columns: ColumnDef<Quote>[] = [
             >
               <span className="sr-only">Abrir menu</span>
               {isUpdating ? (
-                <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               ) : (
-                <MoreHorizontal className="h-4 w-4 text-slate-700" />
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
               )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -264,7 +261,7 @@ export const columns: ColumnDef<Quote>[] = [
                       />
                     }
                   >
-                    <Copy className="h-4 w-4 text-blue-500" /> Clonar Orçamento
+                    <Copy className="h-4 w-4 text-primary" /> Clonar Orçamento
                   </DropdownMenuItem>
                 </>
               )}
@@ -346,7 +343,7 @@ export const columns: ColumnDef<Quote>[] = [
                       onClick={() => handleUpdateStatus('pending')}
                       className="cursor-pointer flex items-center gap-2 font-medium"
                     >
-                      <CheckCircle className="h-4 w-4 text-indigo-500" /> Ativar (Pendente)
+                      <CheckCircle className="h-4 w-4 text-primary" /> Gerar orçamento
                     </DropdownMenuItem>
                   )}
 
@@ -356,13 +353,13 @@ export const columns: ColumnDef<Quote>[] = [
                         onClick={() => handleUpdateStatus('approved')}
                         className="cursor-pointer flex items-center gap-2 font-medium"
                       >
-                        <CheckCircle className="h-4 w-4 text-emerald-500" /> Aprovar
+                        <CheckCircle className="h-4 w-4 text-success" /> Aprovar
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleUpdateStatus('rejected')}
                         className="cursor-pointer flex items-center gap-2 font-medium"
                       >
-                        <XCircle className="h-4 w-4 text-rose-500" /> Rejeitar
+                        <XCircle className="h-4 w-4 text-destructive" /> Rejeitar
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setCancelOpen(true)}
@@ -379,7 +376,7 @@ export const columns: ColumnDef<Quote>[] = [
                         onClick={() => handleUpdateStatus('completed')}
                         className="cursor-pointer flex items-center gap-2 font-medium"
                       >
-                        <CheckCircle className="h-4 w-4 text-teal-500" /> Finalizar
+                        <CheckCircle className="h-4 w-4 text-status-completed" /> Finalizar
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setCancelOpen(true)}

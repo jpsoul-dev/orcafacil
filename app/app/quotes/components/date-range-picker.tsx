@@ -8,6 +8,7 @@ import { DateRange } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
+import { Button } from '@/components/ui/button'
 import {
   Popover,
   PopoverContent,
@@ -25,15 +26,32 @@ export function DatePickerWithRange({
   date,
   setDate,
 }: DatePickerWithRangeProps) {
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    const media = window.matchMedia('(max-width: 640px)')
+    setIsMobile(media.matches)
+    const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    media.addEventListener('change', listener)
+    return () => media.removeEventListener('change', listener)
+  }, [])
+
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover>
         <PopoverTrigger
           id="date"
-          className={cn(
-            'w-[260px] inline-flex items-center justify-start text-left font-normal border border-slate-200 bg-white text-slate-600 h-10 rounded-lg px-3 py-2 text-sm hover:bg-slate-50 transition-colors cursor-pointer',
-            !date && 'text-muted-foreground',
-          )}
+          nativeButton={true}
+          render={
+            <Button
+              variant="outline"
+              className={cn(
+                'w-full sm:w-65 justify-start text-left font-normal h-10 px-3 py-2 text-sm transition-[border-color,box-shadow] cursor-pointer',
+                'focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:border-ring focus-visible:ring-offset-0 focus-visible:outline-none',
+                !date && 'text-muted-foreground',
+              )}
+            />
+          }
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {date?.from ? (
@@ -56,7 +74,7 @@ export function DatePickerWithRange({
             defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             locale={ptBR}
           />
         </PopoverContent>
@@ -64,3 +82,4 @@ export function DatePickerWithRange({
     </div>
   )
 }
+

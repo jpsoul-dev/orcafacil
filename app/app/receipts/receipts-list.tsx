@@ -132,7 +132,7 @@ export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
           <DatePickerWithRange
             date={date}
             setDate={setDate}
-            className="h-10 border-border bg-card text-ds-body-sm font-medium rounded-sm"
+            className="w-full md:w-auto"
           />
           <Tabs
             value={typeTab}

@@ -5,6 +5,8 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { saveCustomer } from './actions'
+import { triggerHaptic } from '@/lib/haptic'
+import { enqueueOfflineAction } from '@/lib/offline-sync'
 import { maskCPFCNPJ, maskPhone, maskCEP } from '@/lib/masks'
 import { customerSchema, CustomerInput } from '@/lib/validations/customer-schema'
 import type { Customer } from '@/lib/services/customer-service'
@@ -95,12 +97,22 @@ export function CustomerForm({
   }, [open, initialData, form])
 
   async function onSubmit(data: CustomerInput) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      enqueueOfflineAction('SAVE_CUSTOMER', { data, id: initialData?.id })
+      toast.success('Você está offline. O cliente foi salvo localmente e será sincronizado quando a conexão retornar!')
+      setOpen(false)
+      if (!initialData) form.reset()
+      return
+    }
+
     setLoading(true)
     const result = await saveCustomer(data, initialData?.id)
     setLoading(false)
     if (result.error) {
+      triggerHaptic('error')
       toast.error(result.error)
     } else {
+      triggerHaptic('success')
       toast.success(initialData ? 'Cliente atualizado!' : 'Cliente cadastrado!')
       setOpen(false)
       if (!initialData) form.reset()

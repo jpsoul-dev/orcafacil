@@ -4,6 +4,7 @@ import { parseISO, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { maskPhone } from '@/lib/masks'
 import {
   Table,
@@ -26,6 +27,10 @@ import {
   Receipt,
   Info,
   CloudDownload,
+  Pencil,
+  Trash2,
+  Copy,
+  CheckCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -39,7 +44,9 @@ import { useState, useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
 import {
   updateQuoteStatus,
+  deleteQuote,
 } from '@/app/app/quotes/actions'
+import { triggerHaptic } from '@/lib/haptic'
 
 import { ReopenQuoteDialog } from '@/components/reopen-quote-dialog'
 import {
@@ -119,13 +126,36 @@ const STATUS_MAP: Record<
 
 
 export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerProps) {
+  const router = useRouter()
   const [currentStatus, setCurrentStatus] = useState<QuoteStatus>(quote.status)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isReopenOpen, setIsReopenOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [cancellationReason, setCancellationReason] = useState('')
   const [currentCancellationReason, setCurrentCancellationReason] = useState<string | null>(quote.cancellation_reason || null)
   const [receiptId, setReceiptId] = useState<string | null>(initialReceiptId || null)
+
+  const handleConfirmDelete = async () => {
+    setIsUpdating(true)
+    setDeleteDialogOpen(false)
+    try {
+      const res = await deleteQuote(quote.id)
+      if (res.success) {
+        triggerHaptic('success')
+        toast.success('Rascunho excluído com sucesso!')
+        router.push('/app/quotes')
+      } else {
+        triggerHaptic('error')
+        toast.error(res.error || 'Erro ao excluir rascunho.')
+        setIsUpdating(false)
+      }
+    } catch (err) {
+      triggerHaptic('error')
+      toast.error('Erro ao excluir rascunho.')
+      setIsUpdating(false)
+    }
+  }
 
   useEffect(() => {
     setCurrentStatus(quote.status)
@@ -144,12 +174,15 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     try {
       const result = await updateQuoteStatus(quote.id, newStatus)
       if (result.error) {
+        triggerHaptic('error')
         toast.error('Erro ao atualizar status: ' + result.error)
         setCurrentStatus(previousStatus)
       } else {
+        triggerHaptic('success')
         toast.success(`Status alterado para ${STATUS_MAP[newStatus].label}`)
       }
     } catch (error) {
+      triggerHaptic('error')
       console.error('CLIENT ERROR in updateQuoteStatus:', error)
       const message = error instanceof Error ? error.message : 'Erro desconhecido'
       toast.error('Ocorreu um erro ao atualizar o status: ' + message)
@@ -161,6 +194,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
 
   const handleConfirmCancel = async () => {
     if (cancellationReason.trim().length < 5) {
+      triggerHaptic('light')
       toast.error('O motivo do cancelamento deve possuir no mínimo 5 caracteres.')
       return
     }
@@ -171,13 +205,16 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     try {
       const result = await updateQuoteStatus(quote.id, 'cancelled', cancellationReason)
       if (result.error) {
+        triggerHaptic('error')
         toast.error('Erro ao cancelar orçamento: ' + result.error)
         setCurrentStatus(previousStatus)
       } else {
+        triggerHaptic('success')
         toast.success('Orçamento cancelado com sucesso!')
         setCurrentCancellationReason(cancellationReason)
       }
     } catch (error) {
+      triggerHaptic('error')
       console.error(error)
       toast.error('Ocorreu um erro ao tentar cancelar o orçamento.')
       setCurrentStatus(previousStatus)
@@ -187,13 +224,13 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
   }
 
   return (
-    <div className="min-h-screen bg-background py-4 sm:py-8 px-0 sm:px-4 print:bg-white print:py-0 print:px-0">
+    <div className="min-h-screen bg-background py-4 sm:py-8 pb-12 sm:pb-8 px-0 sm:px-4 print:bg-white print:py-0 print:px-0">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start justify-center print:block print:max-w-none">
         
         {/* DOCUMENT CONTAINER (ESQUERDA) */}
-        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none order-2 lg:order-none">
+        <div className="w-full lg:max-w-[21cm] shrink-0 print:w-full print:max-w-none order-1 lg:order-none">
           {/* DOCUMENT CONTAINER */}
-          <div className="max-w-[21cm] mx-auto bg-card border border-border shadow-lg rounded-md min-h-0 sm:min-h-[29.7cm] p-4 sm:p-12 md:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
+          <div className="max-w-[21cm] mx-auto bg-card border-x-0 sm:border border-border shadow-none sm:shadow-lg rounded-none sm:rounded-md min-h-0 sm:min-h-[29.7cm] p-4 sm:p-12 md:p-16 print:shadow-none print:max-w-none print:p-0 print:m-0 relative print:overflow-visible overflow-hidden flex flex-col justify-between print:block print:min-h-0 print:h-auto print:flex-none">
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
@@ -244,55 +281,23 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
         `}} />
 
         <div>
-          {/* COMPANY HEADER */}
-          <div className="space-y-1 mb-6 text-left">
-            <h2 className="text-2xl font-bold text-neutral-800 tracking-tight">
-              {quote.company?.name || 'Sua Empresa'}
-            </h2>
-            {(() => {
-              const companyContacts = [
-                quote.company?.phone && `Tel: ${maskPhone(quote.company.phone)}`,
-                quote.company?.whatsapp && `Whats: ${maskPhone(quote.company.whatsapp)}`,
-                quote.company?.email && `Email: ${quote.company.email}`,
-              ].filter(Boolean).join(' | ')
 
-              if (!companyContacts) return null
-              return <p className="text-xs text-neutral-600 font-medium">{companyContacts}</p>
-            })()}
-            {(() => {
-              const addressParts = [
-                quote.company?.address_street && `${quote.company.address_street}${quote.company.address_number ? `, N. ${quote.company.address_number}` : ''}${quote.company.address_complement ? ` - ${quote.company.address_complement}` : ''}`,
-                quote.company?.address_neighborhood,
-                quote.company?.address_city && `${quote.company.address_city}${quote.company.address_state ? `/${quote.company.address_state}` : ''}`,
-                quote.company?.address_zip && `CEP: ${quote.company.address_zip}`,
-              ].filter(Boolean).join(', ')
-
-              if (!addressParts) return null
-              return (
-                <p className="text-xs text-neutral-600 font-medium">
-                  Endereço: {addressParts}
-                </p>
-              )
-            })()}
-          </div>
-
-          <div className="border-t border-neutral-300 my-4" />
 
           {/* QUOTE IDENTIFICATION */}
-          <div className="flex justify-between items-start my-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start my-6">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-800">Orçamento</h1>
+              <h1 className="text-ds-heading-lg font-bold text-foreground">Orçamento</h1>
               {quote.title && (
-                <p className="text-sm font-medium text-neutral-600 mt-1 italic">{quote.title}</p>
+                <p className="text-ds-body-sm font-medium text-muted-foreground mt-1 italic">{quote.title}</p>
               )}
             </div>
-            <div className="text-right flex flex-col justify-between items-end min-h-[50px]">
+            <div className="text-left sm:text-right flex flex-col justify-between items-start sm:items-end min-h-[50px]">
               {quote.show_quote_number && (
-                <span className="text-lg font-bold text-neutral-800">N° {quote.quote_number}</span>
+                <span className="text-ds-heading-sm font-bold text-foreground">N° {quote.quote_number}</span>
               )}
-              <div className={cn("text-xs font-semibold text-neutral-500 mt-auto")}>
+              <div className="text-ds-caption font-semibold text-muted-foreground mt-auto">
                 <span className="font-medium">Válido até: </span>
-                <span className="text-neutral-800 font-bold">
+                <span className="text-foreground font-bold">
                   {quote.valid_until
                     ? format(
                       parseISO(quote.valid_until),
@@ -305,17 +310,17 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             </div>
           </div>
 
-          <div className="border-t border-neutral-300 my-4" />
+          <div className="border-t border-border my-4" />
 
           {/* CUSTOMER INFO */}
-          <div className="text-xs text-neutral-700 space-y-1 my-6 leading-relaxed">
+          <div className="text-ds-body-sm text-foreground space-y-1.5 my-6 leading-ds-relaxed">
             <div>
-              <span className="font-bold text-neutral-800">Orçamento para:</span>{' '}
-              <span>{quote.customer?.name || '---'}</span>
+              <span className="font-bold text-foreground">Orçamento para:</span>{' '}
+              <span className="text-muted-foreground">{quote.customer?.name || '---'}</span>
             </div>
             <div>
-              <span className="font-bold text-neutral-800">CPF/CNPJ:</span>{' '}
-              <span>{quote.customer?.document || '---'}</span>
+              <span className="font-bold text-foreground">CPF/CNPJ:</span>{' '}
+              <span className="text-muted-foreground">{quote.customer?.document || '---'}</span>
             </div>
             {(() => {
               const customerContacts = [
@@ -327,41 +332,72 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               if (!customerContacts) return null
               return (
                 <div>
-                  <span className="font-bold text-neutral-800">Contatos:</span>{' '}
-                  <span>{customerContacts}</span>
+                  <span className="font-bold text-foreground">Contatos:</span>{' '}
+                  <span className="text-muted-foreground">{customerContacts}</span>
                 </div>
               )
             })()}
           </div>
 
           {/* ITEMS TABLE */}
-          <div className="border border-neutral-800 rounded-none my-6 w-full overflow-x-auto no-scrollbar">
+          {/* Mobile Item List (Exibida apenas no celular) */}
+          <div className="sm:hidden space-y-3 my-6">
+            {quote.items?.map((item, idx) => (
+              <div key={idx} className="border border-border rounded-md p-3 bg-card flex flex-col gap-2">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="font-semibold text-foreground text-ds-body-sm break-words flex-1">
+                    {item.item_name}
+                  </span>
+                  <span className="text-ds-body-sm font-bold text-foreground tabular-nums shrink-0">
+                    {brl(item.subtotal)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-ds-caption text-muted-foreground">
+                  <span>Qtd: <strong className="text-foreground font-semibold">{item.quantity}</strong></span>
+                  <span>Unit: <strong className="text-foreground font-semibold">{brl(item.unit_price)}</strong></span>
+                </div>
+                {Number(item.discount_value) > 0 && (
+                  <div className="text-right text-ds-caption text-success font-semibold">
+                    {(() => {
+                      const discountInMoney = item.discount_type === 'percentage'
+                        ? (item.quantity * item.unit_price) * ((item.discount_value || 0) / 100)
+                        : (item.discount_value || 0)
+                      return `Desconto: - ${brl(discountInMoney)}`
+                    })()}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table (Oculta no celular) */}
+          <div className="hidden sm:block border border-border rounded-md my-6 w-full overflow-x-auto no-scrollbar">
             <table className="w-full text-left border-collapse text-xs min-w-[500px] sm:min-w-0">
               <thead>
-                <tr className="bg-neutral-800 text-white font-bold uppercase tracking-wider text-[11px] border-b border-neutral-800">
-                  <th className="py-2 px-3 text-left w-[50%] border-r border-neutral-800 bg-neutral-800 text-white">DESCRIÇÃO</th>
-                  <th className="py-2 px-3 text-left w-[20%] border-r border-neutral-800 bg-neutral-800 text-white">VALOR</th>
-                  <th className="py-2 px-3 text-center w-[10%] border-r border-neutral-800 bg-neutral-800 text-white">QTD.</th>
-                  <th className="py-2 px-3 text-left w-[20%] bg-neutral-800 text-white">TOTAL</th>
+                <tr className="bg-muted/50 text-foreground font-semibold uppercase tracking-wider text-ds-caption border-b border-border">
+                  <th className="py-2 px-3 text-left w-[50%] border-r border-border">DESCRIÇÃO</th>
+                  <th className="py-2 px-3 text-left w-[20%] border-r border-border">VALOR</th>
+                  <th className="py-2 px-3 text-center w-[10%] border-r border-border">QTD.</th>
+                  <th className="py-2 px-3 text-left w-[20%]">TOTAL</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-800 text-neutral-800 font-medium">
+              <tbody className="divide-y divide-border text-foreground font-medium text-ds-body-sm">
                 {quote.items?.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-transparent">
-                    <td className="py-1.5 px-3 text-left border-r border-neutral-800 font-normal">
+                  <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-2 px-3 text-left border-r border-border font-normal">
                       {item.item_name}
                     </td>
-                    <td className="py-1.5 px-3 text-left border-r border-neutral-800 tabular-nums">
+                    <td className="py-2 px-3 text-left border-r border-border tabular-nums font-semibold">
                       {brl(item.unit_price)}
                     </td>
-                    <td className="py-1.5 px-3 text-center border-r border-neutral-800 tabular-nums">
+                    <td className="py-2 px-3 text-center border-r border-border tabular-nums font-semibold">
                       {item.quantity}
                     </td>
-                    <td className="py-1.5 px-3 text-left tabular-nums font-bold">
+                    <td className="py-2 px-3 text-left tabular-nums font-bold text-foreground">
                       <div className="flex flex-col">
                         <span>{brl(item.subtotal)}</span>
                         {Number(item.discount_value) > 0 && (
-                          <span className="text-[10px] font-normal text-neutral-500 mt-0.5">
+                          <span className="text-ds-caption font-normal text-muted-foreground mt-0.5">
                             {(() => {
                               const discountInMoney = item.discount_type === 'percentage'
                                 ? (item.quantity * item.unit_price) * ((item.discount_value || 0) / 100)
@@ -378,9 +414,9 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             </table>
           </div>
 
-          <div className="text-right text-[11px] font-semibold text-neutral-500 mt-1 mb-8">
+          <div className="text-right text-ds-caption font-semibold text-muted-foreground mt-1 mb-8">
             Total de itens:{' '}
-            <span className="text-neutral-800 font-bold">
+            <span className="text-foreground font-bold">
               {quote.items?.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0) || 0}
             </span>
           </div>
@@ -400,10 +436,10 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 if (!paymentMethodsString) return null
                 return (
                   <div>
-                    <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                    <h4 className="text-ds-caption font-bold text-muted-foreground uppercase tracking-wider mb-1">
                       FORMAS DE PAGAMENTO
                     </h4>
-                    <p className="text-xs text-neutral-700 font-medium">
+                    <p className="text-ds-body-sm text-foreground font-medium">
                       {paymentMethodsString}
                     </p>
                   </div>
@@ -411,25 +447,25 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               })()}
               {quote.notes && (
                 <div>
-                  <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">
+                  <h4 className="text-ds-caption font-bold text-muted-foreground uppercase tracking-wider mb-1">
                     TERMOS E CONDIÇÕES
                   </h4>
-                  <p className="text-xs text-neutral-600 leading-relaxed font-medium">
+                  <p className="text-ds-body-sm text-muted-foreground leading-ds-relaxed font-medium">
                     {quote.notes}
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="border border-neutral-800 p-4 space-y-2 max-w-[280px] ml-auto w-full print-no-break">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-neutral-500 font-medium">Valor itens</span>
-                <span className="font-bold text-neutral-800 tabular-nums">{brl(quote.subtotal)}</span>
+            <div className="border border-border rounded-md p-4 space-y-2.5 w-full sm:max-w-[280px] sm:ml-auto print-no-break">
+              <div className="flex justify-between items-center text-ds-body-sm">
+                <span className="text-muted-foreground font-medium">Valor itens</span>
+                <span className="font-semibold text-foreground tabular-nums">{brl(quote.subtotal)}</span>
               </div>
               {quote.discount_value > 0 && (
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-emerald-600 font-bold">Desconto</span>
-                  <span className="font-bold text-emerald-600 tabular-nums">
+                <div className="flex justify-between items-center text-ds-body-sm">
+                  <span className="text-success font-semibold">Desconto</span>
+                  <span className="font-semibold text-success tabular-nums">
                     - {brl(
                       quote.discount_type === 'percentage'
                         ? quote.subtotal * (quote.discount_value / 100)
@@ -438,36 +474,20 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                   </span>
                 </div>
               )}
-              <div className="border-t border-neutral-800 pt-2 flex justify-between items-center text-xs">
-                <span className="font-bold text-neutral-800 text-sm">Valor final</span>
-                <span className="font-extrabold text-neutral-800 text-base tabular-nums">{brl(quote.total)}</span>
+              <div className="border-t border-border pt-2 flex justify-between items-center">
+                <span className="font-bold text-foreground text-ds-body-md">Valor final</span>
+                <span className="font-bold text-foreground text-ds-heading-xs tabular-nums">{brl(quote.total)}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* INSTITUTIONAL FOOTER */}
-        <div className="text-center mt-auto pt-16 print-no-break print-footer">
-          <p className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
-            {quote.company?.name || 'Sua Empresa'}
-          </p>
-          {quote.company?.cnpj && (
-            <p className="text-sm text-neutral-500 mt-1">
-              CNPJ/CPF: {quote.company.cnpj}
-            </p>
-          )}
-        </div>
 
-        {/* DETALHE PEQUENO DO SISTEMA NO RODAPÉ */}
-        <div className="absolute bottom-4 left-0 right-0 px-12 flex justify-between items-center text-xs text-slate-500 tracking-wider opacity-80 print-system-footer">
-          <span>Criado por Orca Fácil</span>
-          <span>Emitido em {format(parseISO(quote.created_at), 'dd/MM/yyyy')}</span>
-        </div>
       </div>
     </div>
 
     {/* SIDEBAR DE STATUS E AÇÕES (DIREITA) */}
-    <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0 order-1 lg:order-none">
+    <div className="w-full lg:w-[280px] shrink-0 sticky lg:top-8 print:hidden px-4 sm:px-0 order-2 lg:order-none">
       <div className="bg-card rounded-md border border-border p-6 shadow-sm flex flex-col gap-4">
         <div className="space-y-2">
           <span className="text-ds-caption font-bold text-muted-foreground uppercase tracking-wider block">
@@ -477,7 +497,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             <Select
               value={currentStatus}
               onValueChange={(val) => handleStatusChange(val as QuoteStatus)}
-              disabled={isUpdating || ['completed', 'expired', 'rejected', 'cancelled'].includes(currentStatus)}
+              disabled={isUpdating || ['draft', 'completed', 'expired', 'rejected', 'cancelled'].includes(currentStatus)}
             >
               <SelectTrigger
                 className={cn(
@@ -498,7 +518,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 {Object.entries(STATUS_MAP)
                   .filter(([value]) => {
                     if (currentStatus === 'draft') {
-                      return ['draft', 'pending'].includes(value)
+                      return ['draft'].includes(value)
                     }
                     if (currentStatus === 'pending') {
                       return ['pending', 'approved', 'rejected', 'cancelled'].includes(value)
@@ -512,11 +532,11 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                     <SelectItem
                       key={value}
                       value={value}
-                      className="py-2 focus:bg-slate-50 cursor-pointer"
+                      className="py-2 focus:bg-muted cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", info.dot)} />
-                        <span className="font-bold text-slate-700 uppercase text-[10px] tracking-wider">
+                        <span className="font-bold text-foreground uppercase text-[10px] tracking-wider">
                           {info.label}
                         </span>
                       </div>
@@ -557,26 +577,12 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
           {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
             <Button
               onClick={() => setIsReopenOpen(true)}
-              className="w-full h-10 gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-md cursor-pointer transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+              className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             >
               <RotateCcw className="h-4.5 w-4.5" />
               Reabrir Orçamento
             </Button>
           )}
-
-          {/* Botão Imprimir */}
-          <a
-            href={`/api/quotes/${quote.id}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ variant: 'outline' }),
-              "w-full h-10 gap-2 border-border font-semibold rounded-md hover:bg-muted cursor-pointer text-foreground flex items-center justify-center transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-            )}
-          >
-            <Printer className="h-4.5 w-4.5" />
-            Imprimir
-          </a>
 
           {/* Botão Ver / Gerar Recibo */}
           {currentStatus === 'completed' && (
@@ -585,7 +591,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 href={`/app/quotes/${quote.id}/receipt`}
                 className={cn(
                   buttonVariants({ variant: 'default' }),
-                  "w-full h-10 gap-2 bg-status-completed text-white hover:bg-status-completed/90 font-semibold rounded-md flex items-center justify-center cursor-pointer transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                  "w-full bg-status-completed hover:bg-status-completed/90 text-white dark:bg-status-completed dark:hover:bg-status-completed/90 dark:text-neutral-950 transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                 )}
               >
                 <FileText className="h-4.5 w-4.5" />
@@ -596,7 +602,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 href={`/app/quotes/${quote.id}/receipt/edit`}
                 className={cn(
                   buttonVariants({ variant: 'default' }),
-                  "w-full h-10 gap-2 bg-status-completed text-white hover:bg-status-completed/90 font-semibold rounded-md flex items-center justify-center cursor-pointer transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                  "w-full bg-status-completed hover:bg-status-completed/90 text-white dark:bg-status-completed dark:hover:bg-status-completed/90 dark:text-neutral-950 transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                 )}
               >
                 <Receipt className="h-4.5 w-4.5" />
@@ -605,19 +611,92 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             )
           )}
 
+          {/* Ações de Rascunho */}
+          {currentStatus === 'draft' && (
+            <>
+              <Button
+                onClick={() => handleStatusChange('pending')}
+                disabled={isUpdating}
+                className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+              >
+                {isUpdating ? (
+                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4.5 w-4.5" />
+                )}
+                Gerar Orçamento
+              </Button>
+              <Link
+                href={`/app/quotes/${quote.id}/edit`}
+                className={cn(
+                  buttonVariants({ variant: 'outline' }),
+                  "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                )}
+              >
+                <Pencil className="h-4.5 w-4.5" />
+                Editar Rascunho
+              </Link>
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={isUpdating}
+                className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+              >
+                {isUpdating ? (
+                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4.5 w-4.5" />
+                )}
+                Excluir Rascunho
+              </Button>
+            </>
+          )}
+
+          {/* Botão Imprimir */}
+          {currentStatus !== 'draft' && (
+            <a
+              href={`/api/quotes/${quote.id}/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+              )}
+            >
+              <Printer className="h-4.5 w-4.5" />
+              Imprimir
+            </a>
+          )}
+
           {/* Botão Baixar PDF */}
-          <a
-            href={`/api/quotes/${quote.id}/pdf?download=true`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ variant: 'outline' }),
-              "w-full h-10 gap-2 border-border font-semibold rounded-md hover:bg-muted cursor-pointer text-foreground flex items-center justify-center transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-            )}
-          >
-            <CloudDownload className="h-4.5 w-4.5" />
-            Baixar PDF
-          </a>
+          {currentStatus !== 'draft' && (
+            <a
+              href={`/api/quotes/${quote.id}/pdf?download=true`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+              )}
+            >
+              <CloudDownload className="h-4.5 w-4.5" />
+              Baixar PDF
+            </a>
+          )}
+
+          {/* Botão Clonar Orçamento */}
+          {currentStatus !== 'draft' && (
+            <Link
+              href={`/app/quotes/new?clone=${quote.id}`}
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+              )}
+            >
+              <Copy className="h-4.5 w-4.5 text-primary" />
+              Clonar Orçamento
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -636,7 +715,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
 
       {/* Dialog de Motivo de Cancelamento */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] rounded-lg bg-card border-border shadow-lg p-6">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="text-ds-heading-sm font-bold text-foreground">Cancelar Orçamento</DialogTitle>
             <DialogDescription className="text-ds-body-sm text-muted-foreground">
@@ -653,7 +732,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 placeholder="Ex: Cliente fechou com outro concorrente / Orçamento fora do limite planejado"
                 value={cancellationReason}
                 onChange={(e) => setCancellationReason(e.target.value)}
-                className="min-h-[100px] resize-none border-border rounded-sm bg-card text-ds-body-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 duration-ds-fast"
+                className="min-h-[100px] resize-none"
               />
               <p className="text-ds-caption text-muted-foreground">
                 O motivo deve possuir no mínimo 5 caracteres.
@@ -668,7 +747,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                 setCancelDialogOpen(false)
                 setCancellationReason('')
               }}
-              className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              className="transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             >
               Voltar
             </Button>
@@ -677,9 +756,41 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
               variant="destructive"
               disabled={cancellationReason.trim().length < 5}
               onClick={handleConfirmCancel}
-              className="rounded-md font-semibold bg-destructive text-destructive-foreground transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              className="transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             >
               Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
+              Excluir Rascunho
+            </DialogTitle>
+            <DialogDescription className="text-ds-body-sm text-muted-foreground">
+              Deseja realmente excluir este rascunho? Esta ação é permanente e não poderá ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              className="transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              className="transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+            >
+              Excluir Rascunho
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -552,3 +552,39 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MOBILE PWA CUSTOMIZATIONS (OVERSCROLL, ZOOM PREVENT & iOS QUIRKS)
+   ──────────────────────────────────────────────────────────────────────────── */
+
+body {
+  overscroll-behavior-y: none; /* Evita pull-to-refresh nativo em apps instalados */
+}
+
+/* Previne zoom automático do iOS Safari em inputs menores que 16px */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* iOS Quirks & UX Nativa Safari */
+* {
+  -webkit-tap-highlight-color: transparent; /* Remove o flash cinza ao clicar em links/botões no iOS */
+}
+
+a, button, [role="button"], select, input, textarea {
+  -webkit-touch-callout: none; /* Desativa menu de toque longo contextual para elementos interativos */
+}
+
+/* Rolagem inercial suave para elementos com scroll */
+.overflow-x-auto, .overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Corrige o bug de 100vh do Safari mobile cobrindo elementos atrás da barra de navegação */
+@supports (min-height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh !important;
+  }
+}

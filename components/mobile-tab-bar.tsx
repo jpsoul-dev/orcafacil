@@ -80,7 +80,7 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
   const isSecondaryActive = secondaryItems.some(item => isActiveTab(item.url))
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-card border-t border-border flex items-center justify-around px-2 md:hidden safe-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)] h-[calc(4rem+env(safe-area-inset-bottom))] bg-card border-t border-border flex items-center justify-around px-2 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       {mainItems.map((item) => {
         const active = isActiveTab(item.url, item.exact)
         

@@ -17,6 +17,7 @@ import { markNotificationAsReadAction, markAllAsReadAction } from '@/app/app/not
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { triggerHaptic } from '@/lib/haptic'
 
 interface NotificationItem {
   id: string
@@ -92,9 +93,21 @@ export function NotificationBell() {
       isRead: n.notification_reads && n.notification_reads.length > 0
     }))
 
+    const newUnreadCount = formatted.filter(n => !n.isRead).length
     setNotifications(formatted)
-    setUnreadCount(formatted.filter(n => !n.isRead).length)
+    setUnreadCount(newUnreadCount)
   }, [supabase])
+
+  // Badge API Integration
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+      if (unreadCount > 0) {
+        navigator.setAppBadge(unreadCount).catch(err => console.error('Erro ao definir badge:', err))
+      } else {
+        navigator.clearAppBadge().catch(err => console.error('Erro ao limpar badge:', err))
+      }
+    }
+  }, [unreadCount])
 
   useEffect(() => {
     const init = async () => {
@@ -110,6 +123,7 @@ export function NotificationBell() {
         schema: 'public' 
       }, () => {
         fetchNotifications()
+        triggerHaptic('success')
         toast.info('Nova notificação recebida!')
       })
       .on('postgres_changes', { 
@@ -139,6 +153,7 @@ export function NotificationBell() {
       clearInterval(interval)
     }
   }, [fetchNotifications, supabase])
+
 
   const handleMarkAsRead = async (id: string) => {
     const res = await markNotificationAsReadAction(id)

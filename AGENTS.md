@@ -136,5 +136,5 @@ Este arquivo contém as classes e tokens CSS corretos para cada componente, pale
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-[plan.md](file:///c:/DEV/orcafacil/specs/005-refact-customers-fase3/plan.md)
+[plan.md](file:///c:/DEV/orcafacil/specs/006-pwa-experience-fixes/plan.md)
 <!-- SPECKIT END -->

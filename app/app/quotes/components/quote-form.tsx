@@ -16,6 +16,8 @@ import { saveQuote } from '../actions'
 import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { Drawer } from 'vaul'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,13 +26,6 @@ import { FormError } from '@/components/ui/form-error'
 import { DatePicker } from '@/components/ui/date-picker'
 import { QuantityInput } from '@/components/ui/quantity-input'
 import { DiscountInput } from '@/components/ui/discount-input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -38,12 +33,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
 import {
   Trash2,
   Plus,
   Package,
-  Calendar as CalendarIcon,
   Search,
   Edit2,
   HelpCircle,
@@ -53,6 +46,7 @@ import {
   Wallet,
   Barcode,
   FileSignature,
+  ChevronLeft,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -166,6 +160,7 @@ export function QuoteForm({
   mode?: 'new' | 'edit' | 'clone'
 }) {
   const router = useRouter()
+  const isMobile = useMediaQuery('(max-width: 640px)')
   const [loading, setLoading] = useState(false)
   // Estados dos modais de busca
   const [openCatalogModal, setOpenCatalogModal] = useState(false)
@@ -304,10 +299,22 @@ export function QuoteForm({
     form.setValue(`items.${index}.subtotal`, round2(gross - discountMoney))
   }
 
+  // Função auxiliar para disparar vibrações com segurança (trata erros e navegadores sem suporte)
+  const triggerVibration = (pattern: number | number[]) => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(pattern)
+      } catch (e) {
+        // Ignora silenciosamente falhas de permissão ou suporte
+      }
+    }
+  }
+
   const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
 
   const handleAddCatalogItem = (item: CatalogItem) => {
     if (!item) return
+    triggerVibration(15) // vibração leve ao adicionar do catálogo
     append({
       catalog_item_id: item.id,
       item_name: item.name,
@@ -322,6 +329,7 @@ export function QuoteForm({
   }
 
   const handleAddManualItem = () => {
+    triggerVibration(15) // vibração leve ao adicionar manualmente
     append({
       catalog_item_id: null,
       item_name: '',
@@ -339,10 +347,12 @@ export function QuoteForm({
     if (loading) return
     const isValid = await form.trigger()
     if (!isValid) {
+      triggerVibration([30, 80, 30]) // vibração dupla para erro de validação
       toast.error('Preencha todos os campos obrigatórios corretamente.')
       return
     }
 
+    triggerVibration(40) // vibração curta de sucesso ao submeter
     const data = form.getValues()
 
     // Mapear valores da UI para o banco de dados
@@ -396,11 +406,165 @@ export function QuoteForm({
     return catalogItems.filter((i) => i.name?.toLowerCase().includes(term))
   }, [catalogItems, debouncedCatalogSearch])
 
+  const catalogContent = (
+    <Command shouldFilter={false} className="rounded-none">
+      <CommandInput
+        placeholder="Buscar produto ou serviço..."
+        value={catalogSearch}
+        onValueChange={setCatalogSearch}
+        className="h-12"
+      />
+      <CommandList className="max-h-[400px] p-2 no-scrollbar">
+        <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
+          <div className="bg-muted p-3 rounded-full mb-3">
+            <Search className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-ds-body-md font-semibold text-foreground">
+            Nenhum item encontrado
+          </p>
+          <p className="text-ds-body-sm text-muted-foreground mt-1">
+            Tente buscar por um termo diferente
+          </p>
+        </CommandEmpty>
+
+        <div className="space-y-1">
+          {filteredCatalog.map((item) => (
+            <CommandItem
+              key={item.id}
+              value={item.id}
+              onSelect={() => handleAddCatalogItem(item)}
+              className="flex items-center justify-between p-3 cursor-pointer rounded-md data-[selected=true]:bg-muted transition-all duration-ds-fast border border-transparent data-[selected=true]:border-border"
+            >
+              <div className="flex flex-col min-w-0 flex-1 mr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-ds-body-md font-semibold text-foreground truncate">
+                    {item.name}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider rounded-sm',
+                      item.type === 'product'
+                        ? 'bg-blue-50/10 text-blue-600 border-blue-200/50 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50'
+                        : 'bg-muted text-muted-foreground border-border',
+                    )}
+                  >
+                    {item.type === 'product' ? 'PROD' : 'SERV'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-ds-body-md font-bold text-foreground">
+                    {brl(item.unit_price)}
+                  </span>
+                  {item.unit_measure && (
+                    <span className="text-ds-caption text-muted-foreground font-medium bg-muted px-1.5 py-0.5 rounded-sm border border-border">
+                      {item.unit_measure}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </CommandItem>
+          ))}
+        </div>
+      </CommandList>
+    </Command>
+  )
+
+  const catalogTrigger = (
+    <Button
+      type="button"
+      variant="ghost"
+      className="flex items-center gap-1.5 h-11 md:h-9 px-3 text-ds-body-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/5 dark:hover:bg-primary/10 rounded-sm transition-all duration-ds-fast cursor-pointer"
+    >
+      <Package className="h-4 w-4" />
+      Catálogo
+    </Button>
+  )
+
+  const catalogSelector = isMobile ? (
+    <Drawer.Root
+      open={openCatalogModal}
+      onOpenChange={(open) => {
+        setOpenCatalogModal(open)
+        if (!open) setCatalogSearch('')
+      }}
+    >
+      <Drawer.Trigger asChild>
+        {catalogTrigger}
+      </Drawer.Trigger>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
+        <Drawer.Content className="bg-card border-t border-border flex flex-col rounded-t-[10px] max-h-[85vh] fixed bottom-0 left-0 right-0 z-50 outline-none">
+          <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted my-3" />
+          <div className="px-5 pb-3">
+            <Drawer.Title className="text-ds-heading-xs font-bold text-foreground">
+              Adicionar do Catálogo
+            </Drawer.Title>
+          </div>
+          <div className="flex-1 overflow-y-auto pb-6">
+            {catalogContent}
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  ) : (
+    <Dialog
+      open={openCatalogModal}
+      onOpenChange={(open) => {
+        setOpenCatalogModal(open)
+        if (!open) {
+          setCatalogSearch('')
+        }
+      }}
+    >
+      <DialogTrigger
+        nativeButton={true}
+        render={catalogTrigger}
+      />
+      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-lg shadow-lg border-border bg-card">
+        <DialogHeader className="px-5 pt-5 pb-4 border-b border-border">
+          <DialogTitle className="text-ds-heading-xs font-bold text-foreground">
+            Adicionar do Catálogo
+          </DialogTitle>
+        </DialogHeader>
+        {catalogContent}
+      </DialogContent>
+    </Dialog>
+  )
+
+  const pageTitle = mode === 'edit' ? 'Editar Orçamento' : mode === 'clone' ? 'Clonar Orçamento' : 'Novo Orçamento'
+
   return (
-    <div className="space-y-6 w-full animate-in fade-in duration-ds-normal">
+    <div className="space-y-4 md:space-y-6 w-full animate-in fade-in duration-ds-normal hide-global-header-mobile">
+      {/* Header Mobile Nativo (AppBar) */}
+      <div className="sm:hidden flex items-center justify-between h-14 bg-card border-b border-border sticky top-0 z-40 px-4 -mx-4 -mt-4 mb-4 backdrop-blur-md bg-card/90">
+        <button
+          type="button"
+          onClick={() => {
+            triggerVibration(15)
+            router.back()
+          }}
+          className="flex items-center justify-center h-11 w-11 -ml-2 text-foreground active:opacity-60 cursor-pointer rounded-full"
+          aria-label="Voltar"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <h1 className="text-ds-body-md font-bold text-foreground">
+          {pageTitle}
+        </h1>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => handleSave('pending')}
+          className="text-ds-body-sm font-bold text-primary active:opacity-60 cursor-pointer disabled:opacity-40"
+        >
+          {loading ? '...' : mode === 'edit' ? 'Salvar' : 'Gerar'}
+        </button>
+      </div>
+
       <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
-        <CardContent className="p-6 space-y-6 pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 pt-4 md:pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="md:col-span-2 space-y-2">
               <Label
                 htmlFor="title"
@@ -438,7 +602,7 @@ export function QuoteForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="md:col-span-full space-y-2">
               <Label className="text-ds-body-sm font-semibold text-foreground mb-2">
                 Cliente <span className="text-muted-foreground text-ds-caption ml-0.5">(obrigatório)</span>
@@ -461,16 +625,16 @@ export function QuoteForm({
       </Card>
 
       {/* Itens do Pedido */}
-      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
-        <CardHeader className="p-6 pb-2">
-          <CardTitle className="text-ds-heading-xs font-bold text-foreground">
+      <div className="rounded-md sm:border sm:border-border sm:shadow-sm overflow-hidden sm:bg-card">
+        <div className="p-0 sm:p-6 sm:pb-2 max-sm:py-2">
+          <h3 className="text-ds-body-sm font-bold text-foreground uppercase tracking-wider max-sm:text-muted-foreground/80 max-sm:text-[11px]">
             Itens do Pedido
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 pt-2">
+          </h3>
+        </div>
+        <div className="p-0 sm:p-6 sm:pt-2">
           {/* Empty state ou tabela de itens */}
           {fields.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 border border-dashed border-border rounded-md text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-10 border border-dashed border-border rounded-md text-muted-foreground bg-card">
               <Package className="h-8 w-8 mb-2 opacity-40" />
               <p className="text-ds-body-sm font-medium">Nenhum item adicionado</p>
               <p className="text-xs mt-1">
@@ -485,7 +649,7 @@ export function QuoteForm({
                 return (
                   <div
                     key={field.id}
-                    className="p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-neutral-900 shadow-sm relative space-y-6 animate-in fade-in duration-ds-fast"
+                    className="p-4 md:p-6 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-neutral-900 shadow-sm relative space-y-4 md:space-y-6 max-sm:p-3 max-sm:space-y-3 animate-in fade-in duration-ds-fast"
                   >
                     {/* Cabeçalho do Card do Item */}
                     <div className="flex items-center justify-between">
@@ -501,8 +665,11 @@ export function QuoteForm({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 border border-input rounded-sm transition-colors duration-ds-fast cursor-pointer"
-                        onClick={() => remove(index)}
+                        className="h-11 w-11 text-slate-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-950/20 border border-input rounded-sm transition-colors duration-ds-fast cursor-pointer"
+                        onClick={() => {
+                          triggerVibration(15)
+                          remove(index)
+                        }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -561,6 +728,7 @@ export function QuoteForm({
                               render={({ field }) => (
                                 <Input
                                   type="text"
+                                  inputMode="decimal"
                                   placeholder="0,00"
                                   value={
                                     field.value
@@ -573,7 +741,7 @@ export function QuoteForm({
                                     field.onChange(raw)
                                     handleRecalculate(index, undefined, raw)
                                   }}
-                                  className="h-full border-0 rounded-none focus-visible:ring-0 text-right bg-card text-ds-body-md tabular-nums w-full px-2"
+                                  className="h-full border-0 rounded-none focus-visible:ring-0 text-right bg-card text-base sm:text-ds-body-md tabular-nums w-full px-2"
                                 />
                               )}
                             />
@@ -591,7 +759,7 @@ export function QuoteForm({
                                 render={
                                   <button
                                     type="button"
-                                    className="text-slate-500 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400 cursor-pointer rounded-full outline-none focus:ring-1 focus:ring-ring shrink-0 flex items-center justify-center p-0.5"
+                                    className="text-slate-500 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400 cursor-pointer rounded-full outline-none focus:ring-1 focus:ring-ring shrink-0 flex items-center justify-center p-2"
                                   />
                                 }
                               >
@@ -648,104 +816,13 @@ export function QuoteForm({
           {/* Botões de ação dos itens — abaixo da lista, à direita */}
           <div className="mt-4 flex items-center justify-end gap-1">
             {/* Botão Catálogo — discreto, sem borda */}
-            <Dialog
-              open={openCatalogModal}
-              onOpenChange={(open) => {
-                setOpenCatalogModal(open)
-                if (!open) {
-                  setCatalogSearch('')
-                }
-              }}
-            >
-              <DialogTrigger
-                nativeButton={true}
-                render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex items-center gap-1.5 h-9 px-3 text-ds-body-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/5 dark:hover:bg-primary/10 rounded-sm transition-all duration-ds-fast cursor-pointer"
-                  >
-                    <Package className="h-4 w-4" />
-                    Catálogo
-                  </Button>
-                }
-              />
-              <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-lg shadow-lg border-border bg-card">
-                <DialogHeader className="px-5 pt-5 pb-4 border-b border-border">
-                  <DialogTitle className="text-ds-heading-xs font-bold text-foreground">
-                    Adicionar do Catálogo
-                  </DialogTitle>
-                </DialogHeader>
-
-                <Command shouldFilter={false} className="rounded-none">
-                  <CommandInput
-                    placeholder="Buscar produto ou serviço..."
-                    value={catalogSearch}
-                    onValueChange={setCatalogSearch}
-                    className="h-12"
-                  />
-                  <CommandList className="max-h-[400px] p-2 no-scrollbar">
-                    <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
-                      <div className="bg-muted p-3 rounded-full mb-3">
-                        <Search className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                      <p className="text-ds-body-md font-semibold text-foreground">
-                        Nenhum item encontrado
-                      </p>
-                      <p className="text-ds-body-sm text-muted-foreground mt-1">
-                        Tente buscar por um termo diferente
-                      </p>
-                    </CommandEmpty>
-
-                    <div className="space-y-1">
-                      {filteredCatalog.map((item) => (
-                        <CommandItem
-                          key={item.id}
-                          value={item.id}
-                          onSelect={() => handleAddCatalogItem(item)}
-                          className="flex items-center justify-between p-3 cursor-pointer rounded-md data-[selected=true]:bg-muted transition-all duration-ds-fast border border-transparent data-[selected=true]:border-border"
-                        >
-                          <div className="flex flex-col min-w-0 flex-1 mr-4">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-ds-body-md font-semibold text-foreground truncate">
-                                {item.name}
-                              </span>
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider rounded-sm',
-                                  item.type === 'product'
-                                    ? 'bg-blue-50/10 text-blue-600 border-blue-200/50 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50'
-                                    : 'bg-muted text-muted-foreground border-border',
-                                )}
-                              >
-                                {item.type === 'product' ? 'PROD' : 'SERV'}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-ds-body-md font-bold text-foreground">
-                                {brl(item.unit_price)}
-                              </span>
-                              {item.unit_measure && (
-                                <span className="text-ds-caption text-muted-foreground font-medium bg-muted px-1.5 py-0.5 rounded-sm border border-border">
-                                  {item.unit_measure}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </div>
-                  </CommandList>
-                </Command>
-              </DialogContent>
-            </Dialog>
-
+            {catalogSelector}
+ 
             <Button
               type="button"
               variant="outline"
               onClick={handleAddManualItem}
-              className="h-9 px-4 border-border rounded-md text-foreground hover:bg-muted gap-2 text-ds-body-sm font-semibold transition-all duration-ds-fast cursor-pointer"
+              className="h-11 md:h-9 px-4 border-border rounded-md text-foreground hover:bg-muted gap-2 text-ds-body-sm font-semibold transition-all duration-ds-fast cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Novo item
             </Button>
@@ -756,17 +833,17 @@ export function QuoteForm({
               {form.formState.errors.items.root.message}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Resumo e Pagamento */}
-      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card relative">
-        <CardHeader className="p-6 pb-2">
-          <CardTitle className="text-ds-heading-xs font-bold text-foreground">
+      <div className="rounded-md sm:border sm:border-border sm:shadow-sm overflow-hidden sm:bg-card relative">
+        <div className="p-0 sm:p-6 sm:pb-2 max-sm:py-2">
+          <h3 className="text-ds-body-sm font-bold text-foreground uppercase tracking-wider max-sm:text-muted-foreground/80 max-sm:text-[11px]">
             Resumo e Pagamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6 pt-2">
+          </h3>
+        </div>
+        <div className="p-0 sm:p-6 sm:pt-2">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-2 col-span-full">
               <Label className="text-ds-body-sm font-semibold text-foreground">
@@ -848,11 +925,11 @@ export function QuoteForm({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-muted rounded-full transition-all duration-ds-fast cursor-pointer"
+                          className="h-10 w-10 text-muted-foreground hover:text-primary hover:bg-muted rounded-full transition-all duration-ds-fast cursor-pointer"
                         />
                       }
                     >
-                      <Edit2 className="h-3.5 w-3.5" />
+                      <Edit2 className="h-4 w-4" />
                       <span className="sr-only">Editar desconto</span>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[400px] rounded-lg bg-card border-border shadow-lg p-6">
@@ -921,17 +998,17 @@ export function QuoteForm({
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Observações */}
       <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
-        <CardHeader className="p-6 pb-2">
+        <CardHeader className="p-4 md:p-6 pb-2">
           <CardTitle className="text-ds-heading-xs font-bold text-foreground">
             Termos e condições
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-2">
+        <CardContent className="p-4 md:p-6 pt-2">
           <Textarea
             id="notes"
             {...form.register('notes')}
@@ -940,13 +1017,13 @@ export function QuoteForm({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-border w-full">
+      <div className="flex flex-row items-center justify-end gap-3 pt-6 border-t border-border w-full max-sm:py-4">
         <Button
           type="button"
           disabled={loading}
           variant="ghost"
           onClick={() => router.back()}
-          className="h-10 px-6 w-full sm:w-auto font-semibold text-muted-foreground transition-all duration-ds-fast cursor-pointer"
+          className="h-10 px-6 w-full sm:w-auto font-semibold text-muted-foreground transition-all duration-ds-fast cursor-pointer max-sm:hidden"
         >
           Cancelar
         </Button>
@@ -955,7 +1032,7 @@ export function QuoteForm({
           disabled={loading}
           variant="outline"
           onClick={() => handleSave('draft')}
-          className="h-10 px-6 w-full sm:w-auto font-semibold transition-all duration-ds-fast  cursor-pointer"
+          className="h-10 px-6 w-full sm:w-auto font-semibold transition-all duration-ds-fast cursor-pointer"
         >
           Salvar Rascunho
         </Button>
@@ -963,7 +1040,7 @@ export function QuoteForm({
           type="button"
           disabled={loading}
           onClick={() => handleSave('pending')}
-          className="h-10 px-6 w-full sm:w-auto font-semibold bg-primary text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm"
+          className="h-10 px-6 w-full sm:w-auto font-semibold bg-primary text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm max-sm:hidden"
         >
           {loading
             ? 'Processando...'

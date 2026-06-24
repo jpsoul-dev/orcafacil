@@ -92,9 +92,9 @@ export async function QuotePageContent({
   const { title, description } = titles[mode]
 
   return (
-    <div className="max-w-[720px] w-full space-y-6 mx-auto">
-      <div>
-        <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
+    <div className="max-w-[720px] w-full space-y-4 md:space-y-6 mx-auto px-4 md:px-0 pb-32 md:pb-6">
+      <div className="pt-2 md:pt-0 max-sm:hidden">
+        <h2 className="text-ds-heading-md md:text-ds-heading-lg font-bold tracking-tight text-foreground">
           {title}
         </h2>
         <p className="text-muted-foreground text-ds-body-sm font-medium mt-1">{description}</p>

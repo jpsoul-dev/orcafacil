@@ -62,8 +62,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           trialEndsAt={profile?.trial_ends_at ?? null}
           isExpired={isExpired}
         />
-        <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur-sm px-4 print:hidden">
+        <SidebarInset className="group">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur-sm px-4 print:hidden max-sm:group-has-[.hide-global-header-mobile]:hidden">
             <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground md:inline-flex hidden transition-colors duration-ds-fast" />
             <Separator orientation="vertical" className="h-4 md:block hidden bg-border" />
             <AppBreadcrumb />
@@ -84,7 +84,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6 pb-20 md:pb-6">
             {children}
           </div>
-          <MobileTabBar user={userData} />
+          <div className="max-sm:group-has-[.hide-global-header-mobile]:hidden">
+            <MobileTabBar user={userData} />
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </SubscriptionProvider>

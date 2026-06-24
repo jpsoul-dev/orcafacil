@@ -27,8 +27,10 @@ export function DiscountInput({
     return value.toString()
   })
 
-  // Sincroniza estado se o valor mudar externamente
-  React.useEffect(() => {
+  // Sincroniza estado se o valor mudar externamente (padrão de render update sem useEffect para evitar loops no eslint)
+  const [prevProps, setPrevProps] = React.useState({ value, type })
+  if (value !== prevProps.value || type !== prevProps.type) {
+    setPrevProps({ value, type })
     if (type === "none" || value === 0) {
       setInputValue("")
     } else if (type === "R$") {
@@ -38,7 +40,7 @@ export function DiscountInput({
       setInputValue(value.toString())
       setActiveType("%")
     }
-  }, [value, type])
+  }
 
   const handleTypeChange = (newType: "%" | "R$") => {
     if (disabled) return
@@ -137,13 +139,13 @@ export function DiscountInput({
       {/* Input de Valor */}
       <input
         type="text"
-        inputMode={activeType === "R$" ? "text" : "numeric"}
+        inputMode="decimal"
         disabled={disabled}
         placeholder={activeType === "R$" ? "0,00" : "0"}
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleBlur}
-        className="h-full w-full min-w-0 border-0 rounded-none bg-transparent px-3 text-right text-sm text-foreground tabular-nums outline-none focus:ring-0 focus:outline-none"
+        className="h-full w-full min-w-0 border-0 rounded-none bg-transparent px-3 text-right text-base sm:text-sm text-foreground tabular-nums outline-none focus:ring-0 focus:outline-none"
       />
     </div>
   )

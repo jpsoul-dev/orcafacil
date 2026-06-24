@@ -27,7 +27,11 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from "lucide-react"
-import { ManageAccountModal } from "@/components/manage-account-modal"
+import dynamic from "next/dynamic"
+
+const ManageAccountModal = dynamic(() => import("@/components/manage-account-modal").then(mod => mod.ManageAccountModal), {
+  ssr: false
+})
 
 const mainItems = [
   { title: "Painel", url: "/app", icon: LayoutDashboard, exact: true },

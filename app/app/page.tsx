@@ -5,10 +5,8 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
-import { QuotesChart } from './components/quotes-chart'
-import { StatusPieChart } from './components/status-pie-chart'
-import { RevenueBarChart } from './components/revenue-bar-chart'
 import { SubscriptionGuard } from '@/components/subscription-guard'
+import { DashboardCharts } from './components/dashboard-charts'
 import { reconcileStripeCheckout } from '@/lib/services/stripe-service'
 
 const TRIAL_DURATION_DAYS = 15
@@ -207,17 +205,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <QuotesChart quotes={quotesData || []} />
-          </div>
-          <div className="lg:col-span-1">
-            <StatusPieChart quotes={quotesData || []} />
-          </div>
-          <div className="lg:col-span-3">
-            <RevenueBarChart quotes={quotesData || []} />
-          </div>
-        </div>
+        <DashboardCharts quotes={quotesData || []} />
       </div>
     </div>
   )

@@ -7,6 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Sistema profissional de geração e gerenciamento de orçamentos rápidos e recibos.',
     start_url: '/app?source=pwa',
     display: 'standalone',
+    orientation: 'portrait',
+    scope: '/app',
     background_color: '#0f172a',
     theme_color: '#0f172a',
     icons: [

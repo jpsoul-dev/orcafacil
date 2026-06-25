@@ -66,7 +66,12 @@ export const maskCEP = (value: string) => {
 
 export const maskCurrency = (value: string) => {
   if (!value) return ''
-  const cleanValue = value.toString().replace(/\D/g, '')
+  let cleanValue = value.toString().replace(/\D/g, '')
+  if (cleanValue.length > 12) {
+    cleanValue = cleanValue.slice(0, 12)
+  }
+  if (!cleanValue) return ''
+  
   const options = { minimumFractionDigits: 2 }
   const result = new Intl.NumberFormat('pt-BR', options).format(
     parseFloat(cleanValue) / 100

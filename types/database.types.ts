@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       catalog_items: {
@@ -53,16 +78,17 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zip: string | null
+          cnpj: string | null
           created_at: string | null
+          email: string | null
           id: string
           industry: string | null
           logo_url: string | null
           name: string
           phone: string | null
+          show_quote_number: boolean | null
           user_id: string
-          cnpj: string | null
           whatsapp: string | null
-          email: string | null
         }
         Insert: {
           address_city?: string | null
@@ -72,16 +98,17 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          cnpj?: string | null
           created_at?: string | null
+          email?: string | null
           id?: string
           industry?: string | null
           logo_url?: string | null
           name: string
           phone?: string | null
+          show_quote_number?: boolean | null
           user_id: string
-          cnpj?: string | null
           whatsapp?: string | null
-          email?: string | null
         }
         Update: {
           address_city?: string | null
@@ -91,16 +118,17 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          cnpj?: string | null
           created_at?: string | null
+          email?: string | null
           id?: string
           industry?: string | null
           logo_url?: string | null
           name?: string
           phone?: string | null
+          show_quote_number?: boolean | null
           user_id?: string
-          cnpj?: string | null
           whatsapp?: string | null
-          email?: string | null
         }
         Relationships: []
       }
@@ -257,6 +285,8 @@ export type Database = {
         Row: {
           catalog_item_id: string | null
           created_at: string | null
+          discount_type: string | null
+          discount_value: number | null
           id: string
           item_name: string
           quantity: number
@@ -268,6 +298,8 @@ export type Database = {
         Insert: {
           catalog_item_id?: string | null
           created_at?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           id?: string
           item_name: string
           quantity?: number
@@ -279,6 +311,8 @@ export type Database = {
         Update: {
           catalog_item_id?: string | null
           created_at?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           id?: string
           item_name?: string
           quantity?: number
@@ -315,10 +349,11 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
+          customer_id: string | null
           id: string
           issued_at: string
           payment_method: string | null
-          quote_id: string
+          quote_id: string | null
           receipt_number: string
           services_description: string | null
           title: string
@@ -327,10 +362,11 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string | null
+          customer_id?: string | null
           id?: string
           issued_at: string
           payment_method?: string | null
-          quote_id: string
+          quote_id?: string | null
           receipt_number: string
           services_description?: string | null
           title: string
@@ -339,16 +375,24 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string | null
+          customer_id?: string | null
           id?: string
           issued_at?: string
           payment_method?: string | null
-          quote_id?: string
+          quote_id?: string | null
           receipt_number?: string
           services_description?: string | null
           title?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quote_receipts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quote_receipts_quote_id_fkey"
             columns: ["quote_id"]
@@ -374,8 +418,9 @@ export type Database = {
           discount_value: number | null
           id: string
           notes: string | null
-          payment_method: string | null
+          payment_method: string[] | null
           quote_number: number
+          show_quote_number: boolean | null
           status: string
           subtotal: number
           title: string | null
@@ -391,8 +436,9 @@ export type Database = {
           discount_value?: number | null
           id?: string
           notes?: string | null
-          payment_method?: string | null
-          quote_number?: number
+          payment_method?: string[] | null
+          quote_number: number
+          show_quote_number?: boolean | null
           status?: string
           subtotal?: number
           title?: string | null
@@ -408,8 +454,9 @@ export type Database = {
           discount_value?: number | null
           id?: string
           notes?: string | null
-          payment_method?: string | null
+          payment_method?: string[] | null
           quote_number?: number
+          show_quote_number?: boolean | null
           status?: string
           subtotal?: number
           title?: string | null
@@ -427,10 +474,56 @@ export type Database = {
           },
         ]
       }
+      receipt_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_name: string
+          quantity: number
+          receipt_id: string
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_name: string
+          quantity: number
+          receipt_id: string
+          subtotal: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_name?: string
+          quantity?: number
+          receipt_id?: string
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "quote_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipt_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "vw_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       vw_quotes: {
         Row: {
+          cancellation_reason: string | null
           created_at: string | null
           customer_id: string | null
           discount_type: string | null
@@ -438,8 +531,9 @@ export type Database = {
           id: string | null
           notes: string | null
           original_status: string | null
-          payment_method: string | null
+          payment_method: string[] | null
           quote_number: number | null
+          show_quote_number: boolean | null
           status: string | null
           subtotal: number | null
           title: string | null
@@ -448,6 +542,7 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          cancellation_reason?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
@@ -455,8 +550,9 @@ export type Database = {
           id?: string | null
           notes?: string | null
           original_status?: string | null
-          payment_method?: string | null
+          payment_method?: string[] | null
           quote_number?: number | null
+          show_quote_number?: boolean | null
           status?: never
           subtotal?: number | null
           title?: string | null
@@ -465,6 +561,7 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          cancellation_reason?: string | null
           created_at?: string | null
           customer_id?: string | null
           discount_type?: string | null
@@ -472,8 +569,9 @@ export type Database = {
           id?: string | null
           notes?: string | null
           original_status?: string | null
-          payment_method?: string | null
+          payment_method?: string[] | null
           quote_number?: number | null
+          show_quote_number?: boolean | null
           status?: never
           subtotal?: number | null
           title?: string | null
@@ -491,9 +589,49 @@ export type Database = {
           },
         ]
       }
+      vw_receipts: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          customer_id: string | null
+          customer_name: string | null
+          id: string | null
+          issued_at: string | null
+          payment_method: string | null
+          quote_id: string | null
+          quote_number: number | null
+          receipt_number: string | null
+          receipt_type: string | null
+          services_description: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_receipts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_receipts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_receipts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "vw_quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      close_account: { Args: never; Returns: undefined }
       get_quote_details: { Args: { p_quote_id: string }; Returns: Json }
       simple_hashid: { Args: { val: number }; Returns: string }
       update_profile_subscription:
@@ -524,24 +662,39 @@ export type Database = {
             }
             Returns: undefined
           }
-      upsert_quote_with_items:
-        | {
-            Args: {
-              p_customer_id: string
-              p_discount_type: string
-              p_discount_value: number
-              p_items: Json
-              p_notes: string
-              p_quote_id: string
-              p_status: string
-              p_subtotal: number
-              p_title: string
-              p_total: number
-              p_user_id: string
-              p_valid_until: string
-            }
-            Returns: Json
-          }
+      upsert_quote_with_items: {
+        Args: {
+          p_customer_id: string
+          p_discount_type: string
+          p_discount_value: number
+          p_items: Json
+          p_notes: string
+          p_payment_method: string[]
+          p_quote_id: string
+          p_show_quote_number?: boolean
+          p_status: string
+          p_subtotal: number
+          p_title: string
+          p_total: number
+          p_user_id: string
+          p_valid_until: string
+        }
+        Returns: Json
+      }
+      upsert_receipt_with_items: {
+        Args: {
+          p_amount: number
+          p_customer_id: string
+          p_issued_at: string
+          p_items: Json
+          p_payment_method: string
+          p_receipt_id: string
+          p_services_description: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
@@ -670,6 +823,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

@@ -149,7 +149,7 @@ cor de status como texto sobre fundo branco — usar sempre o tom de texto dedic
 | Papel | Fonte | Pesos disponíveis | Fallback web-safe |
 |---|---|---|---|
 | Display / Títulos | Sora | Bold (700), SemiBold (600) | `system-ui, -apple-system, "Segoe UI", sans-serif` |
-| Texto / Corpo | Sora | Regular (400), Medium (500) | idem |
+| Texto / Corpo | Sora | Regular (400), Medium (500) | `system-ui, -apple-system, "Segoe UI", sans-serif` |
 
 **Racional tipográfico:** Sora é mantida como única família em todo o produto, conforme definido no brandbook —
 geométrica com personalidade própria, comunica tecnologia e acessibilidade ao mesmo tempo sem soar genérica. Não

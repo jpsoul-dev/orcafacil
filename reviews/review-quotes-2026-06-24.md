@@ -20,7 +20,7 @@ A tela de listagem de orçamentos (`/app/quotes`) está funcional no fluxo bási
   if (!dateStr) return <span className="text-ds-body-md text-ds-color-text-disabled">-</span>
 
   // Depois
-  if (!dateStr) return <span className="text-ds-body-md text-[var(--ds-color-text-disabled)]">-</span>
+  if (!dateStr) return <span className="text-ds-body-md text-(--ds-color-text-disabled)">-</span>
   ```
 
 ### 2. Uso do Tipo `any` (TypeScript Estrito)
@@ -83,7 +83,7 @@ A tela de listagem de orçamentos (`/app/quotes`) está funcional no fluxo bási
   <PopoverTrigger
     id="date"
     className={cn(
-      'w-[260px] inline-flex items-center justify-start text-left font-normal border border-slate-200 bg-white text-slate-600 h-10 rounded-lg px-3 py-2 text-sm hover:bg-slate-50 transition-colors cursor-pointer',
+      'w-65 inline-flex items-center justify-start text-left font-normal border border-slate-200 bg-white text-slate-600 h-10 rounded-lg px-3 py-2 text-sm hover:bg-slate-50 transition-colors cursor-pointer',
       !date && 'text-muted-foreground',
     )}
   >
@@ -97,7 +97,7 @@ A tela de listagem de orçamentos (`/app/quotes`) está funcional no fluxo bási
       id="date"
       variant="outline"
       className={cn(
-        'w-[260px] justify-start text-left font-normal h-10 px-3 py-2 text-sm transition-colors cursor-pointer',
+        'w-65 justify-start text-left font-normal h-10 px-3 py-2 text-sm transition-colors cursor-pointer',
         !date && 'text-muted-foreground',
       )}
     >

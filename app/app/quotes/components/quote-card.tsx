@@ -15,9 +15,9 @@ interface QuoteCardProps {
 
 export function QuoteCard({ quote }: QuoteCardProps) {
   const router = useRouter()
-  
+
   const targetUrl = `/app/quotes/${quote.id}`
-  
+
   const rawTotal = quote.total
   const quoteTotal = typeof rawTotal === 'number'
     ? rawTotal
@@ -58,10 +58,10 @@ export function QuoteCard({ quote }: QuoteCardProps) {
   }, [quote.valid_until])
 
   return (
-    <Card 
-      variant="interactive" 
+    <Card
+      variant="interactive"
       size="sm"
-      className="flex flex-col h-full min-h-[190px] justify-between p-4"
+      className="flex flex-col h-full min-h-47.5 justify-between p-4"
       onClick={handleCardClick}
     >
       <CardHeader className="p-0 flex flex-row items-center justify-between w-full">
@@ -70,12 +70,12 @@ export function QuoteCard({ quote }: QuoteCardProps) {
         </span>
         <QuoteStatusBadge status={quote.status} />
       </CardHeader>
-      
-      <CardContent className="p-0 mt-3 flex-grow space-y-3">
+
+      <CardContent className="p-0 mt-3 grow space-y-3">
         <CardTitle className="text-ds-body-md font-bold text-foreground line-clamp-2 leading-ds-normal">
           {quote.title || 'Sem título'}
         </CardTitle>
-        
+
         <div className="space-y-2">
           {/* Cliente */}
           <div className="flex items-center gap-2 text-ds-body-sm text-muted-foreground">
@@ -84,7 +84,7 @@ export function QuoteCard({ quote }: QuoteCardProps) {
               {quote.customers?.name || 'Não informado'}
             </span>
           </div>
-          
+
           {/* Validade */}
           {formattedValidUntil && (
             <div className="flex items-center gap-2 text-ds-caption text-muted-foreground">
@@ -94,7 +94,7 @@ export function QuoteCard({ quote }: QuoteCardProps) {
           )}
         </div>
       </CardContent>
-      
+
       <CardFooter className="p-0 pt-3 border-t border-border mt-3 flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-ds-body-md font-semibold text-foreground">
           <CircleDollarSign className="h-4 w-4 text-muted-foreground shrink-0" />

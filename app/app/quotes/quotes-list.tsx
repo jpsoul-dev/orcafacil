@@ -265,7 +265,7 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
         </span>
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(val) => setSortBy(val || 'newest')}>
-            <SelectTrigger className="h-9 w-[160px] text-ds-body-sm bg-card font-medium rounded-sm border-border cursor-pointer">
+            <SelectTrigger className="h-9 w-40 text-ds-body-sm bg-card font-medium rounded-sm border-border cursor-pointer">
               <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
               <span>{sortLabels[sortBy] || 'Ordenar por'}</span>
             </SelectTrigger>
@@ -340,7 +340,7 @@ export function QuotesList({ initialQuotes }: QuotesListProps) {
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-[80px] text-xs bg-card font-semibold rounded-sm border-border cursor-pointer">
+                <SelectTrigger className="h-8 w-20 text-xs bg-card font-semibold rounded-sm border-border cursor-pointer">
                   <SelectValue placeholder={pageSize} />
                 </SelectTrigger>
                 <SelectContent side="top">

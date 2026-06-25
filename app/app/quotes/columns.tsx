@@ -410,7 +410,7 @@ export const columns: ColumnDef<Quote>[] = [
           />
 
           <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
-            <DialogContent className="sm:max-w-[425px] rounded-lg bg-card border-border shadow-lg p-6">
+            <DialogContent className="sm:max-w-106.25 rounded-lg bg-card border-border shadow-lg p-6">
               <DialogHeader>
                 <DialogTitle className="text-ds-heading-sm font-bold text-foreground">Cancelar Orçamento</DialogTitle>
                 <DialogDescription className="text-ds-body-sm text-muted-foreground">
@@ -427,7 +427,7 @@ export const columns: ColumnDef<Quote>[] = [
                     placeholder="Ex: Cliente fechou com outro concorrente / Orçamento fora do limite planejado"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="min-h-[100px] resize-none border-border rounded-sm bg-card text-ds-body-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 duration-ds-fast"
+                    className="min-h-25 resize-none border-border rounded-sm bg-card text-ds-body-md focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 duration-ds-fast"
                   />
                   <p className="text-ds-caption text-muted-foreground">
                     O motivo deve possuir no mínimo 5 caracteres.

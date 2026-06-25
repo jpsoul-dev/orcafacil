@@ -116,9 +116,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   )
                 })}
@@ -167,7 +167,7 @@ export function DataTable<TData, TValue>({
               table.setPageSize(Number(value))
             }}
           >
-            <SelectTrigger className="h-9 w-[70px]">
+            <SelectTrigger className="h-9 w-17.5">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">

@@ -44,12 +44,12 @@ const buttonVariants = cva(
       size: {
         /* sm — 32px — ações dentro de tabelas, toolbars compactas */
         sm: 'h-8 gap-1.5 px-3 text-xs',
-        /* md — 40px — DEFAULT — uso geral */
-        default: 'h-10 gap-1.5 px-4 text-sm',
+        /* md — 44px — DEFAULT — uso geral (Touch target otimizado para mobile) */
+        default: 'h-11 gap-1.5 px-4 text-sm',
         /* lg — 48px — CTAs de tela cheia no mobile */
         lg: 'h-12 gap-2 px-6 text-base',
         /* Ícone — quadrado (sempre com aria-label) */
-        icon: 'size-10',
+        icon: 'size-11',
         'icon-sm': 'size-8 [&_svg:not([class*="size-"])]:size-3.5',
         'icon-lg': 'size-12',
         /* Legado xs — mantido para não quebrar uso existente */

@@ -32,7 +32,7 @@ export interface EntitySelectorProps<T> {
   renderCreateAction?: () => React.ReactNode
   
   // Customização de UI
-  customTrigger?: React.ReactNode
+  customTrigger?: React.ReactElement
   renderItem?: (item: T, isSelected: boolean) => React.ReactNode
 }
 

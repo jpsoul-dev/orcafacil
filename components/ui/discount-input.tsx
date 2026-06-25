@@ -1,21 +1,26 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { maskCurrency } from "@/lib/masks"
+import { Input } from "@/components/ui/input"
 
 export interface DiscountInputProps {
+  id?: string
   type: "none" | "%" | "R$"
   value: number
   onChange: (type: "none" | "%" | "R$", value: number) => void
   disabled?: boolean
   className?: string
+  "aria-invalid"?: boolean | "false" | "true" | "grammar" | "spelling"
 }
 
 export function DiscountInput({
+  id,
   type,
   value,
   onChange,
   disabled = false,
   className,
+  "aria-invalid": ariaInvalid,
 }: DiscountInputProps) {
   // Tipo visual ativo nos botões. Se for 'none', mantemos '%' como padrão visual
   const [activeType, setActiveType] = React.useState<"%" | "R$">(type === "R$" ? "R$" : "%")
@@ -98,25 +103,18 @@ export function DiscountInput({
   }
 
   return (
-    <div
-      className={cn(
-        "flex h-10 w-full min-w-[160px] items-center border border-input rounded-sm bg-card overflow-hidden transition-[border-color,box-shadow] duration-ds-fast",
-        "focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 outline-none",
-        disabled && "opacity-50 pointer-events-none bg-muted/20",
-        className
-      )}
-    >
+    <div className={cn("relative flex items-center w-full", className)}>
       {/* Toggle de Tipo de Desconto (Segmented Control) */}
-      <div className="flex h-full items-center p-1 bg-slate-50/50 dark:bg-neutral-800/10 border-r border-input shrink-0 gap-0.5">
+      <div className="absolute left-[1px] top-[1px] bottom-[1px] flex items-center p-1 bg-slate-50/50 dark:bg-neutral-800/10 border-r border-input shrink-0 gap-0.5 rounded-l-sm z-10">
         <button
           type="button"
           disabled={disabled}
           onClick={() => handleTypeChange("%")}
           className={cn(
-            "h-7 px-2.5 text-xs font-bold rounded-xs flex items-center justify-center transition-all cursor-pointer select-none",
+            "h-7 px-2.5 text-xs font-bold rounded-xs flex items-center justify-center transition-all cursor-pointer select-none border",
             activeType === "%"
-              ? "bg-white dark:bg-neutral-800 text-primary shadow-xs border border-border/50"
-              : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              ? "bg-white dark:bg-neutral-800 text-primary shadow-xs border-border/50"
+              : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
           )}
         >
           %
@@ -126,10 +124,10 @@ export function DiscountInput({
           disabled={disabled}
           onClick={() => handleTypeChange("R$")}
           className={cn(
-            "h-7 px-2.5 text-xs font-bold rounded-xs flex items-center justify-center transition-all cursor-pointer select-none",
+            "h-7 px-2.5 text-xs font-bold rounded-xs flex items-center justify-center transition-all cursor-pointer select-none border",
             activeType === "R$"
-              ? "bg-white dark:bg-neutral-800 text-primary shadow-xs border border-border/50"
-              : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              ? "bg-white dark:bg-neutral-800 text-primary shadow-xs border-border/50"
+              : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
           )}
         >
           R$
@@ -137,7 +135,8 @@ export function DiscountInput({
       </div>
 
       {/* Input de Valor */}
-      <input
+      <Input
+        id={id}
         type="text"
         inputMode="decimal"
         disabled={disabled}
@@ -145,7 +144,8 @@ export function DiscountInput({
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleBlur}
-        className="h-full w-full min-w-0 border-0 rounded-none bg-transparent px-3 text-right text-base sm:text-sm text-foreground tabular-nums outline-none focus:ring-0 focus:outline-none"
+        aria-invalid={ariaInvalid}
+        className="pl-[86px] text-right text-base sm:text-sm tabular-nums"
       />
     </div>
   )

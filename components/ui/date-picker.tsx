@@ -5,6 +5,7 @@ import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export interface DatePickerProps {
   id?: string
@@ -34,6 +35,7 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
     ref
   ) => {
     const [open, setOpen] = React.useState(false)
+    const isMobile = useIsMobile()
 
     // 1. Parser seguro e resiliente de valor para objeto Date
     const selectedDate = React.useMemo(() => {
@@ -82,46 +84,52 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
       setOpen(false) // Auto-fechamento do Popover
     }
 
+    const buttonTrigger = (
+      <button
+        ref={ref}
+        type="button"
+        aria-invalid={error}
+        className={cn(
+          "h-11 w-full min-w-0 rounded-sm border border-input bg-card px-3 py-2 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] outline-none flex items-center justify-between",
+          "hover:bg-card hover:text-foreground cursor-pointer",
+          "dark:bg-input/30",
+          !selectedDate && "text-muted-foreground",
+          error
+            ? "border-destructive focus:ring-2 focus:ring-destructive/20 dark:border-destructive/50"
+            : "focus:border-ring focus:ring-2 focus:ring-ring/20",
+          className
+        )}
+      >
+        {selectedDate ? (
+          format(selectedDate, "dd/MM/yyyy", { locale: ptBR })
+        ) : (
+          <span>{placeholder}</span>
+        )}
+        <CalendarIcon className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+      </button>
+    )
+
+    const calendarComponent = (
+      <Calendar
+        mode="single"
+        selected={selectedDate}
+        onSelect={handleSelect}
+        disabled={isDateDisabled}
+        initialFocus
+        locale={ptBR}
+      />
+    )
+
     return (
       <div className="relative w-full">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             id={id}
             nativeButton={true}
-            render={
-              <button
-                ref={ref}
-                type="button"
-                aria-invalid={error}
-                className={cn(
-                  "h-10 w-full min-w-0 rounded-sm border border-input bg-card px-3 py-2 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] outline-none flex items-center justify-between",
-                  "hover:bg-card hover:text-foreground cursor-pointer",
-                  "dark:bg-input/30",
-                  !selectedDate && "text-muted-foreground",
-                  error
-                    ? "border-destructive focus:ring-2 focus:ring-destructive/20 dark:border-destructive/50"
-                    : "focus:border-ring focus:ring-2 focus:ring-ring/20",
-                  className
-                )}
-              />
-            }
-          >
-            {selectedDate ? (
-              format(selectedDate, "dd/MM/yyyy", { locale: ptBR })
-            ) : (
-              <span>{placeholder}</span>
-            )}
-            <CalendarIcon className="h-4 w-4 opacity-50 shrink-0 ml-2" />
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleSelect}
-              disabled={isDateDisabled}
-              initialFocus
-              locale={ptBR}
-            />
+            render={buttonTrigger}
+          />
+          <PopoverContent className="w-auto p-0" align={isMobile ? "center" : "start"}>
+            {calendarComponent}
           </PopoverContent>
         </Popover>
       </div>

@@ -28,18 +28,14 @@ import { QuantityInput } from '@/components/ui/quantity-input'
 import { DiscountInput } from '@/components/ui/discount-input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+
+
 import {
   Trash2,
   Plus,
   Package,
   Search,
   Edit2,
-  HelpCircle,
   QrCode,
   Banknote,
   CreditCard,
@@ -414,7 +410,7 @@ export function QuoteForm({
         onValueChange={setCatalogSearch}
         className="h-12"
       />
-      <CommandList className="max-h-[400px] p-2 no-scrollbar">
+      <CommandList className="max-h-100 p-2 no-scrollbar">
         <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
           <div className="bg-muted p-3 rounded-full mb-3">
             <Search className="h-6 w-6 text-muted-foreground" />
@@ -495,7 +491,7 @@ export function QuoteForm({
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
         <Drawer.Content className="bg-card border-t border-border flex flex-col rounded-t-[10px] max-h-[85vh] fixed bottom-0 left-0 right-0 z-50 outline-none">
-          <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted my-3" />
+          <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-muted my-3" />
           <div className="px-5 pb-3">
             <Drawer.Title className="text-ds-heading-xs font-bold text-foreground">
               Adicionar do Catálogo
@@ -537,7 +533,7 @@ export function QuoteForm({
   return (
     <div className="space-y-4 md:space-y-6 w-full animate-in fade-in duration-ds-normal hide-global-header-mobile">
       {/* Header Mobile Nativo (AppBar) */}
-      <div className="sm:hidden flex items-center justify-between h-14 bg-card border-b border-border sticky top-0 z-40 px-4 -mx-4 -mt-4 mb-4 backdrop-blur-md bg-card/90">
+      <div className="sm:hidden flex items-center justify-between h-14 bg-card border-b border-border sticky top-0 z-40 px-4 -mx-4 -mt-4 mb-4 backdrop-blur-md">
         <button
           type="button"
           onClick={() => {
@@ -568,10 +564,10 @@ export function QuoteForm({
             <div className="md:col-span-2 space-y-2">
               <Label
                 htmlFor="title"
-                className="text-ds-body-sm font-semibold text-foreground"
+                optional
+                error={!!form.formState.errors.title}
               >
                 Título do orçamento
-                <span className="text-muted-foreground text-ds-caption ml-1">(opcional)</span>
               </Label>
               <Input
                 id="title"
@@ -581,7 +577,7 @@ export function QuoteForm({
             <div className="space-y-2">
               <Label
                 htmlFor="valid_until"
-                className="text-ds-body-sm font-semibold text-foreground"
+                error={!!form.formState.errors.valid_until}
               >
                 Validade
               </Label>
@@ -604,8 +600,11 @@ export function QuoteForm({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="md:col-span-full space-y-2">
-              <Label className="text-ds-body-sm font-semibold text-foreground mb-2">
-                Cliente <span className="text-muted-foreground text-ds-caption ml-0.5">(obrigatório)</span>
+              <Label
+                htmlFor='customer_id'
+                error={!!form.formState.errors.customer_id}
+              >
+                Cliente
               </Label>
               <Controller
                 control={form.control}
@@ -639,7 +638,7 @@ export function QuoteForm({
               <p className="text-ds-body-sm font-medium">Nenhum item adicionado</p>
               <p className="text-xs mt-1">
                 Use <span className="font-semibold">Catálogo</span> para buscar
-                um produto ou <span className="font-semibold">Novo item</span>{' '}
+                ou <span className="font-semibold">Novo item</span>{' '}
                 para incluir manualmente.
               </p>
             </div>
@@ -654,11 +653,11 @@ export function QuoteForm({
                     {/* Cabeçalho do Card do Item */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold font-sans">
-                          {index + 1}
-                        </span>
                         <span className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-                          Item do Orçamento
+                          Item
+                        </span>
+                        <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold">
+                          {index + 1}
                         </span>
                       </div>
                       <Button
@@ -676,15 +675,16 @@ export function QuoteForm({
                     </div>
 
                     {/* Corpo do Card com 2 linhas principais de campos */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 md:space-y-6">
                       {/* Linha 1: Descrição + Quantidade */}
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
                         {/* Descrição do Item */}
                         <div className="space-y-2 md:col-span-8 col-span-1">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
-                            Descrição <span className="ml-1 font-normal">{'(obrigatório)'}</span>
+                          <Label htmlFor={`items.${index}.item_name`} error={!!form.formState.errors.items?.[index]?.item_name}>
+                            Descrição
                           </Label>
                           <Input
+                            id={`items.${index}.item_name`}
                             {...form.register(`items.${index}.item_name` as const)}
                             aria-invalid={!!form.formState.errors.items?.[index]?.item_name}
                           />
@@ -693,7 +693,7 @@ export function QuoteForm({
 
                         {/* Quantidade */}
                         <div className="space-y-2 md:col-span-4 col-span-1">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                          <Label htmlFor={`items.${index}.quantity`} error={!!form.formState.errors.items?.[index]?.quantity}>
                             Quantidade
                           </Label>
                           <Controller
@@ -701,11 +701,13 @@ export function QuoteForm({
                             control={form.control}
                             render={({ field }) => (
                               <QuantityInput
+                                id={`items.${index}.quantity`}
                                 value={field.value}
                                 onChange={(val) => {
                                   field.onChange(val)
                                   handleRecalculate(index, val)
                                 }}
+                                aria-invalid={!!form.formState.errors.items?.[index]?.quantity}
                                 min={1}
                                 max={999}
                               />
@@ -715,63 +717,45 @@ export function QuoteForm({
                       </div>
 
                       {/* Linha 2: Preço Unitário + Desconto + Total */}
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
                         {/* Preço Unitário */}
-                        <div className="space-y-2 md:col-span-5 col-span-1">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
-                            Preço Unitário <span className="ml-1 font-normal uppercase">{'(r$)'}</span>
+                        <div className="space-y-2 md:col-span-4 col-span-1">
+                          <Label htmlFor={`items.${index}.unit_price`} error={!!form.formState.errors.items?.[index]?.unit_price}>
+                            Preço Un. <span className="ml-1 font-normal uppercase text-muted-foreground">{'(r$)'}</span>
                           </Label>
-                          <div className="flex h-10 border border-input rounded-sm overflow-hidden bg-card transition-[border-color,box-shadow] duration-ds-fast focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 outline-none">
-                            <Controller
-                              name={`items.${index}.unit_price` as const}
-                              control={form.control}
-                              render={({ field }) => (
-                                <Input
-                                  type="text"
-                                  inputMode="decimal"
-                                  placeholder="0,00"
-                                  value={
-                                    field.value
-                                      ? maskCurrency(Math.round(field.value * 100).toString())
-                                      : ''
-                                  }
-                                  onChange={(e) => {
-                                    const masked = maskCurrency(e.target.value)
-                                    const raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
-                                    field.onChange(raw)
-                                    handleRecalculate(index, undefined, raw)
-                                  }}
-                                  className="h-full border-0 rounded-none focus-visible:ring-0 text-right bg-card text-base sm:text-ds-body-md tabular-nums w-full px-2"
-                                />
-                              )}
-                            />
-                          </div>
+                          <Controller
+                            name={`items.${index}.unit_price` as const}
+                            control={form.control}
+                            render={({ field }) => (
+                              <Input
+                                id={`items.${index}.unit_price`}
+                                type="text"
+                                inputMode="decimal"
+                                placeholder="0,00"
+                                value={
+                                  field.value
+                                    ? maskCurrency(Math.round(field.value * 100).toString())
+                                    : ''
+                                }
+                                onChange={(e) => {
+                                  const masked = maskCurrency(e.target.value)
+                                  const raw = parseFloat(masked.replace(/\./g, '').replace(',', '.')) || 0
+                                  field.onChange(raw)
+                                  handleRecalculate(index, undefined, raw)
+                                }}
+                                aria-invalid={!!form.formState.errors.items?.[index]?.unit_price}
+                              />
+                            )}
+                          />
                         </div>
 
                         {/* Desconto */}
-                        <div className="space-y-2 md:col-span-5 col-span-1">
+                        <div className="space-y-2 md:col-span-4 col-span-1">
                           <div className="flex items-center gap-1">
-                            <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                            <Label htmlFor={`items.${index}.discount_value`} error={!!form.formState.errors.items?.[index]?.discount_value}>
                               Desconto
                             </Label>
-                            <Popover>
-                              <PopoverTrigger
-                                render={
-                                  <button
-                                    type="button"
-                                    className="text-slate-500 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400 cursor-pointer rounded-full outline-none focus:ring-1 focus:ring-ring shrink-0 flex items-center justify-center p-2"
-                                  />
-                                }
-                              >
-                                <HelpCircle className="h-4 w-4" />
-                                <span className="sr-only">Ajuda desconto</span>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-60 p-3 bg-card border-border rounded-md shadow-md text-xs text-muted-foreground">
-                                Você pode aplicar um desconto percentual (%) ou valor fixo em reais (R$) para cada item individualmente.
-                              </PopoverContent>
-                            </Popover>
                           </div>
-
                           <Controller
                             name={`items.${index}.discount_type` as const}
                             control={form.control}
@@ -780,8 +764,10 @@ export function QuoteForm({
 
                               return (
                                 <DiscountInput
+                                  id={`items.${index}.discount_value`}
                                   type={typeField.value || 'none'}
                                   value={discountValue}
+                                  aria-invalid={!!form.formState.errors.items?.[index]?.discount_value}
                                   onChange={(newType, newVal) => {
                                     typeField.onChange(newType)
                                     form.setValue(`items.${index}.discount_value`, newVal)
@@ -794,15 +780,15 @@ export function QuoteForm({
                         </div>
 
                         {/* Total (R$) */}
-                        <div className="space-y-2 md:col-span-2 col-span-1">
-                          <Label className="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wider block">
+                        <div className="space-y-2 md:col-span-4 col-span-1">
+                          <Label htmlFor={`items.${index}.subtotal`}>
                             Total <span className="ml-1 font-normal uppercase">(r$)</span>
                           </Label>
                           <Input
+                            id={`items.${index}.subtotal`}
                             type="text"
                             disabled
                             value={brl(watchItems[index]?.subtotal || 0)}
-                            className="h-10 text-right bg-muted/40 font-semibold text-foreground dark:text-foreground tabular-nums border-input"
                           />
                         </div>
                       </div>
@@ -817,7 +803,7 @@ export function QuoteForm({
           <div className="mt-4 flex items-center justify-end gap-1">
             {/* Botão Catálogo — discreto, sem borda */}
             {catalogSelector}
- 
+
             <Button
               type="button"
               variant="outline"
@@ -932,7 +918,7 @@ export function QuoteForm({
                       <Edit2 className="h-4 w-4" />
                       <span className="sr-only">Editar desconto</span>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[400px] rounded-lg bg-card border-border shadow-lg p-6">
+                    <DialogContent className="sm:max-w-100 rounded-lg bg-card border-border shadow-lg p-6">
                       <DialogHeader>
                         <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
                           Aplicar Desconto

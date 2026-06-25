@@ -83,7 +83,7 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
     <nav className="fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)] h-[calc(4rem+env(safe-area-inset-bottom))] bg-card border-t border-border flex items-center justify-around px-2 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       {mainItems.map((item) => {
         const active = isActiveTab(item.url, item.exact)
-        
+
         return (
           <Link
             key={item.title}
@@ -93,7 +93,7 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
               active ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <item.icon className={cn("h-5 w-5", active ? "stroke-[2.5]" : "stroke-[2]")} />
+            <item.icon className={cn("h-5 w-5", active ? "stroke-[2.5]" : "stroke-2")} />
             <span>{item.title}</span>
           </Link>
         )
@@ -110,14 +110,14 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
                 isSecondaryActive || open ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Menu className={cn("h-5 w-5", isSecondaryActive || open ? "stroke-[2.5]" : "stroke-[2]")} />
+              <Menu className={cn("h-5 w-5", isSecondaryActive || open ? "stroke-[2.5]" : "stroke-2")} />
               <span>Mais</span>
             </button>
           }
         />
         <SheetContent side="bottom" className="rounded-t-2xl pb-6 border-t border-border bg-card p-0" showCloseButton={false}>
           <div className="mx-auto my-2.5 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
-          
+
           <SheetHeader className="px-5 pt-2 pb-4 text-left border-b border-border shrink-0">
             <Link
               href="/app/settings"
@@ -148,8 +148,8 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-3.5 px-4 py-3.5 rounded-md transition-all duration-ds-fast cursor-pointer text-ds-body-md font-semibold",
-                    active 
-                      ? "bg-primary/10 text-primary border-l-3 border-primary rounded-l-none pl-3.5" 
+                    active
+                      ? "bg-primary/10 text-primary border-l-3 border-primary rounded-l-none pl-3.5"
                       : "text-foreground hover:bg-muted/40"
                   )}
                 >

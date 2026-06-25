@@ -2,14 +2,14 @@
 
 import { Bell, Check } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuGroup,
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
@@ -41,7 +41,7 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread')
-  
+
   const supabase = useMemo(() => createClient(), [])
 
   const fetchNotifications = useCallback(async () => {
@@ -117,26 +117,26 @@ export function NotificationBell() {
 
     const channel = supabase
       .channel('notification-updates')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        table: 'notifications', 
-        schema: 'public' 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        table: 'notifications',
+        schema: 'public'
       }, () => {
         fetchNotifications()
         triggerHaptic('success')
         toast.info('Nova notificação recebida!')
       })
-      .on('postgres_changes', { 
-        event: '*', 
-        table: 'notifications', 
-        schema: 'public' 
+      .on('postgres_changes', {
+        event: '*',
+        table: 'notifications',
+        schema: 'public'
       }, (payload) => {
         if (payload.eventType !== 'INSERT') {
           fetchNotifications()
         }
       })
       .on('postgres_changes', {
-        event: '*', 
+        event: '*',
         table: 'notification_reads',
         schema: 'public'
       }, () => {
@@ -191,7 +191,7 @@ export function NotificationBell() {
             Notificações
           </DropdownMenuLabel>
           {unreadCount > 0 && (
-            <button 
+            <button
               onClick={(e) => {
                 e.preventDefault()
                 handleMarkAllAsRead()
@@ -202,26 +202,24 @@ export function NotificationBell() {
             </button>
           )}
         </DropdownMenuGroup>
-        
+
         {/* Guias/Tabs de Notificação */}
         <div className="flex border-b border-slate-200 px-3">
           <button
             onClick={() => setActiveTab('unread')}
-            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${
-              activeTab === 'unread' 
-                ? 'border-slate-900 text-slate-900' 
+            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${activeTab === 'unread'
+                ? 'border-slate-900 text-slate-900'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Não lidas ({unreadCount})
           </button>
           <button
             onClick={() => setActiveTab('read')}
-            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${
-              activeTab === 'read' 
-                ? 'border-slate-900 text-slate-900' 
+            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${activeTab === 'read'
+                ? 'border-slate-900 text-slate-900'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Lidas
           </button>
@@ -234,13 +232,12 @@ export function NotificationBell() {
             {activeTab === 'unread' ? 'Nenhuma notificação não lida.' : 'Nenhuma notificação lida por enquanto.'}
           </div>
         ) : (
-          <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100">
+          <div className="max-h-90 overflow-y-auto divide-y divide-slate-100">
             {filteredNotifications.map((n) => (
-              <DropdownMenuItem 
-                key={n.id} 
-                className={`flex items-start p-4 cursor-pointer focus:bg-slate-50/80 relative group ${
-                  !n.isRead ? 'bg-slate-50/40' : 'bg-transparent'
-                }`}
+              <DropdownMenuItem
+                key={n.id}
+                className={`flex items-start p-4 cursor-pointer focus:bg-slate-50/80 relative group ${!n.isRead ? 'bg-slate-50/40' : 'bg-transparent'
+                  }`}
                 onSelect={(e) => {
                   if (!n.isRead) {
                     e.preventDefault()

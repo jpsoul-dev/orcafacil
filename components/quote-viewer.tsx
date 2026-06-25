@@ -2,26 +2,16 @@
 
 import { parseISO, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { maskPhone } from '@/lib/masks'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+
+
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
   Printer,
   Loader2,
-  Phone,
-  Mail,
-  MessageCircle,
   RotateCcw,
   FileText,
   Receipt,
@@ -69,9 +59,6 @@ import {
 
 import {
   type QuoteStatus,
-  type QuoteItem,
-  type Customer,
-  type Company,
   type Quote,
 } from '@/types/quote'
 

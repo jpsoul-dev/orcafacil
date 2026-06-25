@@ -45,7 +45,7 @@ export async function QuotePageContent({
     if (quote) {
       if (mode === 'clone') {
         // Remover IDs, número, título, cliente e validade para garantir que seja um novo orçamento limpo
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         const {
           id: _id,
           public_uuid: _pu,
@@ -92,7 +92,7 @@ export async function QuotePageContent({
   const { title, description } = titles[mode]
 
   return (
-    <div className="max-w-[720px] w-full space-y-4 md:space-y-6 mx-auto px-4 md:px-0 pb-32 md:pb-6">
+    <div className="max-w-5xl w-full space-y-4 md:space-y-6 mx-auto pb-32 md:pb-6">
       <div className="pt-2 md:pt-0 max-sm:hidden">
         <h2 className="text-ds-heading-md md:text-ds-heading-lg font-bold tracking-tight text-foreground">
           {title}

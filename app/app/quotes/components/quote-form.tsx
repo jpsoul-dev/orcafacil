@@ -13,11 +13,9 @@ import * as z from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { saveQuote } from '../actions'
-import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import { Drawer } from 'vaul'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,13 +26,13 @@ import { QuantityInput } from '@/components/ui/quantity-input'
 import { DiscountInput } from '@/components/ui/discount-input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EntitySelector } from '@/components/ui/entity-selector'
 
 
 import {
   Trash2,
   Plus,
   Package,
-  Search,
   Edit2,
   QrCode,
   Banknote,
@@ -43,15 +41,11 @@ import {
   Barcode,
   FileSignature,
   ChevronLeft,
+  PackagePlus,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
+
+
 import {
   Dialog,
   DialogContent,
@@ -63,6 +57,7 @@ import {
 import type { Customer } from '@/lib/services/customer-service'
 import { CatalogItem } from '../../catalog/columns'
 import { CustomerSelector } from './customer-selector'
+import { CatalogForm } from '../../catalog/catalog-form'
 
 export interface QuoteWithItems {
   id: string
@@ -87,19 +82,20 @@ export interface QuoteWithItems {
 
 const quoteItemSchema = z.object({
   catalog_item_id: z.string().optional().nullable(),
-  item_name: z.string().min(1, 'Descrição do item obrigatória'),
-  quantity: z.coerce.number().min(0.01),
-  unit_price: z.coerce.number().min(0),
+  item_name: z.string().trim().min(1, 'Descrição do item obrigatória').max(255, 'Descrição muito longa'),
+  quantity: z.coerce.number().min(0.01, 'Quantidade mínima é 0.01').max(999999, 'Quantidade muito alta'),
+  unit_price: z.coerce.number().min(0).max(99999999.99, 'Valor muito alto'),
   subtotal: z.number(),
   discount_type: z.enum(['none', '%', 'R$']).optional().nullable().default('none'),
-  discount_value: z.coerce.number().optional().nullable().default(0),
+  discount_value: z.coerce.number().max(99999999.99, 'Desconto muito alto').optional().nullable().default(0),
 })
 
 const quoteSchema = z.object({
-  title: z.string().optional().nullable(),
+  title: z.string().trim().max(100, 'Título muito longo').optional().nullable(),
   customer_id: z.string().min(1, 'Selecione um cliente'),
   valid_until: z
     .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido')
     .refine(
       (val) => {
         if (!val) return true
@@ -115,13 +111,14 @@ const quoteSchema = z.object({
     .optional()
     .nullable(),
   discount_type: z.enum(['none', '%', 'R$']),
-  discount_value: z.coerce.number().min(0),
+  discount_value: z.coerce.number().min(0).max(99999999.99, 'Desconto muito alto'),
   payment_method: z.array(z.string()).optional().nullable(),
-  notes: z.string().optional().nullable(),
+  notes: z.string().trim().max(5000, 'Anotação muito longa').optional().nullable(),
   show_quote_number: z.boolean().optional().default(true),
   items: z
     .array(quoteItemSchema)
-    .min(1, 'Adicione pelo menos um item ao orçamento'),
+    .min(1, 'Adicione pelo menos um item ao orçamento')
+    .max(200, 'Limite de 200 itens por orçamento atingido'),
 })
 
 type QuoteValues = z.infer<typeof quoteSchema>
@@ -158,10 +155,7 @@ export function QuoteForm({
   const router = useRouter()
   const isMobile = useMediaQuery('(max-width: 640px)')
   const [loading, setLoading] = useState(false)
-  // Estados dos modais de busca
-  const [openCatalogModal, setOpenCatalogModal] = useState(false)
   const [openDiscountModal, setOpenDiscountModal] = useState(false)
-  const [catalogSearch, setCatalogSearch] = useState('')
 
   const defaultValidDate = new Date()
   defaultValidDate.setDate(defaultValidDate.getDate() + 15)
@@ -306,8 +300,6 @@ export function QuoteForm({
     }
   }
 
-  const debouncedCatalogSearch = useDebounce(catalogSearch, 300)
-
   const handleAddCatalogItem = (item: CatalogItem) => {
     if (!item) return
     triggerVibration(15) // vibração leve ao adicionar do catálogo
@@ -320,8 +312,6 @@ export function QuoteForm({
       discount_type: 'none',
       discount_value: 0,
     })
-    setOpenCatalogModal(false)
-    setCatalogSearch('')
   }
 
   const handleAddManualItem = () => {
@@ -395,138 +385,6 @@ export function QuoteForm({
       }
     }
   }
-  const filteredCatalog = useMemo(() => {
-    const term = debouncedCatalogSearch.trim().toLowerCase()
-    if (!term) return catalogItems
-    if (term.length < 2) return catalogItems
-    return catalogItems.filter((i) => i.name?.toLowerCase().includes(term))
-  }, [catalogItems, debouncedCatalogSearch])
-
-  const catalogContent = (
-    <Command shouldFilter={false} className="rounded-none">
-      <CommandInput
-        placeholder="Buscar produto ou serviço..."
-        value={catalogSearch}
-        onValueChange={setCatalogSearch}
-        className="h-12"
-      />
-      <CommandList className="max-h-100 p-2 no-scrollbar">
-        <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
-          <div className="bg-muted p-3 rounded-full mb-3">
-            <Search className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <p className="text-ds-body-md font-semibold text-foreground">
-            Nenhum item encontrado
-          </p>
-          <p className="text-ds-body-sm text-muted-foreground mt-1">
-            Tente buscar por um termo diferente
-          </p>
-        </CommandEmpty>
-
-        <div className="space-y-1">
-          {filteredCatalog.map((item) => (
-            <CommandItem
-              key={item.id}
-              value={item.id}
-              onSelect={() => handleAddCatalogItem(item)}
-              className="flex items-center justify-between p-3 cursor-pointer rounded-md data-[selected=true]:bg-muted transition-all duration-ds-fast border border-transparent data-[selected=true]:border-border"
-            >
-              <div className="flex flex-col min-w-0 flex-1 mr-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-ds-body-md font-semibold text-foreground truncate">
-                    {item.name}
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider rounded-sm',
-                      item.type === 'product'
-                        ? 'bg-blue-50/10 text-blue-600 border-blue-200/50 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50'
-                        : 'bg-muted text-muted-foreground border-border',
-                    )}
-                  >
-                    {item.type === 'product' ? 'PROD' : 'SERV'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-ds-body-md font-bold text-foreground">
-                    {brl(item.unit_price)}
-                  </span>
-                  {item.unit_measure && (
-                    <span className="text-ds-caption text-muted-foreground font-medium bg-muted px-1.5 py-0.5 rounded-sm border border-border">
-                      {item.unit_measure}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </CommandItem>
-          ))}
-        </div>
-      </CommandList>
-    </Command>
-  )
-
-  const catalogTrigger = (
-    <Button
-      type="button"
-      variant="ghost"
-      className="flex items-center gap-1.5 h-11 md:h-9 px-3 text-ds-body-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/5 dark:hover:bg-primary/10 rounded-sm transition-all duration-ds-fast cursor-pointer"
-    >
-      <Package className="h-4 w-4" />
-      Catálogo
-    </Button>
-  )
-
-  const catalogSelector = isMobile ? (
-    <Drawer.Root
-      open={openCatalogModal}
-      onOpenChange={(open) => {
-        setOpenCatalogModal(open)
-        if (!open) setCatalogSearch('')
-      }}
-    >
-      <Drawer.Trigger asChild>
-        {catalogTrigger}
-      </Drawer.Trigger>
-      <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-        <Drawer.Content className="bg-card border-t border-border flex flex-col rounded-t-[10px] max-h-[85vh] fixed bottom-0 left-0 right-0 z-50 outline-none">
-          <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-muted my-3" />
-          <div className="px-5 pb-3">
-            <Drawer.Title className="text-ds-heading-xs font-bold text-foreground">
-              Adicionar do Catálogo
-            </Drawer.Title>
-          </div>
-          <div className="flex-1 overflow-y-auto pb-6">
-            {catalogContent}
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
-  ) : (
-    <Dialog
-      open={openCatalogModal}
-      onOpenChange={(open) => {
-        setOpenCatalogModal(open)
-        if (!open) {
-          setCatalogSearch('')
-        }
-      }}
-    >
-      <DialogTrigger
-        nativeButton={true}
-        render={catalogTrigger}
-      />
-      <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-lg shadow-lg border-border bg-card">
-        <DialogHeader className="px-5 pt-5 pb-4 border-b border-border">
-          <DialogTitle className="text-ds-heading-xs font-bold text-foreground">
-            Adicionar do Catálogo
-          </DialogTitle>
-        </DialogHeader>
-        {catalogContent}
-      </DialogContent>
-    </Dialog>
-  )
 
   const pageTitle = mode === 'edit' ? 'Editar Orçamento' : mode === 'clone' ? 'Clonar Orçamento' : 'Novo Orçamento'
 
@@ -558,7 +416,7 @@ export function QuoteForm({
         </button>
       </div>
 
-      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
+      <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x">
         <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 pt-4 md:pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div className="md:col-span-2 space-y-2">
@@ -624,19 +482,19 @@ export function QuoteForm({
       </Card>
 
       {/* Itens do Pedido */}
-      <div className="rounded-md sm:border sm:border-border sm:shadow-sm overflow-hidden sm:bg-card">
-        <div className="p-0 sm:p-6 sm:pb-2 max-sm:py-2">
-          <h3 className="text-ds-body-sm font-bold text-foreground uppercase tracking-wider max-sm:text-muted-foreground/80 max-sm:text-[11px]">
+      <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x">
+        <CardHeader>
+          <CardTitle>
             Itens do Pedido
-          </h3>
-        </div>
-        <div className="p-0 sm:p-6 sm:pt-2">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           {/* Empty state ou tabela de itens */}
           {fields.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 border border-dashed border-border rounded-md text-muted-foreground bg-card">
               <Package className="h-8 w-8 mb-2 opacity-40" />
               <p className="text-ds-body-sm font-medium">Nenhum item adicionado</p>
-              <p className="text-xs mt-1">
+              <p className="text-xs mt-1 text-center">
                 Use <span className="font-semibold">Catálogo</span> para buscar
                 ou <span className="font-semibold">Novo item</span>{' '}
                 para incluir manualmente.
@@ -679,7 +537,7 @@ export function QuoteForm({
                       {/* Linha 1: Descrição + Quantidade */}
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
                         {/* Descrição do Item */}
-                        <div className="space-y-2 md:col-span-8 col-span-1">
+                        <div className="space-y-2 md:col-span-9 col-span-1">
                           <Label htmlFor={`items.${index}.item_name`} error={!!form.formState.errors.items?.[index]?.item_name}>
                             Descrição
                           </Label>
@@ -692,7 +550,7 @@ export function QuoteForm({
                         </div>
 
                         {/* Quantidade */}
-                        <div className="space-y-2 md:col-span-4 col-span-1">
+                        <div className="space-y-2 md:col-span-3 col-span-1">
                           <Label htmlFor={`items.${index}.quantity`} error={!!form.formState.errors.items?.[index]?.quantity}>
                             Quantidade
                           </Label>
@@ -752,7 +610,8 @@ export function QuoteForm({
                         {/* Desconto */}
                         <div className="space-y-2 md:col-span-4 col-span-1">
                           <div className="flex items-center gap-1">
-                            <Label htmlFor={`items.${index}.discount_value`} error={!!form.formState.errors.items?.[index]?.discount_value}>
+                            <Label htmlFor={`items.${index}.discount_value`} error={!!form.formState.errors.items?.[index]?.discount_value}
+                              optional>
                               Desconto
                             </Label>
                           </div>
@@ -801,14 +660,84 @@ export function QuoteForm({
 
           {/* Botões de ação dos itens — abaixo da lista, à direita */}
           <div className="mt-4 flex items-center justify-end gap-1">
-            {/* Botão Catálogo — discreto, sem borda */}
-            {catalogSelector}
+            {/* Botão Catálogo com EntitySelector */}
+            <div>
+              <EntitySelector
+                title="Adicionar do Catálogo"
+                items={catalogItems}
+                value={null}
+                onChange={(val) => {
+                  if (val) {
+                    const item = catalogItems.find(i => i.id === val)
+                    if (item) handleAddCatalogItem(item)
+                  }
+                }}
+                getItemKey={(i) => i.id}
+                getItemLabel={(i) => i.name}
+                searchPlaceholder="Buscar produto ou serviço..."
+                emptyStateText="Nenhum item encontrado no catálogo."
+                renderCreateAction={() => (
+                  <CatalogForm
+                    trigger={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-11 w-full text-sm font-semibold border-input rounded-sm flex items-center justify-center cursor-pointer"
+                      >
+                        <PackagePlus className="h-4 w-4 mr-2" />
+                        Cadastrar novo item
+                      </Button>
+                    }
+                  />
+                )}
+                customTrigger={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex items-center gap-1.5 px-3 text-ds-body-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/5 dark:hover:bg-primary/10 rounded-sm transition-all duration-ds-fast cursor-pointer"
+                  >
+                    <Package className="h-4 w-4" />
+                    Catálogo
+                  </Button>
+                }
+                renderItem={(item) => (
+                  <div className="flex flex-col min-w-0 flex-1 mr-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-ds-body-md font-semibold text-foreground truncate">
+                        {item.name}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'text-[10px] px-1.5 py-0 h-4 font-bold uppercase tracking-wider rounded-sm',
+                          item.type === 'product'
+                            ? 'bg-blue-50/10 text-blue-600 border-blue-200/50 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50'
+                            : 'bg-muted text-muted-foreground border-border',
+                        )}
+                      >
+                        {item.type === 'product' ? 'PROD' : 'SERV'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-ds-body-md font-bold text-foreground">
+                        {brl(item.unit_price)}
+                      </span>
+                      {item.unit_measure && (
+                        <span className="text-ds-caption text-muted-foreground font-medium bg-muted px-1.5 py-0.5 rounded-sm border border-border">
+                          {item.unit_measure}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
 
             <Button
               type="button"
               variant="outline"
               onClick={handleAddManualItem}
-              className="h-11 md:h-9 px-4 border-border rounded-md text-foreground hover:bg-muted gap-2 text-ds-body-sm font-semibold transition-all duration-ds-fast cursor-pointer"
+              className="text-foreground hover:bg-muted gap-2 text-ds-body-sm font-semibold transition-all duration-ds-fast cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Novo item
             </Button>
@@ -819,17 +748,17 @@ export function QuoteForm({
               {form.formState.errors.items.root.message}
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Resumo e Pagamento */}
-      <div className="rounded-md sm:border sm:border-border sm:shadow-sm overflow-hidden sm:bg-card relative">
-        <div className="p-0 sm:p-6 sm:pb-2 max-sm:py-2">
-          <h3 className="text-ds-body-sm font-bold text-foreground uppercase tracking-wider max-sm:text-muted-foreground/80 max-sm:text-[11px]">
+      <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x">
+        <CardHeader>
+          <CardTitle>
             Resumo e Pagamento
-          </h3>
-        </div>
-        <div className="p-0 sm:p-6 sm:pt-2">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-2 col-span-full">
               <Label className="text-ds-body-sm font-semibold text-foreground">
@@ -849,9 +778,10 @@ export function QuoteForm({
                   const Icon = paymentMethodIcons[method] || CreditCard
 
                   return (
-                    <button
+                    <Button
                       key={method}
                       type="button"
+                      variant="outline"
                       onClick={() => {
                         let newMethods: string[]
                         if (isSelected) {
@@ -862,15 +792,15 @@ export function QuoteForm({
                         form.setValue('payment_method', newMethods)
                       }}
                       className={cn(
-                        "flex items-center gap-2 px-4 h-10 text-ds-body-sm font-semibold rounded-sm border transition-all cursor-pointer select-none",
+                        "flex items-center justify-start gap-2 h-11 px-4 text-ds-body-sm font-semibold rounded-sm transition-all duration-ds-fast cursor-pointer select-none",
                         isSelected
-                          ? "bg-primary/10 border-primary text-primary shadow-xs"
-                          : "bg-card border-border text-muted-foreground hover:bg-muted/50 hover:border-border/80"
+                          ? "bg-primary/10 border-primary text-primary hover:bg-primary/20 hover:text-primary shadow-xs"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
                       <span>{method}</span>
-                    </button>
+                    </Button>
                   )
                 })}
               </div>
@@ -984,17 +914,17 @@ export function QuoteForm({
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Observações */}
-      <Card className="rounded-md border-border shadow-sm overflow-hidden bg-card">
-        <CardHeader className="p-4 md:p-6 pb-2">
-          <CardTitle className="text-ds-heading-xs font-bold text-foreground">
+      <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x">
+        <CardHeader>
+          <CardTitle>
             Termos e condições
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-2">
+        <CardContent>
           <Textarea
             id="notes"
             {...form.register('notes')}
@@ -1003,13 +933,13 @@ export function QuoteForm({
         </CardContent>
       </Card>
 
-      <div className="flex flex-row items-center justify-end gap-3 pt-6 border-t border-border w-full max-sm:py-4">
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-border w-full max-sm:py-4">
         <Button
           type="button"
           disabled={loading}
           variant="ghost"
           onClick={() => router.back()}
-          className="h-10 px-6 w-full sm:w-auto font-semibold text-muted-foreground transition-all duration-ds-fast cursor-pointer max-sm:hidden"
+          className="px-6 w-full sm:w-auto font-semibold text-muted-foreground transition-all duration-ds-fast cursor-pointer max-sm:hidden"
         >
           Cancelar
         </Button>
@@ -1018,7 +948,7 @@ export function QuoteForm({
           disabled={loading}
           variant="outline"
           onClick={() => handleSave('draft')}
-          className="h-10 px-6 w-full sm:w-auto font-semibold transition-all duration-ds-fast cursor-pointer"
+          className="px-6 w-full sm:w-auto font-semibold transition-all duration-ds-fast cursor-pointer"
         >
           Salvar Rascunho
         </Button>
@@ -1026,7 +956,7 @@ export function QuoteForm({
           type="button"
           disabled={loading}
           onClick={() => handleSave('pending')}
-          className="h-10 px-6 w-full sm:w-auto font-semibold bg-primary text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm max-sm:hidden"
+          className="px-6 w-full sm:w-auto font-semibold bg-primary text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm"
         >
           {loading
             ? 'Processando...'

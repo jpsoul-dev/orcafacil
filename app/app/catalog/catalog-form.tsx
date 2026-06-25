@@ -19,6 +19,7 @@ import {
   DialogTrigger,
   DialogHeader,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog'
 import {
   Pencil,
@@ -27,6 +28,7 @@ import {
   Box,
   Wrench,
   PackagePlus,
+  X,
 } from 'lucide-react'
 
 const catalogSchema = z.object({
@@ -141,20 +143,30 @@ export function CatalogForm({
       <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-xl border border-border bg-card text-foreground shadow-lg">
         {/* Header no estilo inspirado na imagem */}
         <DialogHeader className="px-6 py-5 border-b border-border shrink-0 bg-card z-10 relative">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
-              <Package className="h-6 w-6 text-white" />
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
+                <Package className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-left space-y-0.5">
+                <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
+                  {initialData ? 'Editar Item' : 'Novo Item'}
+                </DialogTitle>
+                <DialogDescription className="text-ds-body-sm text-muted-foreground font-medium pr-4">
+                  {initialData
+                    ? 'Atualize as informações do item'
+                    : 'Adicione um produto ou serviço ao catálogo.'}
+                </DialogDescription>
+              </div>
             </div>
-            <div className="text-left space-y-0.5">
-              <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
-                {initialData ? 'Editar Item' : 'Novo Item'}
-              </DialogTitle>
-              <DialogDescription className="text-ds-body-sm text-muted-foreground font-medium">
-                {initialData
-                  ? 'Atualize as informações do item'
-                  : 'Adicione um produto ou serviço ao catálogo.'}
-              </DialogDescription>
-            </div>
+            <DialogClose
+              render={
+                <button type="button" className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer mt-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Fechar</span>
+                </button>
+              }
+            />
           </div>
         </DialogHeader>
 

@@ -63,7 +63,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           isExpired={isExpired}
         />
         <SidebarInset className="group">
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur-sm px-4 print:hidden max-sm:group-has-[.hide-global-header-mobile]:hidden">
+          <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-4 print:hidden max-sm:group-has-[.hide-global-header-mobile]:hidden">
             <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground md:inline-flex hidden transition-colors duration-ds-fast" />
             <Separator orientation="vertical" className="h-4 md:block hidden bg-border" />
             <AppBreadcrumb />

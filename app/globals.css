@@ -430,6 +430,15 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   body {
@@ -451,6 +460,12 @@
    ──────────────────────────────────────────────────────────────────────────── */
 
 @layer utilities {
+  .selectable {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    cursor: text;
+  }
+
   .gradient-primary {
     background: linear-gradient(135deg,
         var(--ds-color-blue-500),
@@ -557,9 +572,10 @@
    MOBILE PWA CUSTOMIZATIONS (OVERSCROLL, ZOOM PREVENT & iOS QUIRKS)
    ──────────────────────────────────────────────────────────────────────────── */
 
-body {
+html, body {
   overscroll-behavior-y: none;
-  /* Evita pull-to-refresh nativo em apps instalados */
+  overscroll-behavior-x: none;
+  /* Evita pull-to-refresh nativo em apps instalados e no browser */
 }
 
 /* Previne zoom automático do iOS Safari em inputs menores que 16px */

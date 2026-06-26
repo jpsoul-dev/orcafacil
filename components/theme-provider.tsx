@@ -11,14 +11,13 @@ function ThemeColorUpdater() {
 
     const themeColor = resolvedTheme === "dark" ? "#111827" : "#FFFFFF"
     
-    // Remove as tags de theme-color criadas nativamente (com media query) 
-    // para evitar conflito com a escolha forçada do usuário no app
-    document.querySelectorAll('meta[name="theme-color"]').forEach((tag) => tag.remove())
-
-    const meta = document.createElement("meta")
-    meta.setAttribute("name", "theme-color")
+    let meta = document.querySelector('meta[name="theme-color"]')
+    if (!meta) {
+      meta = document.createElement("meta")
+      meta.setAttribute("name", "theme-color")
+      document.head.appendChild(meta)
+    }
     meta.setAttribute("content", themeColor)
-    document.head.appendChild(meta)
   }, [resolvedTheme])
 
   return null

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Command as CommandPrimitive } from "cmdk"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Drawer } from "vaul"
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Command, CommandEmpty, CommandItem, CommandList } from "@/components/ui/command"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 export interface EntitySelectorProps<T> {
@@ -19,21 +19,28 @@ export interface EntitySelectorProps<T> {
   getItemLabel: (item: T) => string
   getItemDescription?: (item: T) => string
   getItemSecondaryLabel?: (item: T) => string
-  
+
   placeholder?: string
   searchPlaceholder?: string
   emptyStateText?: string
   error?: boolean
   className?: string
-  
+
   // Customização de Ações e Busca
   isLoading?: boolean
   onSearchChange?: (query: string) => void
   renderCreateAction?: () => React.ReactNode
-  
+
   // Customização de UI
   customTrigger?: React.ReactElement
   renderItem?: (item: T, isSelected: boolean) => React.ReactNode
+}
+
+const isDebounced = (lastClickTimeRef: { current: number }, delay = 400) => {
+  const now = Date.now()
+  if (now - lastClickTimeRef.current < delay) return true
+  lastClickTimeRef.current = now
+  return false
 }
 
 export function EntitySelector<T>({
@@ -65,7 +72,11 @@ export function EntitySelector<T>({
     return items.find((item) => getItemKey(item) === value)
   }, [value, items, getItemKey])
 
+  const lastClickTime = React.useRef(0)
+
   const handleSelect = (item: T) => {
+    if (isDebounced(lastClickTime, 400)) return
+
     const key = getItemKey(item)
     onChange(key === value ? null : key)
     setOpen(false)
@@ -87,7 +98,7 @@ export function EntitySelector<T>({
 
   const filteredItems = React.useMemo(() => {
     if (onSearchChange) return items
-    
+
     const query = search.toLowerCase().trim()
     if (!query) return items.slice(0, 50)
 
@@ -96,10 +107,10 @@ export function EntitySelector<T>({
         const label = getItemLabel(item).toLowerCase()
         const desc = getItemDescription ? getItemDescription(item).toLowerCase() : ""
         const secLabel = getItemSecondaryLabel ? getItemSecondaryLabel(item).toLowerCase() : ""
-        
+
         return (
-          label.includes(query) || 
-          desc.includes(query) || 
+          label.includes(query) ||
+          desc.includes(query) ||
           secLabel.includes(query)
         )
       })
@@ -231,13 +242,13 @@ export function EntitySelector<T>({
   if (isMobile) {
     return (
       <div className="w-full relative">
-        <Drawer.Root open={open} onOpenChange={setOpen}>
+        <Drawer.Root open={open} onOpenChange={setOpen} repositionInputs={false}>
           <Drawer.Trigger asChild>
             {finalTrigger}
           </Drawer.Trigger>
           <Drawer.Portal>
             <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
-            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-[10px] bg-card outline-none h-[85vh] max-h-[85vh]">
+            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-[10px] bg-card outline-none h-[85dvh] max-h-[85dvh]">
               <div className="p-4 bg-card rounded-t-[10px] shrink-0 border-b flex flex-col items-center">
                 <div className="mx-auto h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/20 mb-4" />
                 <Drawer.Title className="text-lg font-semibold text-center">{title}</Drawer.Title>

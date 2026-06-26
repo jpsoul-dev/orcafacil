@@ -1,5 +1,6 @@
 import React from 'react'
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
+import Html from 'react-pdf-html'
 import { Quote } from '@/types/quote'
 
 interface QuotePDFProps {
@@ -427,7 +428,18 @@ export function QuotePDF({ quote }: QuotePDFProps) {
             {quote.notes ? (
               <View style={styles.termsBlock}>
                 <Text style={styles.termsLabel}>Termos e Condições</Text>
-                <Text style={styles.termsValue}>{quote.notes}</Text>
+                <Html 
+                  stylesheet={{
+                    p: { fontSize: 8, color: '#4b5563', lineHeight: 1.2, margin: 0, padding: 0 },
+                    strong: { fontWeight: 'bold' },
+                    em: { fontStyle: 'italic' },
+                    ul: { paddingLeft: 10, margin: 0, padding: 0 },
+                    ol: { paddingLeft: 10, margin: 0, padding: 0 },
+                    li: { fontSize: 8, color: '#4b5563', lineHeight: 1.2, margin: 0, padding: 0 },
+                  }}
+                >
+                  {quote.notes}
+                </Html>
               </View>
             ) : null}
           </View>

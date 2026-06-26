@@ -437,9 +437,10 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                       <h4 className="text-ds-caption font-bold text-muted-foreground uppercase tracking-wider mb-1">
                         TERMOS E CONDIÇÕES
                       </h4>
-                      <p className="text-ds-body-sm text-muted-foreground leading-ds-relaxed font-medium">
-                        {quote.notes}
-                      </p>
+                      <div
+                        className="text-ds-body-sm text-muted-foreground leading-ds-relaxed font-medium prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5"
+                        dangerouslySetInnerHTML={{ __html: quote.notes }}
+                      />
                     </div>
                   )}
                 </div>

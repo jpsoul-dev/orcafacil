@@ -24,7 +24,7 @@ import { FormError } from '@/components/ui/form-error'
 import { DatePicker } from '@/components/ui/date-picker'
 import { QuantityInput } from '@/components/ui/quantity-input'
 import { DiscountInput } from '@/components/ui/discount-input'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EntitySelector } from '@/components/ui/entity-selector'
 
@@ -925,10 +925,15 @@ export function QuoteForm({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Textarea
-            id="notes"
-            {...form.register('notes')}
-            className="resize-none min-h-25"
+          <Controller
+            name="notes"
+            control={form.control}
+            render={({ field }) => (
+              <RichTextEditor
+                value={field.value || ''}
+                onChange={field.onChange}
+              />
+            )}
           />
         </CardContent>
       </Card>

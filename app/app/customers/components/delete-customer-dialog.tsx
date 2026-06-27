@@ -13,15 +13,17 @@ import {
 import { Button } from '@/components/ui/button'
 import { checkCustomerRelations, deleteCustomer } from '../actions'
 import { toast } from 'sonner'
-import { Loader2, AlertTriangle } from 'lucide-react'
+import { Loader2, AlertTriangle, Trash } from 'lucide-react'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 
 interface DeleteCustomerDialogProps {
   id: string
   name: string
   trigger?: ReactNode
+  asDropdownItem?: boolean
 }
 
-export function DeleteCustomerDialog({ id, name, trigger }: DeleteCustomerDialogProps) {
+export function DeleteCustomerDialog({ id, name, trigger, asDropdownItem }: DeleteCustomerDialogProps) {
   const [open, setOpen] = useState(false)
   const [checking, setChecking] = useState(false)
   const [hasRelations, setHasRelations] = useState<boolean | null>(null)
@@ -64,7 +66,15 @@ export function DeleteCustomerDialog({ id, name, trigger }: DeleteCustomerDialog
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <div onClick={() => setOpen(true)} style={{ display: 'contents' }}>
-        {trigger || (
+        {trigger ? trigger : asDropdownItem ? (
+          <DropdownMenuItem
+            onSelect={(e) => e.preventDefault()}
+            className="text-destructive focus:text-destructive focus:bg-destructive/10 font-medium cursor-pointer"
+          >
+            <Trash className="h-4 w-4 mr-2" />
+            Excluir
+          </DropdownMenuItem>
+        ) : (
           <Button
             variant="ghost"
             size="icon"
@@ -86,7 +96,7 @@ export function DeleteCustomerDialog({ id, name, trigger }: DeleteCustomerDialog
               'Confirmar Exclusão'
             )}
           </AlertDialogTitle>
-          
+
           <AlertDialogDescription className="text-muted-foreground text-sm font-medium leading-relaxed mt-2">
             {checking && (
               <span className="flex items-center gap-2 py-3 justify-center text-sm font-medium text-slate-400">
@@ -97,16 +107,16 @@ export function DeleteCustomerDialog({ id, name, trigger }: DeleteCustomerDialog
 
             {!checking && hasRelations === true && (
               <span className="block mt-2 bg-red-50 border border-red-100 rounded-xl p-4 text-red-700 text-xs">
-                O cliente <strong>{name}</strong> possui orçamentos ou recibos associados ativos no sistema. 
+                O cliente <strong>{name}</strong> possui orçamentos ou recibos associados ativos no sistema.
                 <br /><br />
-                Para garantir a integridade dos dados e o histórico financeiro, a exclusão deste cliente <strong>não é permitida</strong>. 
+                Para garantir a integridade dos dados e o histórico financeiro, a exclusão deste cliente <strong>não é permitida</strong>.
                 Cancele ou remova os documentos vinculados primeiro.
               </span>
             )}
 
             {!checking && hasRelations === false && (
               <span className="block mt-2">
-                Tem certeza de que deseja excluir permanentemente o cliente <strong>{name}</strong>? 
+                Tem certeza de que deseja excluir permanentemente o cliente <strong>{name}</strong>?
                 Esta ação não pode ser desfeita e removerá todos os dados cadastrais associados.
               </span>
             )}

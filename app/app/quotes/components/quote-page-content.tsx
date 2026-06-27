@@ -93,12 +93,6 @@ export async function QuotePageContent({
 
   return (
     <div className="max-w-5xl w-full space-y-4 md:space-y-6 mx-auto pb-32 md:pb-6">
-      <div className="pt-2 md:pt-0 max-sm:hidden">
-        <h2 className="text-ds-heading-md md:text-ds-heading-lg font-bold tracking-tight text-foreground">
-          {title}
-        </h2>
-        <p className="text-muted-foreground text-ds-body-sm font-medium mt-1">{description}</p>
-      </div>
       <QuoteForm
         customers={customers || []}
         catalogItems={catalogItems || []}

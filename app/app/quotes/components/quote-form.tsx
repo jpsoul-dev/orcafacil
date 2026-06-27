@@ -25,6 +25,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { QuantityInput } from '@/components/ui/quantity-input'
 import { DiscountInput } from '@/components/ui/discount-input'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { BackButton } from '@/components/ui/back-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EntitySelector } from '@/components/ui/entity-selector'
 
@@ -42,6 +43,7 @@ import {
   FileSignature,
   ChevronLeft,
   PackagePlus,
+  Check,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
@@ -155,6 +157,7 @@ export function QuoteForm({
   const router = useRouter()
   const isMobile = useMediaQuery('(max-width: 640px)')
   const [loading, setLoading] = useState(false)
+  const [successStatus, setSuccessStatus] = useState<'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'expired' | null>(null)
   const [openDiscountModal, setOpenDiscountModal] = useState(false)
 
   const defaultValidDate = new Date()
@@ -334,7 +337,6 @@ export function QuoteForm({
     const isValid = await form.trigger()
     if (!isValid) {
       triggerVibration([30, 80, 30]) // vibração dupla para erro de validação
-      toast.error('Preencha todos os campos obrigatórios corretamente.')
       return
     }
 
@@ -373,16 +375,15 @@ export function QuoteForm({
     if (result.error) {
       toast.error(result.error)
     } else {
-      toast.success(
-        status === 'draft'
-          ? 'Rascunho salvo com sucesso!'
-          : 'Orçamento concluído com sucesso!',
-      )
-      if (status === 'draft') {
-        router.push('/app/quotes')
-      } else {
-        router.push(`/app/quotes/${result.id}`)
-      }
+      setSuccessStatus(status)
+      triggerVibration(50)
+      setTimeout(() => {
+        if (status === 'draft') {
+          router.push('/app/quotes')
+        } else {
+          router.push(`/app/quotes/${result.id}`)
+        }
+      }, 600)
     }
   }
 
@@ -403,17 +404,63 @@ export function QuoteForm({
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-ds-body-md font-bold text-foreground">
+        <h1 className="text-ds-body-md font-bold text-foreground font-display">
           {pageTitle}
         </h1>
         <button
           type="button"
-          disabled={loading}
+          disabled={loading || successStatus !== null}
           onClick={() => handleSave('pending')}
-          className="text-ds-body-sm font-bold text-primary active:opacity-60 cursor-pointer disabled:opacity-40"
+          className={cn("text-ds-body-sm font-bold active:opacity-60 cursor-pointer disabled:opacity-40 transition-colors duration-ds-fast flex items-center justify-center",
+            successStatus === 'pending' ? "text-success" : "text-primary"
+          )}
         >
-          {loading ? '...' : mode === 'edit' ? 'Salvar' : 'Gerar'}
+          {loading ? '...' : successStatus === 'pending' ? <Check className="h-5 w-5" /> : mode === 'edit' ? 'Salvar' : 'Gerar'}
         </button>
+      </div>
+
+      {/* Header Desktop */}
+      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-4 -mt-4 mb-4">
+        <div className="flex items-center gap-4">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">
+              {pageTitle}
+            </h1>
+            <p className="text-muted-foreground text-ds-body-sm font-medium mt-0.5">
+              {mode === 'edit' ? 'Altere os dados abaixo e conclua ou salve novamente como rascunho.' : mode === 'clone' ? 'Ajuste os dados do orçamento clonado abaixo.' : 'Preencha os dados abaixo para gerar um orçamento.'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            disabled={loading || successStatus !== null}
+            variant="outline"
+            onClick={() => handleSave('draft')}
+            className={cn("px-6 font-semibold transition-all duration-ds-fast cursor-pointer",
+              successStatus === 'draft' && "bg-success/10 text-success border-success hover:bg-success/20 hover:text-success"
+            )}
+          >
+            {successStatus === 'draft' ? <><Check className="mr-2 h-4 w-4" /> Salvo</> : 'Salvar Rascunho'}
+          </Button>
+          <Button
+            type="button"
+            disabled={loading || successStatus !== null}
+            onClick={() => handleSave('pending')}
+            className={cn("px-6 font-semibold text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm",
+              successStatus === 'pending' ? "bg-success hover:bg-success" : "bg-primary"
+            )}
+          >
+            {loading
+              ? 'Processando...'
+              : successStatus === 'pending'
+                ? <><Check className="mr-2 h-4 w-4" /> Concluído</>
+                : mode === 'edit'
+                  ? 'Salvar Alterações'
+                  : 'Gerar Orçamento'}
+          </Button>
+        </div>
       </div>
 
       <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x">
@@ -938,36 +985,34 @@ export function QuoteForm({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-border w-full max-sm:py-4">
+      {/* Botões de Ação Inferiores (Apenas Mobile) */}
+      <div className="flex sm:hidden flex-col-reverse items-stretch justify-end gap-3 pt-6 border-t border-border w-full max-sm:py-4">
         <Button
           type="button"
-          disabled={loading}
-          variant="ghost"
-          onClick={() => router.back()}
-          className="px-6 w-full sm:w-auto font-semibold text-muted-foreground transition-all duration-ds-fast cursor-pointer max-sm:hidden"
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="button"
-          disabled={loading}
+          disabled={loading || successStatus !== null}
           variant="outline"
           onClick={() => handleSave('draft')}
-          className="px-6 w-full sm:w-auto font-semibold transition-all duration-ds-fast cursor-pointer"
+          className={cn("px-6 w-full font-semibold transition-all duration-ds-fast cursor-pointer",
+            successStatus === 'draft' && "bg-success/10 text-success border-success hover:bg-success/20 hover:text-success"
+          )}
         >
-          Salvar Rascunho
+          {successStatus === 'draft' ? <><Check className="mr-2 h-4 w-4" /> Salvo</> : 'Salvar Rascunho'}
         </Button>
         <Button
           type="button"
-          disabled={loading}
+          disabled={loading || successStatus !== null}
           onClick={() => handleSave('pending')}
-          className="px-6 w-full sm:w-auto font-semibold bg-primary text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm"
+          className={cn("px-6 w-full font-semibold text-primary-foreground transition-all duration-ds-fast cursor-pointer shadow-sm",
+            successStatus === 'pending' ? "bg-success hover:bg-success" : "bg-primary"
+          )}
         >
           {loading
             ? 'Processando...'
-            : mode === 'edit'
-              ? 'Salvar Alterações'
-              : 'Gerar Orçamento'}
+            : successStatus === 'pending'
+              ? <><Check className="mr-2 h-4 w-4" /> Concluído</>
+              : mode === 'edit'
+                ? 'Salvar Alterações'
+                : 'Gerar Orçamento'}
         </Button>
       </div>
     </div>

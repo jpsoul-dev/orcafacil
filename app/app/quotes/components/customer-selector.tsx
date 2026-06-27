@@ -4,7 +4,7 @@ import { UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormError } from '@/components/ui/form-error'
 import { EntitySelector } from '@/components/ui/entity-selector'
-import { CustomerForm } from '@/app/app/customers/customer-form'
+import Link from 'next/link'
 import type { Customer } from '@/lib/services/customer-service'
 
 interface CustomerSelectorProps {
@@ -36,18 +36,16 @@ export function CustomerSelector({
         emptyStateText="Nenhum cliente encontrado"
         error={!!error}
         renderCreateAction={() => (
-          <CustomerForm
-            trigger={
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-11 w-full text-sm font-semibold border-input rounded-sm flex items-center justify-center"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Cadastrar novo cliente
-              </Button>
-            }
-          />
+          <Link href="/app/customers/new" target="_blank">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-11 w-full text-sm font-semibold border-input rounded-sm flex items-center justify-center cursor-pointer"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Cadastrar novo cliente
+            </Button>
+          </Link>
         )}
       />
 

@@ -66,7 +66,7 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
       icon: Package,
     },
     {
-      title: "Meu Negócio",
+      title: "Configurações",
       url: "/app/settings",
       icon: Settings,
     },

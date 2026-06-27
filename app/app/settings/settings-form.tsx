@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm, Controller, Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -13,7 +13,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
-import { ImageIcon, Building2, MapPin, Loader2, Upload, Search, FileText } from 'lucide-react'
+import { ImageIcon, Building2, MapPin, Loader2, Upload, Search, FileText, Palette, Sun, Moon, Check } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
+import { useTheme } from 'next-themes'
 import {
   Select,
   SelectContent,
@@ -62,7 +65,11 @@ export interface Company {
 }
 
 export function SettingsForm({ initialData }: { initialData: Company | null }) {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const [loading, setLoading] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
   const lastSearchedCep = useRef<string>('')
 
@@ -159,7 +166,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
         formData.append(key, value || '')
       }
     })
-    
+
     if (logoFile) {
       formData.append('logo', logoFile)
     }
@@ -172,8 +179,10 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
     if (result.error) {
       toast.error(result.error)
     } else {
+      setSaved(true)
       toast.success('Configurações salvas!')
       setLogoFile(null)
+      setTimeout(() => setSaved(false), 2000)
     }
   }
 
@@ -211,422 +220,467 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
   }
 
   return (
-    <div className="max-w-[720px] mx-auto w-full">
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Card Logotipo */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-3 pt-5 px-6">
-            <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
-              <ImageIcon className="h-4 w-4" />
-              Logotipo da Empresa
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-5 flex flex-col md:flex-row items-center gap-6">
-            {/* Visualizador da Logo */}
-            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-md border border-border bg-muted overflow-hidden shadow-sm">
-              {logoPreview ? (
-                <Image
-                  src={logoPreview}
-                  alt="Logo do Negócio"
-                  fill
-                  className="object-contain p-2"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-center p-2">
-                  <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Sem Logo</span>
+    <div className="max-w-180 mx-auto w-full">
+      <Tabs defaultValue="business" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="business">Meu Negócio</TabsTrigger>
+          <TabsTrigger value="preferences">Preferências</TabsTrigger>
+        </TabsList>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <TabsContent value="business" className="space-y-6 mt-0 border-0 p-0 focus-visible:outline-none">
+            {/* Card Logotipo */}
+            <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x shadow-sm">
+              <CardHeader className="pb-3 pt-5 px-6">
+                <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
+                  <ImageIcon className="h-4 w-4" />
+                  Logotipo da Empresa
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pb-5 flex flex-col md:flex-row items-center gap-6">
+                {/* Visualizador da Logo */}
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-md border border-border bg-muted overflow-hidden shadow-sm">
+                  {logoPreview ? (
+                    <Image
+                      src={logoPreview}
+                      alt="Logo do Negócio"
+                      fill
+                      className="object-contain p-2"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-2">
+                      <Building2 className="h-8 w-8 text-muted-foreground/60 mb-1" />
+                      <span className="text-[10px] text-muted-foreground font-medium">Sem Logo</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Zona de Drop/Click para Upload */}
-            <div className="flex-1 w-full">
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={triggerFileInput}
+                {/* Zona de Drop/Click para Upload */}
+                <div className="flex-1 w-full">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={triggerFileInput}
+                    className={cn(
+                      "border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-ds-fast",
+                      isDragOver
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/50 bg-card hover:bg-muted/30"
+                    )}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
+                      className="hidden"
+                    />
+                    <Upload className={cn("h-6 w-6 mb-2 text-muted-foreground transition-transform duration-ds-fast", isDragOver && "scale-110 text-primary")} />
+                    <p className="text-ds-body-sm font-bold text-foreground">
+                      Arraste seu logotipo aqui ou clique para selecionar
+                    </p>
+                    <p className="text-ds-caption text-muted-foreground mt-1 font-medium">
+                      PNG, JPG, WEBP ou SVG (Máx. 2MB)
+                    </p>
+                  </div>
+
+                  {logoPreview && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveLogo}
+                      className="mt-2 text-destructive hover:text-destructive hover:bg-destructive/10 text-xs font-semibold rounded-sm h-8"
+                    >
+                      Remover logotipo
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card Dados da Empresa */}
+            <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x shadow-sm">
+              <CardHeader className="pb-3 pt-5 px-6">
+                <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
+                  <Building2 className="h-4 w-4" />
+                  Informações do Negócio
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pb-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Nome do negócio *
+                    </Label>
+                    <Input
+                      id="name"
+                      {...form.register('name')}
+
+                    />
+                    {form.formState.errors.name && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.name.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Telefone
+                    </Label>
+                    <Controller
+                      name="phone"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Input
+                          id="phone"
+                          {...field}
+                          onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                          placeholder="(00) 00000-0000"
+
+                          maxLength={15}
+                        />
+                      )}
+                    />
+                    {form.formState.errors.phone && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.phone.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="whatsapp" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      WhatsApp
+                    </Label>
+                    <Controller
+                      name="whatsapp"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Input
+                          id="whatsapp"
+                          {...field}
+                          onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                          placeholder="(00) 00000-0000"
+
+                          maxLength={15}
+                        />
+                      )}
+                    />
+                    {form.formState.errors.whatsapp && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.whatsapp.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cnpj" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      CPF/CNPJ
+                    </Label>
+                    <Controller
+                      name="cnpj"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Input
+                          id="cnpj"
+                          {...field}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '')
+                            let masked = e.target.value
+                            if (val.length <= 11)
+                              masked = maskCPF(e.target.value)
+                            else masked = maskCNPJ(e.target.value)
+                            field.onChange(masked)
+                          }}
+
+                          maxLength={18}
+                        />
+                      )}
+                    />
+                    {form.formState.errors.cnpj && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.cnpj.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      E-mail
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...form.register('email')}
+
+                    />
+                    {form.formState.errors.email && (
+                      <p className="text-xs text-destructive">
+                        {form.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card Endereço */}
+            <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x shadow-sm">
+              <CardHeader className="pb-3 pt-5 px-6">
+                <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
+                  <MapPin className="h-4 w-4" />
+                  Endereço
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pb-5">
+                <div className="grid grid-cols-12 gap-4">
+                  <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                    <Label htmlFor="address_zip" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      CEP
+                    </Label>
+                    <div className="relative">
+                      <Controller
+                        name="address_zip"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Input
+                            id="address_zip"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(maskCEP(e.target.value))
+                            }
+                            onBlur={handleSearchCEP}
+                            placeholder="00000-000"
+                            className="pr-8"
+                            maxLength={9}
+                          />
+                        )}
+                      />
+                      {searchingCEP ? (
+                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                      ) : (
+                        <Search
+                          onClick={handleSearchCEP}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="col-span-12 sm:col-span-8 space-y-1.5">
+                    <Label htmlFor="address_street" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Logradouro
+                    </Label>
+                    <Input
+                      id="address_street"
+                      {...form.register('address_street')}
+
+                      placeholder="Rua, Av., etc."
+                    />
+                  </div>
+
+                  <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                    <Label htmlFor="address_number" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Número
+                    </Label>
+                    <Input
+                      id="address_number"
+                      {...form.register('address_number')}
+                      placeholder="123"
+
+                    />
+                  </div>
+
+                  <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                    <Label
+                      htmlFor="address_complement"
+                      className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                    >
+                      Complemento
+                    </Label>
+                    <Input
+                      id="address_complement"
+                      {...form.register('address_complement')}
+                      placeholder="Apto, sala, etc."
+
+                    />
+                  </div>
+
+                  <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                    <Label
+                      htmlFor="address_neighborhood"
+                      className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                    >
+                      Bairro
+                    </Label>
+                    <Input
+                      id="address_neighborhood"
+                      {...form.register('address_neighborhood')}
+                      placeholder="Bairro"
+
+                    />
+                  </div>
+
+                  <div className="col-span-12 sm:col-span-8 space-y-1.5">
+                    <Label htmlFor="address_city" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Cidade
+                    </Label>
+                    <Input
+                      id="address_city"
+                      {...form.register('address_city')}
+                      placeholder="Cidade"
+
+                    />
+                  </div>
+
+                  <div className="col-span-12 sm:col-span-4 space-y-1.5">
+                    <Label htmlFor="address_state" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Estado
+                    </Label>
+                    <Select
+                      onValueChange={(val) =>
+                        form.setValue('address_state', val || undefined)
+                      }
+                      value={form.watch('address_state') ?? undefined}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          'AC',
+                          'AL',
+                          'AP',
+                          'AM',
+                          'BA',
+                          'CE',
+                          'DF',
+                          'ES',
+                          'GO',
+                          'MA',
+                          'MT',
+                          'MS',
+                          'MG',
+                          'PA',
+                          'PB',
+                          'PR',
+                          'PE',
+                          'PI',
+                          'RJ',
+                          'RN',
+                          'RS',
+                          'RO',
+                          'RR',
+                          'SC',
+                          'SP',
+                          'SE',
+                          'TO',
+                        ].map((uf) => (
+                          <SelectItem key={uf} value={uf}>
+                            {uf}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end mt-6">
+              <Button
+                type="submit"
+                disabled={loading || saved}
                 className={cn(
-                  "border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-ds-fast",
-                  isDragOver
-                    ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border hover:border-primary/50 bg-card hover:bg-muted/30"
+                  "px-8 gap-2 w-full sm:w-auto transition-colors duration-ds-fast",
+                  saved ? "bg-success text-success-foreground hover:bg-success/90" : ""
                 )}
               >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
-                  className="hidden"
-                />
-                <Upload className={cn("h-6 w-6 mb-2 text-muted-foreground transition-transform duration-ds-fast", isDragOver && "scale-110 text-primary")} />
-                <p className="text-ds-body-sm font-bold text-foreground">
-                  Arraste seu logotipo aqui ou clique para selecionar
-                </p>
-                <p className="text-ds-caption text-muted-foreground mt-1 font-medium">
-                  PNG, JPG, WEBP ou SVG (Máx. 2MB)
-                </p>
-              </div>
-              
-              {logoPreview && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRemoveLogo}
-                  className="mt-2 text-destructive hover:text-destructive hover:bg-destructive/10 text-xs font-semibold rounded-sm h-8"
-                >
-                  Remover logotipo
-                </Button>
-              )}
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    Salvando...
+                  </>
+                ) : saved ? (
+                  <>
+                    <Check className="h-5 w-5 mr-1" />
+                    Salvo
+                  </>
+                ) : (
+                  'Salvar Configurações'
+                )}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Card Dados da Empresa */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-3 pt-5 px-6">
-            <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
-              <Building2 className="h-4 w-4" />
-              Informações do Negócio
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Nome do negócio *
-                </Label>
-                <Input
-                  id="name"
-                  {...form.register('name')}
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                />
-                {form.formState.errors.name && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.name.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Telefone
-                </Label>
-                <Controller
-                  name="phone"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Input
-                      id="phone"
-                      {...field}
-                      onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                      placeholder="(00) 00000-0000"
-                      className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                      maxLength={15}
+          <TabsContent value="preferences" className="space-y-6 mt-0 border-0 p-0 focus-visible:outline-none">
+            {/* Card Preferências do Orçamento */}
+            <Card className="-mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border-x shadow-sm">
+              <CardHeader className="pb-3 pt-5 px-6">
+                <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
+                  <FileText className="h-4 w-4" />
+                  Preferências dos Orçamentos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pb-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="show_quote_number"
+                        className="font-bold text-ds-body-sm text-foreground cursor-pointer select-none"
+                      >
+                        Exibir número do orçamento nos documentos
+                      </Label>
+                      <p className="text-ds-caption text-muted-foreground font-medium">
+                        Quando ativado, os orçamentos gerados e visualizados exibirão o número de controle sequencial (ex: N° 1024).
+                      </p>
+                    </div>
+                    <Controller
+                      name="show_quote_number"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Switch
+                          id="show_quote_number"
+                          checked={field.value ?? true}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked)
+                            const currentData = form.getValues()
+                            currentData.show_quote_number = checked
+                            onSubmit(currentData)
+                          }}
+                        />
+                      )}
                     />
-                  )}
-                />
-                {form.formState.errors.phone && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.phone.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="whatsapp" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  WhatsApp
-                </Label>
-                <Controller
-                  name="whatsapp"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Input
-                      id="whatsapp"
-                      {...field}
-                      onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                      placeholder="(00) 00000-0000"
-                      className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                      maxLength={15}
-                    />
-                  )}
-                />
-                {form.formState.errors.whatsapp && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.whatsapp.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="cnpj" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  CPF/CNPJ
-                </Label>
-                <Controller
-                  name="cnpj"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Input
-                      id="cnpj"
-                      {...field}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '')
-                        let masked = e.target.value
-                        if (val.length <= 11)
-                          masked = maskCPF(e.target.value)
-                        else masked = maskCNPJ(e.target.value)
-                        field.onChange(masked)
-                      }}
-                      className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                      maxLength={18}
-                    />
-                  )}
-                />
-                {form.formState.errors.cnpj && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.cnpj.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  E-mail
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...form.register('email')}
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.email.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  </div>
 
-        {/* Card Endereço */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-3 pt-5 px-6">
-            <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
-              <MapPin className="h-4 w-4" />
-              Endereço
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-5">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                <Label htmlFor="address_zip" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  CEP
-                </Label>
-                <div className="relative">
-                  <Controller
-                    name="address_zip"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Input
-                        id="address_zip"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(maskCEP(e.target.value))
-                        }
-                        onBlur={handleSearchCEP}
-                        placeholder="00000-000"
-                        className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast pr-8"
-                        maxLength={9}
-                      />
+                  <div className="flex items-center justify-between gap-3 pt-4 border-t border-border mt-4">
+                    <div className="space-y-1">
+                      <Label className="font-bold text-ds-body-sm text-foreground flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
+                        <Palette className="h-4 w-4" />
+                        Tema do Sistema
+                      </Label>
+                      <p className="text-ds-caption text-muted-foreground font-medium">
+                        Alternar entre tema Claro e Escuro.
+                      </p>
+                    </div>
+                    {mounted && (
+                      <div className="flex items-center gap-2">
+                        <Sun className="h-4 w-4 text-muted-foreground" />
+                        <Switch
+                          checked={theme === 'dark'}
+                          onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                          aria-label="Alternar modo escuro"
+                        />
+                        <Moon className="h-4 w-4 text-muted-foreground" />
+                      </div>
                     )}
-                  />
-                  {searchingCEP ? (
-                    <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  ) : (
-                    <Search
-                      onClick={handleSearchCEP}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-                    />
-                  )}
+                  </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="col-span-12 sm:col-span-8 space-y-1.5">
-                <Label htmlFor="address_street" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Logradouro
-                </Label>
-                <Input
-                  id="address_street"
-                  {...form.register('address_street')}
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                  placeholder="Rua, Av., etc."
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                <Label htmlFor="address_number" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Número
-                </Label>
-                <Input
-                  id="address_number"
-                  {...form.register('address_number')}
-                  placeholder="123"
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                <Label
-                  htmlFor="address_complement"
-                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-                >
-                  Complemento
-                </Label>
-                <Input
-                  id="address_complement"
-                  {...form.register('address_complement')}
-                  placeholder="Apto, sala, etc."
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                <Label
-                  htmlFor="address_neighborhood"
-                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-                >
-                  Bairro
-                </Label>
-                <Input
-                  id="address_neighborhood"
-                  {...form.register('address_neighborhood')}
-                  placeholder="Bairro"
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-8 space-y-1.5">
-                <Label htmlFor="address_city" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Cidade
-                </Label>
-                <Input
-                  id="address_city"
-                  {...form.register('address_city')}
-                  placeholder="Cidade"
-                  className="h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-4 space-y-1.5">
-                <Label htmlFor="address_state" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Estado
-                </Label>
-                <Select
-                  onValueChange={(val) =>
-                    form.setValue('address_state', val || undefined)
-                  }
-                  value={form.watch('address_state') ?? undefined}
-                >
-                  <SelectTrigger className="h-10 rounded-sm border-border bg-card text-ds-body-md focus:ring-ring text-foreground transition-all duration-ds-fast">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      'AC',
-                      'AL',
-                      'AP',
-                      'AM',
-                      'BA',
-                      'CE',
-                      'DF',
-                      'ES',
-                      'GO',
-                      'MA',
-                      'MT',
-                      'MS',
-                      'MG',
-                      'PA',
-                      'PB',
-                      'PR',
-                      'PE',
-                      'PI',
-                      'RJ',
-                      'RN',
-                      'RS',
-                      'RO',
-                      'RR',
-                      'SC',
-                      'SP',
-                      'SE',
-                      'TO',
-                    ].map((uf) => (
-                      <SelectItem key={uf} value={uf}>
-                        {uf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card Preferências do Orçamento */}
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-3 pt-5 px-6">
-            <CardTitle className="text-ds-body-sm font-semibold text-muted-foreground flex items-center gap-2 uppercase tracking-wider">
-              <FileText className="h-4 w-4" />
-              Preferências dos Orçamentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-5">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Controller
-                  name="show_quote_number"
-                  control={form.control}
-                  render={({ field }) => (
-                    <input
-                      type="checkbox"
-                      id="show_quote_number"
-                      checked={field.value ?? true}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      className="rounded-sm border-border text-primary focus:ring-ring h-4 w-4 mt-0.5 cursor-pointer accent-primary"
-                    />
-                  )}
-                />
-                <div className="space-y-1">
-                  <Label
-                    htmlFor="show_quote_number"
-                    className="font-bold text-ds-body-sm text-foreground cursor-pointer select-none"
-                  >
-                    Exibir número do orçamento nos documentos
-                  </Label>
-                  <p className="text-ds-caption text-muted-foreground font-medium">
-                    Quando ativado, os orçamentos gerados e visualizados exibirão o número de controle sequencial (ex: N° 1024).
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={loading}
-            className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] px-8 h-10 gap-2"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                Salvando...
-              </>
-            ) : (
-              'Salvar Configurações'
-            )}
-          </Button>
-        </div>
-      </form>
+          </TabsContent>
+        </form>
+      </Tabs>
     </div>
   )
 }

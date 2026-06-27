@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { SettingsForm } from './settings-form'
-import { Settings } from 'lucide-react'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -21,16 +20,11 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-          <Settings className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Meu negócio</h2>
-          <p className="text-muted-foreground text-sm">
-            Atualize os dados do seu negócio.
-          </p>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Configurações</h2>
+        <p className="text-muted-foreground text-sm">
+          Gerencie sua conta e configurações do sistema.
+        </p>
       </div>
       <SettingsForm initialData={company} />
     </div>

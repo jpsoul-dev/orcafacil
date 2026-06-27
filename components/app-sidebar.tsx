@@ -42,7 +42,7 @@ const mainItems = [
 ]
 
 const configItems = [
-  { title: "Meu negócio", url: "/app/settings", icon: Settings },
+  { title: "Configurações", url: "/app/settings", icon: Settings },
 ]
 
 function isActive(pathname: string, url: string, exact?: boolean) {

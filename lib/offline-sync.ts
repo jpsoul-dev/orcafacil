@@ -1,11 +1,12 @@
 import { saveCustomer } from '@/app/app/customers/actions'
 import { toast } from 'sonner'
 import { triggerHaptic } from './haptic'
+import type { CustomerInput } from '@/lib/services/customer-service'
 
 export interface OfflineAction {
   type: 'SAVE_CUSTOMER'
   payload: {
-    data: any
+    data: CustomerInput
     id?: string
   }
   timestamp: number

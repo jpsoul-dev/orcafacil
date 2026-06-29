@@ -17,14 +17,31 @@ export type CustomerServiceResult<T> =
   | { success: true; data: T; error?: never }
   | { success: false; error: string; data?: never }
 
+export interface CustomerQuote {
+  id: string
+  quote_number: number
+  title: string | null
+  total: number
+  valid_until: string | null
+  created_at: string
+  status: string
+}
+
+export interface CustomerReceipt {
+  id: string
+  receipt_number: string
+  title: string | null
+  amount: number
+  payment_method: string | null
+  issued_at: string
+  quote_id: string | null
+}
+
 /**
  * Service to handle customer operations.
  * Operações com o banco de dados são isoladas aqui seguindo o Princípio I (SRP) da Constituição.
  */
 export class CustomerService {
-  /**
-   * Obtém a lista de clientes ordenada por nome para o usuário autenticado.
-   */
   static async getCustomers(userId: string): Promise<CustomerServiceResult<Customer[]>> {
     try {
       const supabase = await createClient()
@@ -42,6 +59,76 @@ export class CustomerService {
       return { success: true, data: data as Customer[] }
     } catch (error) {
       logger.error('CRITICAL: CustomerService.getCustomers critical error:', error)
+      return { success: false, error: 'Erro inesperado ao processar a listagem de clientes.' }
+    }
+  }
+
+  /**
+   * Obtém a lista de clientes com paginação, filtros e busca no servidor.
+   */
+  static async getCustomersPaged(options: {
+    userId: string
+    page?: number
+    size?: number
+    limit?: number
+    search?: string
+    sort?: string
+  }): Promise<CustomerServiceResult<{ customers: Customer[]; count: number }>> {
+    try {
+      const { userId, page = 0, size = 10, limit, search, sort = 'az' } = options
+      const supabase = await createClient()
+
+      let query = supabase
+        .from('customers')
+        .select('*', { count: 'exact' })
+        .eq('user_id', userId)
+
+      // Filtro de Busca Textual
+      if (search) {
+        query = query.or(
+          `name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%,document.ilike.%${search}%`
+        )
+      }
+
+      // Ordenação
+      if (sort === 'za') {
+        query = query.order('name', { ascending: false })
+      } else if (sort === 'newest') {
+        query = query.order('created_at', { ascending: false })
+      } else if (sort === 'oldest') {
+        query = query.order('created_at', { ascending: true })
+      } else {
+        // az
+        query = query.order('name', { ascending: true })
+      }
+
+      // Paginação e Limites
+      let start = page * size
+      let end = start + size - 1
+
+      if (limit && limit > 0) {
+        start = 0
+        end = limit - 1
+      }
+
+      query = query.range(start, end)
+
+      const { data, error, count } = await query
+
+      if (error) {
+        logger.error('CustomerService.getCustomersPaged failed:', error)
+        return { success: false, error: 'Falha ao buscar a lista de clientes.' }
+      }
+
+      return {
+        success: true,
+        data: {
+          customers: (data as Customer[]) || [],
+          count: count || 0,
+        },
+      }
+    } catch (error) {
+      logger.error('CRITICAL: CustomerService.getCustomersPaged critical error:', error)
       return { success: false, error: 'Erro inesperado ao processar a listagem de clientes.' }
     }
   }
@@ -217,7 +304,7 @@ export class CustomerService {
   /**
    * Busca o histórico de orçamentos de um cliente específico.
    */
-  static async getCustomerQuotes(customerId: string, userId: string): Promise<CustomerServiceResult<any[]>> {
+  static async getCustomerQuotes(customerId: string, userId: string): Promise<CustomerServiceResult<CustomerQuote[]>> {
     try {
       const supabase = await createClient()
       const { data, error } = await supabase
@@ -232,7 +319,18 @@ export class CustomerService {
         return { success: false, error: 'Erro ao carregar orçamentos.' }
       }
 
-      return { success: true, data: data || [] }
+      // Converte tipos nulos do banco para garantir compatibilidade com a interface
+      const mappedQuotes: CustomerQuote[] = (data || []).map((q) => ({
+        id: q.id || '',
+        quote_number: q.quote_number || 0,
+        title: q.title || null,
+        total: q.total || 0,
+        valid_until: q.valid_until || null,
+        created_at: q.created_at || '',
+        status: q.status || '',
+      }))
+
+      return { success: true, data: mappedQuotes }
     } catch (error) {
       logger.error(`CRITICAL: CustomerService.getCustomerQuotes critical error for id ${customerId}:`, error)
       return { success: false, error: 'Erro inesperado ao obter orçamentos.' }
@@ -242,7 +340,7 @@ export class CustomerService {
   /**
    * Busca o histórico de recibos de um cliente específico.
    */
-  static async getCustomerReceipts(customerId: string, userId: string): Promise<CustomerServiceResult<any[]>> {
+  static async getCustomerReceipts(customerId: string, userId: string): Promise<CustomerServiceResult<CustomerReceipt[]>> {
     try {
       const supabase = await createClient()
       const { data, error } = await supabase
@@ -257,7 +355,18 @@ export class CustomerService {
         return { success: false, error: 'Erro ao carregar recibos.' }
       }
 
-      return { success: true, data: data || [] }
+      // Converte tipos nulos do banco para garantir compatibilidade com a interface
+      const mappedReceipts: CustomerReceipt[] = (data || []).map((r) => ({
+        id: r.id,
+        receipt_number: r.receipt_number,
+        title: r.title || null,
+        amount: r.amount || 0,
+        payment_method: r.payment_method || null,
+        issued_at: r.issued_at,
+        quote_id: r.quote_id || null,
+      }))
+
+      return { success: true, data: mappedReceipts }
     } catch (error) {
       logger.error(`CRITICAL: CustomerService.getCustomerReceipts critical error for id ${customerId}:`, error)
       return { success: false, error: 'Erro inesperado ao obter recibos.' }

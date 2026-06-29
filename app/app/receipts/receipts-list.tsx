@@ -1,31 +1,30 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { DataTable } from '@/components/ui/data-table'
-import { columns, type ReceiptRow } from './columns'
 import { SubscriptionGuard } from '@/components/subscription-guard'
 import { Button } from '@/components/ui/button'
 import { Receipt, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 import { DatePickerWithRange } from '../quotes/components/date-range-picker'
-import { Badge } from '@/components/ui/badge'
 import { DateRange } from 'react-day-picker'
+import { useRouter } from 'next/navigation'
 import {
   startOfMonth,
   endOfMonth,
   isWithinInterval,
-  parseISO,
   endOfDay,
 } from 'date-fns'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { ReceiptCard, type ReceiptRow } from './components/receipt-card'
 
 interface ReceiptsListProps {
   initialReceipts: ReceiptRow[]
 }
 
 export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [typeTab, setTypeTab] = useState<string>('all')
   const [date, setDate] = useState<DateRange | undefined>(() => ({
@@ -98,7 +97,7 @@ export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground">
+          <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground font-display">
             Meus recibos
           </h2>
           <p className="text-muted-foreground text-ds-body-sm font-medium mt-1">
@@ -108,7 +107,7 @@ export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
         <div className="flex items-center gap-2">
           <SubscriptionGuard>
             <Link href="/app/receipts/new">
-              <Button className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]">
+              <Button className="rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
                 <Plus className="mr-1 h-4 w-4" /> Criar Recibo
               </Button>
             </Link>
@@ -166,55 +165,15 @@ export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
 
       {/* Receipts List */}
       {filteredReceipts && filteredReceipts.length > 0 ? (
-        <>
-          {/* Tabela em telas médias/grandes */}
-          <div className="hidden md:block">
-            <DataTable columns={columns} data={filteredReceipts} />
-          </div>
-
-          {/* Cards táteis no Mobile */}
-          <div className="grid grid-cols-1 gap-4 md:hidden">
-            {filteredReceipts.map((receipt) => {
-              const targetUrl = receipt.receipt_type === 'standalone'
-                ? `/app/receipts/${receipt.id}`
-                : `/app/quotes/${receipt.quote_id}/receipt`
-              
-              const amountValue = parseFloat(receipt.amount as any || 0)
-              
-              return (
-                <Link key={receipt.id} href={targetUrl} className="block">
-                  <div className="flex flex-col p-4 rounded-md border border-border bg-card shadow-sm hover:shadow-md transition-all duration-ds-fast cursor-pointer">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-ds-caption font-bold text-muted-foreground uppercase">
-                        {receipt.receipt_number}
-                      </span>
-                      <Badge variant={receipt.receipt_type === 'standalone' ? 'outline' : 'secondary'} className="rounded-sm">
-                        {receipt.receipt_type === 'standalone' ? 'Avulso' : `Orçamento #${receipt.quote_number}`}
-                      </Badge>
-                    </div>
-                    <h3 className="text-ds-body-md font-bold text-foreground truncate mb-1">
-                      {receipt.title || 'Sem título'}
-                    </h3>
-                    <p className="text-ds-body-sm text-muted-foreground truncate mb-3">
-                      Cliente: <span className="text-foreground font-medium">{receipt.customer_name || 'Não informado'}</span>
-                    </p>
-                    <div className="flex items-center justify-between border-t border-border pt-3 mt-auto">
-                      <span className="text-ds-caption text-muted-foreground">
-                        {receipt.issued_at ? (() => {
-                          const [year, month, day] = receipt.issued_at.split('-').map(Number)
-                          return new Date(year, month - 1, day).toLocaleDateString('pt-BR')
-                        })() : '—'}
-                      </span>
-                      <span className="text-ds-body-md font-semibold text-foreground">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amountValue)}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredReceipts.map((receipt) => (
+            <ReceiptCard
+              key={receipt.id}
+              receipt={receipt}
+              onDeleted={() => router.refresh()}
+            />
+          ))}
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-card py-20 text-center shadow-sm">
           <div className="flex h-16 w-16 items-center justify-center rounded-md bg-muted mb-4">

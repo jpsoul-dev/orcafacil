@@ -2,7 +2,6 @@
 
 import { createClient } from '../../lib/supabase/server'
 import { stripe } from '../../lib/stripe'
-import Stripe from 'stripe'
 import { redirect } from 'next/navigation'
 import { logger } from '@/lib/logger'
 

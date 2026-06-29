@@ -34,7 +34,7 @@ export default async function NewStandaloneReceiptPage() {
   }
 
   return (
-    <div className="py-8">
+    <div className="max-w-3xl mx-auto w-full pb-8">
       <StandaloneReceiptForm
         customers={customersResult.data || []}
         catalogItems={catalogResult.data || []}

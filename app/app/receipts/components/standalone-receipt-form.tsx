@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useForm, useFieldArray, useWatch, Controller, type Resolver } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch, Controller, type Resolver, type FieldError } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -39,7 +39,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
 import type { Customer } from '@/lib/services/customer-service'
-import { CatalogItem } from '../../catalog/columns'
+import { CatalogItem } from '../../catalog/catalog-form'
 import { CustomerSelector } from '../../quotes/components/customer-selector'
 import { standaloneReceiptSchema, type StandaloneReceiptInput } from '../../quotes/schemas'
 import { saveStandaloneReceiptAction } from '../../quotes/receipt-actions'
@@ -311,7 +311,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
               </div>
             ) : (
               <div className="pb-4 overflow-x-auto">
-                <table className="w-full text-sm text-left border-collapse min-w-[600px]">
+                <table className="w-full text-sm text-left border-collapse min-w-150">
                   <thead className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                     <tr>
                       <th className="pr-2 pb-3 text-center w-[6%]">Nº</th>
@@ -452,7 +452,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                       onValueChange={setCatalogSearch}
                       className="h-12 border-none focus:ring-0"
                     />
-                    <CommandList className="max-h-[350px] p-2 no-scrollbar">
+                    <CommandList className="max-h-87.5 p-2 no-scrollbar">
                       <CommandEmpty className="py-12 flex flex-col items-center justify-center text-center px-4">
                         <div className="bg-slate-50 p-3 rounded-full mb-3">
                           <Search className="h-6 w-6 text-slate-300" />
@@ -527,9 +527,9 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                 {errors.items.root.message}
               </div>
             )}
-            {errors.items && !Array.isArray(errors.items) && (errors.items as any).message && (
+            {errors.items && !Array.isArray(errors.items) && (errors.items as FieldError).message && (
               <div className="pt-4 text-sm text-red-500 font-semibold">
-                {(errors.items as any).message}
+                {(errors.items as FieldError).message}
               </div>
             )}
           </CardContent>
@@ -552,7 +552,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
                 id="servicesDescription"
                 placeholder="Confirmamos o recebimento dos valores descritos referente aos serviços/produtos..."
                 {...register('servicesDescription')}
-                className="min-h-[120px] resize-none"
+                className="min-h-30 resize-none"
                 aria-invalid={!!errors.servicesDescription}
               />
               <p className="text-xs text-slate-400 font-medium">

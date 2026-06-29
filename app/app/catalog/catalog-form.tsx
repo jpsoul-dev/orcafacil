@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm, Resolver, Controller } from 'react-hook-form'
+import { useForm, Resolver, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -101,7 +101,10 @@ export function CatalogForm({
     }
   }, [open, initialData, form])
 
-  const watchType = form.watch('type')
+  const watchType = useWatch({
+    control: form.control,
+    name: 'type',
+  })
 
   async function onSubmit(data: CatalogValues) {
     setLoading(true)

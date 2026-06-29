@@ -10,11 +10,15 @@ export function CatalogFilter() {
   const currentType = searchParams.get('type') || 'all'
 
   const handleFilter = (type: string) => {
+    const params = new URLSearchParams(searchParams.toString())
     if (type === 'all') {
-      router.push('/app/catalog')
+      params.delete('type')
     } else {
-      router.push(`/app/catalog?type=${type}`)
+      params.set('type', type)
     }
+    params.delete('page')
+    params.delete('limit')
+    router.push(`/app/catalog?${params.toString()}`)
   }
 
   return (

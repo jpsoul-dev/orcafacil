@@ -18,7 +18,7 @@ export function BackButton({ className }: BackButtonProps) {
       variant="outline"
       size="icon"
       onClick={() => router.back()}
-      className={cn('h-10 w-10 rounded-full cursor-pointer shrink-0', className)}
+      className={cn('h-10 w-10 rounded-md cursor-pointer shrink-0', className)}
     >
       <ChevronLeft className="h-4 w-4" />
       <span className="sr-only">Voltar</span>

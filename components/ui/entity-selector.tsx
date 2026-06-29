@@ -122,7 +122,6 @@ export function EntitySelector<T>({
       id={id}
       type="button"
       aria-expanded={open}
-      aria-invalid={error}
       className={cn(
         "h-11 w-full min-w-0 rounded-sm border border-input bg-card px-3 py-2 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] outline-none flex items-center justify-between",
         "hover:bg-card hover:text-foreground cursor-pointer",

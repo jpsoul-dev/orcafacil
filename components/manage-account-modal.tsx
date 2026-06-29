@@ -50,11 +50,8 @@ export function ManageAccountModal({
   onOpenChange,
   user,
   hasPasswordInitial,
-  subscriptionStatus,
-  cancelAt,
-  trialEndsAt,
 }: ManageAccountModalProps) {
-  const [hasPassword, setHasPassword] = useState(hasPasswordInitial)
+  const [, setHasPassword] = useState(hasPasswordInitial)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
   const [isLoadingSub, setIsLoadingSub] = useState(false)
@@ -70,13 +67,12 @@ export function ManageAccountModal({
   } | null>(null)
 
   useEffect(() => {
-    if (!open) {
-      setSubDetails(null)
-      return
-    }
+    if (!open) return
 
     if (activeTab === 'subscription' && !subDetails && !isLoadingSub) {
-      setIsLoadingSub(true)
+      setTimeout(() => {
+        setIsLoadingSub(true)
+      }, 0)
       getActiveSubscriptionDetails()
         .then((data) => {
           if ('error' in data) {
@@ -115,15 +111,23 @@ export function ManageAccountModal({
     startTransition(async () => {
       try {
         await createPortalAction()
-      } catch (err: any) {
-        if (err?.message === 'NEXT_REDIRECT' || err?.message?.includes('NEXT_REDIRECT')) {
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '';
+        if (errorMessage === 'NEXT_REDIRECT' || errorMessage.includes('NEXT_REDIRECT')) {
           return
         }
-        toast.error(err.message || 'Erro ao redirecionar para o portal do cliente.')
+        toast.error(errorMessage || 'Erro ao redirecionar para o portal do cliente.')
       }
     })
   }
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setSubDetails(null)
+      setActiveTab('profile')
+    }
+    onOpenChange(newOpen)
+  }
 
   const form = useForm<PasswordForm>({
     resolver: zodResolver(managePasswordSchema),
@@ -152,7 +156,7 @@ export function ManageAccountModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-5xl w-full p-0 overflow-hidden gap-0">
         <DialogHeader className="p-8 border-b">
           <DialogTitle className="text-2xl font-bold">Conta</DialogTitle>
@@ -165,7 +169,7 @@ export function ManageAccountModal({
           value={activeTab}
           onValueChange={setActiveTab}
           orientation="vertical"
-          className="flex w-full h-[600px]"
+          className="flex w-full h-150"
         >
           <TabsList className="w-64 bg-muted/30 border-r rounded-none p-4 shrink-0 flex flex-col gap-2">
             <TabsTrigger

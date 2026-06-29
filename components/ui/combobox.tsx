@@ -13,13 +13,13 @@ export interface ComboboxProps<T> {
   getItemLabel: (item: T) => string
   getItemDescription?: (item: T) => string
   getItemSecondaryLabel?: (item: T) => string
-  
+
   placeholder?: string
   searchPlaceholder?: string
   emptyStateText?: string
   error?: boolean
   className?: string
-  
+
   // Customização de Ações e Busca
   isLoading?: boolean
   onSearchChange?: (query: string) => void
@@ -74,7 +74,7 @@ export function Combobox<T>({
   // Se houver busca controlada externamente, não filtra localmente
   const filteredItems = React.useMemo(() => {
     if (onSearchChange) return items
-    
+
     const query = search.toLowerCase().trim()
     if (!query) return items.slice(0, 10)
 
@@ -83,10 +83,10 @@ export function Combobox<T>({
         const label = getItemLabel(item).toLowerCase()
         const desc = getItemDescription ? getItemDescription(item).toLowerCase() : ""
         const secLabel = getItemSecondaryLabel ? getItemSecondaryLabel(item).toLowerCase() : ""
-        
+
         return (
-          label.includes(query) || 
-          desc.includes(query) || 
+          label.includes(query) ||
+          desc.includes(query) ||
           secLabel.includes(query)
         )
       })
@@ -103,7 +103,6 @@ export function Combobox<T>({
             <button
               type="button"
               aria-expanded={open}
-              aria-invalid={error}
               className={cn(
                 "h-10 w-full min-w-0 rounded-sm border border-input bg-card px-3 py-2 text-sm text-foreground shadow-xs transition-[border-color,box-shadow] outline-none flex items-center justify-between",
                 "hover:bg-card hover:text-foreground cursor-pointer",
@@ -154,7 +153,7 @@ export function Combobox<T>({
               onValueChange={handleSearchChange}
               className="h-11 border-none focus:ring-0"
             />
-            <CommandList className="max-h-[300px] no-scrollbar p-1">
+            <CommandList className="max-h-75 no-scrollbar p-1">
               {filteredItems.length === 0 && !isLoading && (
                 <CommandEmpty className="py-6 flex flex-col items-center justify-center text-center px-4">
                   <p className="text-sm text-slate-500 mb-3">{emptyStateText}</p>

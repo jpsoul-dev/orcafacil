@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import {
@@ -20,7 +20,7 @@ interface RichTextEditorProps {
   className?: string
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
     return null
   }
@@ -63,7 +63,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <Strikethrough className="h-4 w-4" />
       </Button>
 
-      <div className="w-[1px] h-4 bg-border mx-1" />
+      <div className="w-px h-4 bg-border mx-1" />
 
       <Button
         variant="ghost"
@@ -84,7 +84,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <ListOrdered className="h-4 w-4" />
       </Button>
 
-      <div className="w-[1px] h-4 bg-border mx-1" />
+      <div className="w-px h-4 bg-border mx-1" />
 
       <Button
         variant="ghost"
@@ -136,8 +136,9 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     )}>
       <MenuBar editor={editor} />
       <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
-      
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .is-editor-empty:first-child::before {
           content: attr(data-placeholder);
           float: left;

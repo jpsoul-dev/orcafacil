@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Separator } from '@/components/ui/separator'
 import {
   updateQuoteStatus,
@@ -121,7 +121,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [cancellationReason, setCancellationReason] = useState('')
   const [currentCancellationReason, setCurrentCancellationReason] = useState<string | null>(quote.cancellation_reason || null)
-  const [receiptId, setReceiptId] = useState<string | null>(initialReceiptId || null)
+  const [receiptId] = useState<string | null>(initialReceiptId || null)
 
   const handleConfirmDelete = async () => {
     setIsUpdating(true)
@@ -144,10 +144,12 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
     }
   }
 
-  useEffect(() => {
+  const [prevQuote, setPrevQuote] = useState(quote)
+  if (quote.id !== prevQuote.id || quote.status !== prevQuote.status || quote.cancellation_reason !== prevQuote.cancellation_reason) {
+    setPrevQuote(quote)
     setCurrentStatus(quote.status)
     setCurrentCancellationReason(quote.cancellation_reason || null)
-  }, [quote.status, quote.cancellation_reason])
+  }
 
   const handleStatusChange = async (newStatus: QuoteStatus | null) => {
     if (!newStatus || isUpdating) return
@@ -550,7 +552,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                         </PopoverTitle>
                       </PopoverHeader>
                       <PopoverDescription className="text-ds-body-sm text-foreground italic">
-                        "{currentCancellationReason}"
+                        &quot;{currentCancellationReason}&quot;
                       </PopoverDescription>
                     </PopoverContent>
                   </Popover>

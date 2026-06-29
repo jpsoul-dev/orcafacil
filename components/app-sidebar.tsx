@@ -3,6 +3,7 @@
 import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, ShieldCheck, Receipt } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 
 import {
@@ -89,13 +90,13 @@ export function AppSidebar({
         <Link href="/app" className="flex items-center gap-2.5 group">
           {/* Logo Horizontal (Expandido) */}
           <div className="group-data-[collapsible=icon]:hidden">
-            <img src="/logo-horizontal-claro.svg" alt="OrçaFácil" className="dark:hidden block h-8 w-auto" />
-            <img src="/logo-horizontal-escuro.svg" alt="OrçaFácil" className="hidden dark:block h-8 w-auto" />
+            <Image src="/logo-horizontal-claro.svg" alt="OrçaFácil" width={122} height={32} priority className="dark:hidden block h-8 w-auto" />
+            <Image src="/logo-horizontal-escuro.svg" alt="OrçaFácil" width={122} height={32} priority className="hidden dark:block h-8 w-auto" />
           </div>
           {/* Logo Símbolo (Colapsado) */}
           <div className="hidden group-data-[collapsible=icon]:block">
-            <img src="/logo-simbolo-claro.svg" alt="OrçaFácil" className="dark:hidden block h-7 w-7" />
-            <img src="/logo-simbolo-escuro.svg" alt="OrçaFácil" className="hidden dark:block h-7 w-7" />
+            <Image src="/logo-simbolo-claro.svg" alt="OrçaFácil" width={28} height={28} priority className="dark:hidden block h-7 w-7" />
+            <Image src="/logo-simbolo-escuro.svg" alt="OrçaFácil" width={28} height={28} priority className="hidden dark:block h-7 w-7" />
           </div>
         </Link>
       </SidebarHeader>

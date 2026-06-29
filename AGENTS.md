@@ -9,11 +9,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Padrão de resposta
 1. Responda sempre em português do Brasil.
 
+## Core Principles
+### I. Separação Estrita de Lógicas (SRP & Services Pattern)
+Toda e qualquer regra de negócio, cálculo complexo ou interação direta com o banco de dados (Supabase/PostgreSQL) **DEVE** residir na camada de serviços em `lib/services/`. Componentes de UI (sejam Client ou Server Components) e rotas de API não podem executar lógicas de negócio diretamente, devendo atuar estritamente como orquestradores e consumidores dessa camada de serviços.
+*Razão:* Garante alta testabilidade, reuso de código e conformidade com o princípio de responsabilidade única (SRP), reduzindo o acoplamento no frontend.
 
 ## Princípios Fundamentais (SOLID e DRY)
 
-- Single Responsibility (SRP): Cada arquivo, classe ou função deve ter apenas UM motivo para mudar. Nunca crie "God Classes" ou arquivos com milhares de linhas.
-- Don't Repeat Yourself (DRY): Nunca gere código duplicado. Se uma lógica se repete, abstraia-a para um serviço, hook ou função utilitária.
+- Single Responsibility (SRP): Cada arquivo, hook, componente ou função deve ter APENAS UMA responsabilidade. Nunca crie "God Components" ou arquivos com milhares de linhas.
+- Don't Repeat Yourself (DRY): Nunca gere código duplicado. Sempre que uma lógica, componente ou codigo precisar se repetir, abstraia-a para um serviço, hook, função utilitária, componente ou outro artefato reutilizável.
 - Keep It Simple (KISS): Evite overengineering. Escolha a solução mais simples que resolva o problema com eficiência.
 
 ## Padrões de Arquitetura
@@ -102,8 +106,9 @@ Este arquivo contém as classes e tokens CSS corretos para cada componente, pale
   - Use `<Button variant="default">` para ação primária — no máximo UMA por contexto
   - Use `<QuoteStatusBadge status="..." />` para exibir status de orçamentos/recibos — nunca invente cores ad-hoc
   - Nunca use cores Tailwind arbitrárias para status (`bg-emerald-700`, `bg-indigo-700`, etc.) — use os tokens `--ds-color-status-*`
-  - Nunca escreva hex soltos no código — sempre referencie um token `--ds-*`
+  - Nunca escreva hex soltos no código — sempre referencie um token `--ds-*` ou classe do tailwind `bg-slate-200`
   - Nunca use valores de espaçamento fora da escala do DS (4, 8, 12, 16, 24, 32, 48, 64, 96px)
+  - NUNCA use valores arbitrários (JIT) do Tailwind em colchetes para medidas, como `w-[250px]`, `max-w-[250px]`, `mt-[10px]`, etc. Utilize SEMPRE a escala padrão do Tailwind ou converta os pixels para as unidades correspondentes (ex: 250px = `max-w-62.5`, ou usar as classes nativas de max-width como `max-w-xs`).
   - Antes de criar um novo componente verifique se já não existe um reutilizavel e é possível utiliza-lo
 
 ## Stack Tecnológica

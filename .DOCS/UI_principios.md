@@ -5,3 +5,5 @@
 2. Para dispositivos desktop, prefira o uso de Sheet
 3. Remover o comportamento padrão de pull-to-refresh
 4. cores da barra de status e barra de navegação integrada ao app
+
+Fazer `trim` nos campos de formulário

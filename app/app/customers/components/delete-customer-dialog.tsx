@@ -45,7 +45,11 @@ export function DeleteCustomerDialog({ id, name, trigger, asDropdownItem }: Dele
       }
       verifyRelations()
     } else {
-      setHasRelations(null)
+      // Usar uma microtask ou setTimeout para evitar a chamada síncrona a setState dentro do efeito
+      // que causa cascading renders no compilador do React.
+      setTimeout(() => {
+        setHasRelations(null)
+      }, 0)
     }
   }, [open, id])
 

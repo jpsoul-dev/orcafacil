@@ -57,14 +57,6 @@ export default async function CustomerDetailsPage({
 
   const phoneClean = cleanNumber(customer.phone)
   const whatsappClean = cleanNumber(customer.whatsapp || customer.phone)
-
-  const avatarInitials = customer.name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-
   return (
     <div className="space-y-4 md:space-y-6 w-full max-w-5xl mx-auto animate-in fade-in duration-ds-normal hide-global-header-mobile">
       {/* Header Mobile Nativo (AppBar) */}
@@ -96,7 +88,7 @@ export default async function CustomerDetailsPage({
       </div>
 
       {/* Header Desktop */}
-      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-4 -mt-4 mb-4">
+      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80 py-4 -mt-4 mb-4">
         <BackButton />
 
         {/* Ações Administrativas */}
@@ -160,7 +152,7 @@ export default async function CustomerDetailsPage({
 
             <div className="flex items-center justify-around sm:justify-end gap-2 sm:gap-4 border-t sm:border-t-0 pt-6 sm:pt-0 border-border">
               {whatsappClean && (
-                <a href={`https://wa.me/55${whatsappClean}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1.5 group/btn cursor-pointer min-w-[72px]">
+                <a href={`https://wa.me/55${whatsappClean}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1.5 group/btn cursor-pointer min-w-18">
                   <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#25D366]/10 text-[#25D366] group-hover/btn:bg-[#25D366] group-hover/btn:text-white transition-colors shadow-sm">
                     <MessageSquare className="h-5 w-5" />
                   </div>
@@ -168,7 +160,7 @@ export default async function CustomerDetailsPage({
                 </a>
               )}
               {customer.email && (
-                <a href={`mailto:${customer.email}`} className="flex flex-col items-center gap-1.5 group/btn cursor-pointer min-w-[72px]">
+                <a href={`mailto:${customer.email}`} className="flex flex-col items-center gap-1.5 group/btn cursor-pointer min-w-18">
                   <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary group-hover/btn:bg-primary group-hover/btn:text-primary-foreground transition-colors shadow-sm">
                     <Mail className="h-5 w-5" />
                   </div>
@@ -176,7 +168,7 @@ export default async function CustomerDetailsPage({
                 </a>
               )}
               {phoneClean && (
-                <a href={`tel:${phoneClean}`} className="flex flex-col items-center gap-1.5 group/btn cursor-pointer min-w-[72px]">
+                <a href={`tel:${phoneClean}`} className="flex flex-col items-center gap-1.5 group/btn cursor-pointer min-w-18">
                   <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 text-primary group-hover/btn:bg-primary group-hover/btn:text-primary-foreground transition-colors shadow-sm">
                     <Phone className="h-5 w-5" />
                   </div>
@@ -221,7 +213,7 @@ export default async function CustomerDetailsPage({
                     <Mail className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium">Email</span>
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground truncate ml-4 max-w-[150px] sm:max-w-xs">{customer.email}</span>
+                  <span className="text-sm font-medium text-muted-foreground truncate ml-4 max-w-37.5 sm:max-w-xs">{customer.email}</span>
                 </li>
               )}
               {!customer.whatsapp && !customer.phone && !customer.email && (

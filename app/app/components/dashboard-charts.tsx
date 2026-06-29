@@ -18,8 +18,10 @@ const RevenueBarChart = dynamic(() => import('./revenue-bar-chart').then(mod => 
   loading: () => <Skeleton className="h-75 w-full rounded-2xl border border-border/40 bg-card/50 shadow-sm" />
 })
 
+import { Quote } from '@/types/quote'
+
 interface DashboardChartsProps {
-  quotes: any[]
+  quotes: Quote[]
 }
 
 export function DashboardCharts({ quotes }: DashboardChartsProps) {

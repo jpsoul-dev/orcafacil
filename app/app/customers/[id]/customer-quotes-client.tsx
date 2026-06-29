@@ -5,23 +5,14 @@ import Link from 'next/link'
 import { QuoteStatusBadge } from '@/components/quote-status-badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
-type Quote = {
-  id: string
-  quote_number: number
-  title: string
-  total: number
-  valid_until: string | null
-  created_at: string
-  status: string
-}
+import type { CustomerQuote } from '@/lib/services/customer-service'
 
 const brl = (val: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
     val,
   )
 
-export function CustomerQuotesClient({ quotes }: { quotes: Quote[] }) {
+export function CustomerQuotesClient({ quotes }: { quotes: CustomerQuote[] }) {
   if (!quotes || quotes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center bg-card border border-dashed rounded-xl border-border m-4">
@@ -31,7 +22,7 @@ export function CustomerQuotesClient({ quotes }: { quotes: Quote[] }) {
         <h4 className="font-semibold text-foreground font-display">
           Nenhum orçamento encontrado
         </h4>
-        <p className="text-sm text-muted-foreground mt-1 max-w-[250px]">
+        <p className="text-sm text-muted-foreground mt-1 max-w-62.5">
           Este cliente ainda não possui orçamentos registrados.
         </p>
       </div>

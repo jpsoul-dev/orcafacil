@@ -5,23 +5,14 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
-type ReceiptData = {
-  id: string
-  receipt_number: string
-  title: string | null
-  amount: number | string
-  payment_method: string | null
-  issued_at: string
-  quote_id: string | null
-}
+import type { CustomerReceipt } from '@/lib/services/customer-service'
 
 const brl = (val: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
     val,
   )
 
-export function CustomerReceiptsClient({ receipts }: { receipts: ReceiptData[] }) {
+export function CustomerReceiptsClient({ receipts }: { receipts: CustomerReceipt[] }) {
   if (!receipts || receipts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center bg-card border border-dashed rounded-xl border-border m-4">
@@ -31,7 +22,7 @@ export function CustomerReceiptsClient({ receipts }: { receipts: ReceiptData[] }
         <h4 className="font-semibold text-foreground font-display">
           Nenhum recibo encontrado
         </h4>
-        <p className="text-sm text-muted-foreground mt-1 max-w-[250px]">
+        <p className="text-sm text-muted-foreground mt-1 max-w-62.5">
           Este cliente ainda não possui recibos emitidos.
         </p>
       </div>
@@ -42,7 +33,7 @@ export function CustomerReceiptsClient({ receipts }: { receipts: ReceiptData[] }
     <div className="bg-card">
       <ul className="divide-y divide-border">
         {receipts.map((receipt) => {
-          const price = parseFloat(receipt.amount as string)
+          const price = receipt.amount
           const title = receipt.title || `Recibo #${receipt.receipt_number}`
 
           return (
@@ -56,12 +47,12 @@ export function CustomerReceiptsClient({ receipts }: { receipts: ReceiptData[] }
                     {title}
                   </span>
                   <span className="text-xs font-medium text-muted-foreground tabular-nums">
-                    {receipt.issued_at 
+                    {receipt.issued_at
                       ? format(new Date(receipt.issued_at + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })
                       : '—'}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                   <div className="flex flex-col items-end gap-1">
                     <span className="font-bold text-foreground text-sm tabular-nums">

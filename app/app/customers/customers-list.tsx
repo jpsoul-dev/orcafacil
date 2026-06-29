@@ -1,19 +1,19 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import type { Customer } from '@/lib/services/customer-service'
 import { Button } from '@/components/ui/button'
-import { Search, ChevronLeft, ChevronRight, SlidersHorizontal, Users } from 'lucide-react'
+import { Search, SlidersHorizontal, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
 import { CustomerCard } from './components/customer-card'
 import Link from 'next/link'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { ResponsivePagination } from '@/components/responsive-pagination'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select'
 
 const sortLabels: Record<string, string> = {
@@ -25,66 +25,85 @@ const sortLabels: Record<string, string> = {
 
 interface CustomersListProps {
   initialCustomers: Customer[]
+  totalItems: number
+  filters: {
+    page: number
+    size: number
+    limit: number
+    search: string
+    sort: string
+  }
 }
 
-export function CustomersList({ initialCustomers }: CustomersListProps) {
-  const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState<string>('az')
-  const [pageIndex, setPageIndex] = useState(0)
-  const [pageSize, setPageSize] = useState(10)
+export function CustomersList({
+  initialCustomers,
+  totalItems,
+  filters,
+}: CustomersListProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
-  // Resetar página quando filtros mudarem
-  useEffect(() => {
-    setPageIndex(0)
-  }, [search])
+  // Estado local para a busca de texto rápida (evita lags ao digitar)
+  const [prevSearch, setPrevSearch] = useState(filters.search)
+  const [searchValue, setSearchValue] = useState(filters.search)
 
-  const filteredCustomers = useMemo(() => {
-    return initialCustomers.filter((customer) => {
-      if (search) {
-        const searchLower = search.toLowerCase()
-        const name = customer.name?.toLowerCase() || ''
-        const email = customer.email?.toLowerCase() || ''
-        const phone = customer.phone?.toLowerCase() || ''
-        const document = customer.document?.toLowerCase() || ''
-
-        return (
-          name.includes(searchLower) ||
-          email.includes(searchLower) ||
-          phone.includes(searchLower) ||
-          document.includes(searchLower)
-        )
-      }
-      return true
-    })
-  }, [initialCustomers, search])
-
-  const sortedAndFilteredCustomers = useMemo(() => {
-    let result = [...filteredCustomers]
-    if (sortBy === 'az') {
-      result.sort((a, b) => a.name.localeCompare(b.name))
-    } else if (sortBy === 'za') {
-      result.sort((a, b) => b.name.localeCompare(a.name))
-    } else if (sortBy === 'newest') {
-      result.sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
-    } else if (sortBy === 'oldest') {
-      result.sort((a, b) => new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime())
-    }
-    return result
-  }, [filteredCustomers, sortBy])
-
-  const paginatedCustomers = useMemo(() => {
-    const start = pageIndex * pageSize
-    const end = start + pageSize
-    return sortedAndFilteredCustomers.slice(start, end)
-  }, [sortedAndFilteredCustomers, pageIndex, pageSize])
-
-  const totalPages = Math.ceil(sortedAndFilteredCustomers.length / pageSize)
-
-  const handleClearFilters = () => {
-    setSearch('')
+  if (filters.search !== prevSearch) {
+    setPrevSearch(filters.search)
+    setSearchValue(filters.search)
   }
 
-  const hasActiveFilters = search.length > 0
+  // Centralizador de atualização de parâmetros na URL
+  const updateFilters = useCallback((newFilters: Partial<typeof filters>) => {
+    const params = new URLSearchParams(searchParams.toString())
+
+    const merged = {
+      page: filters.page,
+      size: filters.size,
+      limit: filters.limit,
+      search: filters.search,
+      sort: filters.sort,
+      ...newFilters,
+    }
+
+    if (merged.search) params.set('search', merged.search); else params.delete('search')
+    if (merged.sort && merged.sort !== 'az') params.set('sort', merged.sort); else params.delete('sort')
+
+    // Se a alteração não for de paginação direta, reseta a paginação para evitar ficar em página vazia
+    const isPaginationChange = 'page' in newFilters || 'size' in newFilters || 'limit' in newFilters
+    if (!isPaginationChange) {
+      params.delete('page')
+      params.delete('limit')
+    } else {
+      if (merged.page > 0) params.set('page', String(merged.page)); else params.delete('page')
+      if (merged.size !== 10) params.set('size', String(merged.size)); else params.delete('size')
+      if (merged.limit) params.set('limit', String(merged.limit)); else params.delete('limit')
+    }
+
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [searchParams, filters, pathname, router])
+
+  // Debouncing para a busca de texto (400ms)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (searchValue !== filters.search) {
+        updateFilters({ search: searchValue })
+      }
+    }, 400)
+    return () => clearTimeout(handler)
+  }, [searchValue, filters.search, updateFilters])
+
+  const handleClearFilters = () => {
+    setSearchValue('')
+    updateFilters({
+      search: '',
+      sort: 'az',
+      page: 0,
+      limit: 0,
+    })
+  }
+
+  const hasActiveFilters = !!filters.search
 
   return (
     <div className="space-y-6">
@@ -115,8 +134,8 @@ export function CustomersList({ initialCustomers }: CustomersListProps) {
             <Input
               placeholder="Buscar por nome, e-mail, documento ou telefone..."
               className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
             />
           </div>
         </div>
@@ -125,13 +144,16 @@ export function CustomersList({ initialCustomers }: CustomersListProps) {
       {/* Info & Sort Bar */}
       <div className="flex items-center justify-between py-1 px-1">
         <span className="text-ds-body-sm text-muted-foreground font-medium">
-          {sortedAndFilteredCustomers.length} {sortedAndFilteredCustomers.length === 1 ? 'cliente' : 'clientes'}
+          {totalItems} {totalItems === 1 ? 'cliente' : 'clientes'}
         </span>
         <div className="flex items-center gap-2">
-          <Select value={sortBy} onValueChange={(val) => setSortBy(val || 'az')}>
+          <Select
+            value={filters.sort}
+            onValueChange={(val) => updateFilters({ sort: val || 'az' })}
+          >
             <SelectTrigger className="h-9 w-40 text-ds-body-sm bg-card font-medium rounded-sm border-border cursor-pointer">
               <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
-              <span>{sortLabels[sortBy] || 'Ordenar por'}</span>
+              <span>{sortLabels[filters.sort] || 'Ordenar por'}</span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="az">Nome (A-Z)</SelectItem>
@@ -144,13 +166,32 @@ export function CustomersList({ initialCustomers }: CustomersListProps) {
       </div>
 
       {/*Cards Grid & Empty State*/}
-      {paginatedCustomers && paginatedCustomers.length > 0 ? (
+      {initialCustomers && initialCustomers.length > 0 ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedCustomers.map((customer) => (
+          {/* Grid Desktop */}
+          <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {initialCustomers.map((customer) => (
               <CustomerCard key={customer.id} customer={customer} />
             ))}
           </div>
+
+          {/* Grid Mobile */}
+          <div className="grid sm:hidden grid-cols-1 gap-6">
+            {initialCustomers.map((customer) => (
+              <CustomerCard key={customer.id} customer={customer} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <ResponsivePagination
+            pageIndex={filters.page}
+            pageSize={filters.size}
+            totalItems={totalItems}
+            onPageIndexChange={(page) => updateFilters({ page })}
+            onPageSizeChange={(size) => updateFilters({ size })}
+            mobileLimit={filters.limit || 10}
+            onMobileLimitChange={(limit) => updateFilters({ limit })}
+          />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-card py-20 text-center shadow-sm">
@@ -184,72 +225,6 @@ export function CustomersList({ initialCustomers }: CustomersListProps) {
           )}
         </div>
       )}
-      
-      {/* Pagination - Sempre visível conforme solicitado */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/60">
-        <div className="flex items-center space-x-1">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 cursor-pointer"
-            onClick={() => setPageIndex((prev) => Math.max(prev - 1, 0))}
-            disabled={pageIndex === 0}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-
-          {Array.from({ length: Math.max(totalPages, 1) }).map((_, idx) => (
-            <Button
-              key={idx}
-              variant={pageIndex === idx ? "default" : "outline"}
-              className={cn(
-                "h-8 w-8 text-xs font-semibold cursor-pointer",
-                pageIndex === idx ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-              )}
-              onClick={() => setPageIndex(idx)}
-              disabled={totalPages <= 1}
-            >
-              {idx + 1}
-            </Button>
-          ))}
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 cursor-pointer"
-            onClick={() => setPageIndex((prev) => Math.min(prev + 1, totalPages - 1))}
-            disabled={pageIndex === totalPages - 1 || totalPages <= 1}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-            Por página:
-          </span>
-          <Select
-            value={`${pageSize}`}
-            onValueChange={(value) => {
-              if (value) {
-                setPageSize(Number(value))
-                setPageIndex(0)
-              }
-            }}
-          >
-            <SelectTrigger className="h-8 w-20 text-xs bg-card font-semibold rounded-sm border-border cursor-pointer">
-              <SelectValue placeholder={pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 25, 50, 100].map((size) => (
-                <SelectItem key={size} value={`${size}`} className="text-xs">
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
     </div>
   )
 }

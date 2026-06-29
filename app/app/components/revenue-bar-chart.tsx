@@ -41,7 +41,7 @@ export function RevenueBarChart({ quotes }: RevenueBarChartProps) {
     const monthlyRevenue = quotes.reduce((acc: Record<string, number>, quote) => {
       if (quote.status === 'completed') {
         const monthKey = format(parseISO(quote.created_at), 'yyyy-MM')
-        acc[monthKey] = (acc[monthKey] || 0) + parseFloat(quote.total as any || 0)
+        acc[monthKey] = (acc[monthKey] || 0) + (quote.total || 0)
       }
       return acc
     }, {})
@@ -65,7 +65,7 @@ export function RevenueBarChart({ quotes }: RevenueBarChartProps) {
       <CardHeader className="px-6 py-5 pb-2">
         <CardTitle className="text-ds-heading-xs font-bold tracking-tight text-foreground">Faturamento Faturado</CardTitle>
         <CardDescription className="text-ds-body-sm font-medium text-muted-foreground">
-          Soma do valor de orçamentos com status 'Finalizado'
+          Soma do valor de orçamentos com status &apos;Finalizado&apos;
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-6 pt-4 sm:px-6 sm:pt-6 flex flex-col justify-between">
@@ -75,10 +75,10 @@ export function RevenueBarChart({ quotes }: RevenueBarChartProps) {
             {formatBRL(totalRevenue)}
           </span>
         </div>
-        
+
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[200px] w-full"
+          className="aspect-auto h-50 w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -116,7 +116,7 @@ export function RevenueBarChart({ quotes }: RevenueBarChartProps) {
                 cursor={false}
                 content={
                   <ChartTooltipContent
-                    className="w-[180px]"
+                    className="w-45"
                     nameKey="revenue"
                     formatter={(value) => formatBRL(Number(value))}
                     labelFormatter={(value, payload) => {

@@ -87,7 +87,7 @@ export function CustomerForm({
     } else {
       triggerHaptic('success')
       setSuccessStatus(true)
-      
+
       setTimeout(() => {
         const targetId = initialData?.id || result.data?.id
         if (targetId) {
@@ -168,7 +168,7 @@ export function CustomerForm({
       </div>
 
       {/* Header Desktop */}
-      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-4 -mt-4 mb-4">
+      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80 py-4 -mt-4 mb-4">
         <div className="flex items-center gap-4">
           <BackButton />
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">
@@ -416,28 +416,34 @@ export function CustomerForm({
               <Label htmlFor="address_state" className="text-sm font-bold text-foreground font-display">
                 Estado
               </Label>
-              <Select
-                onValueChange={(val) => form.setValue('address_state', val || undefined)}
-                value={form.watch('address_state') ?? undefined}
-              >
-                <SelectTrigger className="h-11 sm:h-10 font-medium text-foreground">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-                  ].map((uf) => (
-                    <SelectItem key={uf} value={uf}>
-                      {uf}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                control={form.control}
+                name="address_state"
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? undefined}
+                  >
+                    <SelectTrigger className="h-11 sm:h-10 font-medium text-foreground">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+                      ].map((uf) => (
+                        <SelectItem key={uf} value={uf}>
+                          {uf}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Spacer para garantir scroll total no mobile antes da barra de sistema */}
       <div className="h-10 sm:hidden"></div>
     </form>

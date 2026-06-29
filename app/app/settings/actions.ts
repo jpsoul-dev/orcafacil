@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 
@@ -94,7 +93,23 @@ export async function saveCompanySettings(formData: FormData) {
       logoUrl = publicUrlData.publicUrl
     }
 
-    const companyData: any = {
+    const companyData: {
+      user_id: string
+      name: string
+      phone?: string | null
+      whatsapp?: string | null
+      email?: string | null
+      cnpj?: string | null
+      address_zip?: string | null
+      address_street?: string | null
+      address_number?: string | null
+      address_complement?: string | null
+      address_neighborhood?: string | null
+      address_city?: string | null
+      address_state?: string | null
+      show_quote_number?: boolean
+      logo_url?: string | null
+    } = {
       user_id: user.id,
       ...validatedData,
     }

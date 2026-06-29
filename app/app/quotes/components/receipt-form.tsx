@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { receiptSchema, type ReceiptInput } from '../schemas'
 import { saveReceiptAction } from '../receipt-actions'
-import { formatBRL, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface ReceiptFormProps {
   quote: {

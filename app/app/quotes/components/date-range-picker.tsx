@@ -26,11 +26,15 @@ export function DatePickerWithRange({
   date,
   setDate,
 }: DatePickerWithRangeProps) {
-  const [isMobile, setIsMobile] = React.useState(false)
+  const [isMobile, setIsMobile] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(max-width: 640px)').matches
+    }
+    return false
+  })
 
   React.useEffect(() => {
     const media = window.matchMedia('(max-width: 640px)')
-    setIsMobile(media.matches)
     const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     media.addEventListener('change', listener)
     return () => media.removeEventListener('change', listener)

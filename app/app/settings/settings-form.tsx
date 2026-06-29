@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useForm, Controller, Resolver } from 'react-hook-form'
+import { useForm, Controller, Resolver, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
@@ -67,7 +67,11 @@ export interface Company {
 export function SettingsForm({ initialData }: { initialData: Company | null }) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setTimeout(() => {
+      setMounted(true)
+    }, 0)
+  }, [])
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
@@ -154,6 +158,11 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
       address_state: initialData?.address_state || '',
       show_quote_number: initialData?.show_quote_number ?? true,
     },
+  })
+
+  const watchAddressState = useWatch({
+    control: form.control,
+    name: 'address_state',
   })
 
   async function onSubmit(data: SettingsValues) {
@@ -539,7 +548,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                       onValueChange={(val) =>
                         form.setValue('address_state', val || undefined)
                       }
-                      value={form.watch('address_state') ?? undefined}
+                      value={watchAddressState ?? undefined}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -654,7 +663,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
 
                   <div className="flex items-center justify-between gap-3 pt-4 border-t border-border mt-4">
                     <div className="space-y-1">
-                      <Label className="font-bold text-ds-body-sm text-foreground flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
+                      <Label className="font-bold text-ds-body-sm flex items-center gap-2 uppercase tracking-wider text-muted-foreground">
                         <Palette className="h-4 w-4" />
                         Tema do Sistema
                       </Label>

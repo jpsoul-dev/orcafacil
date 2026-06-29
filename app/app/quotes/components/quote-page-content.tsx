@@ -56,6 +56,14 @@ export async function QuotePageContent({
           valid_until: _vu,
           ...rest
         } = quote
+        void _id
+        void _pu
+        void _hi
+        void _qn
+        void _t
+        void _cid
+        void _vu
+
         initialData = {
           ...rest,
           title: '',
@@ -69,28 +77,6 @@ export async function QuotePageContent({
       notFound()
     }
   }
-
-  const titles: Record<
-    QuotePageContentProps['mode'],
-    { title: string; description: string }
-  > = {
-    new: {
-      title: 'Novo Orçamento',
-      description: 'Preencha os dados abaixo para gerar um orçamento.',
-    },
-    clone: {
-      title: 'Clonar Orçamento',
-      description: 'Ajuste os dados do orçamento clonado abaixo.',
-    },
-    edit: {
-      title: 'Editar Orçamento',
-      description:
-        'Altere os dados abaixo e conclua ou salve novamente como rascunho.',
-    },
-  }
-
-  const { title, description } = titles[mode]
-
   return (
     <div className="max-w-5xl w-full space-y-4 md:space-y-6 mx-auto pb-32 md:pb-6">
       <QuoteForm

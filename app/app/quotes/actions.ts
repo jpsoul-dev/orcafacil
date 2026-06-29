@@ -194,7 +194,10 @@ export async function updateQuoteStatus(id: string, status: string, cancellation
       return { success: false, error: 'Não é possível alterar o status de um orçamento expirado' }
     }
     
-    const updatePayload: Record<string, any> = { status: validatedStatus }
+    const updatePayload: {
+      status: string
+      cancellation_reason?: string | null
+    } = { status: validatedStatus }
     if (validatedStatus === 'cancelled') {
       updatePayload.cancellation_reason = validatedCancellationReason;
     }

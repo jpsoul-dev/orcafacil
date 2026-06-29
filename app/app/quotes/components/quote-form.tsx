@@ -15,7 +15,6 @@ import { useRouter } from 'next/navigation'
 import { saveQuote } from '../actions'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
-import { useMediaQuery } from '@/hooks/use-media-query'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -155,7 +154,6 @@ export function QuoteForm({
   mode?: 'new' | 'edit' | 'clone'
 }) {
   const router = useRouter()
-  const isMobile = useMediaQuery('(max-width: 640px)')
   const [loading, setLoading] = useState(false)
   const [successStatus, setSuccessStatus] = useState<'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'expired' | null>(null)
   const [openDiscountModal, setOpenDiscountModal] = useState(false)
@@ -219,10 +217,6 @@ export function QuoteForm({
   const watchDiscountValue = useWatch({
     control: form.control,
     name: 'discount_value',
-  })
-  const watchCustomerId = useWatch({
-    control: form.control,
-    name: 'customer_id',
   })
   const watchPaymentMethod = useWatch({
     control: form.control,
@@ -420,16 +414,13 @@ export function QuoteForm({
       </div>
 
       {/* Header Desktop */}
-      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 py-4 -mt-4 mb-4">
+      <div className="hidden sm:flex items-center justify-between sticky top-16 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80 py-4 -mt-4 mb-4">
         <div className="flex items-center gap-4">
           <BackButton />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">
               {pageTitle}
             </h1>
-            <p className="text-muted-foreground text-ds-body-sm font-medium mt-0.5">
-              {mode === 'edit' ? 'Altere os dados abaixo e conclua ou salve novamente como rascunho.' : mode === 'clone' ? 'Ajuste os dados do orçamento clonado abaixo.' : 'Preencha os dados abaixo para gerar um orçamento.'}
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -666,7 +657,7 @@ export function QuoteForm({
                             name={`items.${index}.discount_type` as const}
                             control={form.control}
                             render={({ field: typeField }) => {
-                              const discountValue = form.watch(`items.${index}.discount_value`) || 0
+                              const discountValue = watchItems[index]?.discount_value || 0
 
                               return (
                                 <DiscountInput
@@ -908,7 +899,7 @@ export function QuoteForm({
                             name="discount_type"
                             control={form.control}
                             render={({ field: typeField }) => {
-                              const discountValue = form.watch("discount_value") || 0
+                              const discountValue = watchDiscountValue || 0
 
                               return (
                                 <DiscountInput

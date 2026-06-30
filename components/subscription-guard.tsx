@@ -21,10 +21,7 @@ export function SubscriptionGuard({
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMounted(true)
-    }, 0)
-    return () => clearTimeout(timer)
+    setMounted(true)
   }, [])
 
   if (!mounted || !isExpired) {

@@ -2,66 +2,41 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
+import { CatalogService } from '@/lib/services/catalog-service'
+import { catalogItemSchema } from '@/lib/validations/catalog-schema'
+import type { CatalogItemInput } from '@/lib/validations/catalog-schema'
 
-const catalogItemSchema = z.object({
-  type: z.enum(['product', 'service']),
-  name: z.string().min(2, 'O nome deve conter pelo menos 2 caracteres.').max(100, 'O nome deve conter no máximo 100 caracteres.'),
-  unit_price: z.coerce.number().min(0.01, 'O valor unitário deve ser estritamente maior que zero.'),
-  unit_measure: z.string().max(10, 'A unidade de medida deve conter no máximo 10 caracteres.').optional().nullable().or(z.literal('')),
-  description: z.string().max(300, 'A descrição deve conter no máximo 300 caracteres.').optional().nullable().or(z.literal('')),
-})
-
-export type CatalogItemInput = z.infer<typeof catalogItemSchema>
-
-
+/**
+ * Server Action to save or update an item in the catalog.
+ * delegates database logic to CatalogService per Principle I.
+ */
 export async function saveCatalogItem(data: CatalogItemInput, id?: string) {
   try {
     const validation = catalogItemSchema.safeParse(data)
     if (!validation.success) {
-      return { success: false, error: 'Dados do item inválidos' }
+      const fieldErrors = validation.error.flatten().fieldErrors
+      const firstError = Object.values(fieldErrors)[0]?.[0] || 'Dados inválidos'
+      return { success: false, error: firstError }
     }
 
-    const validatedData = validation.data
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, error: 'Usuário não autenticado' }
+      return { success: false, error: 'Usuário não autenticado.' }
     }
 
-    const itemData = {
-      ...validatedData,
-      user_id: user.id,
-    }
-
-
-    if (id) {
-      const { error } = await supabase
-        .from('catalog_items')
-        .update(itemData)
-        .eq('id', id)
-        .eq('user_id', user.id)
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-    } else {
-      const { error } = await supabase
-        .from('catalog_items')
-        .insert(itemData)
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
+    const result = await CatalogService.saveCatalogItem(validation.data, user.id, id)
+    if (!result.success) {
+      return { success: false, error: result.error }
     }
 
     revalidatePath('/app/catalog')
     return { success: true }
   } catch (error) {
-    console.error('Error in saveCatalogItem:', error)
+    console.error('Error in saveCatalogItem Server Action:', error)
     return {
       success: false,
       error: 'Ocorreu um erro inesperado ao salvar o item do catálogo.',
@@ -69,10 +44,14 @@ export async function saveCatalogItem(data: CatalogItemInput, id?: string) {
   }
 }
 
+/**
+ * Server Action to delete an item from the catalog.
+ * delegates database logic to CatalogService per Principle I.
+ */
 export async function deleteCatalogItem(id: string) {
   try {
     if (!id || typeof id !== 'string') {
-      return { success: false, error: 'ID do item inválido' }
+      return { success: false, error: 'ID do item inválido.' }
     }
 
     const supabase = await createClient()
@@ -81,23 +60,18 @@ export async function deleteCatalogItem(id: string) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, error: 'Usuário não autenticado' }
+      return { success: false, error: 'Usuário não autenticado.' }
     }
 
-    const { error } = await supabase
-      .from('catalog_items')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id)
-
-    if (error) {
-      return { success: false, error: error.message }
+    const result = await CatalogService.deleteCatalogItem(id, user.id)
+    if (!result.success) {
+      return { success: false, error: result.error }
     }
 
     revalidatePath('/app/catalog')
     return { success: true }
   } catch (error) {
-    console.error('Error in deleteCatalogItem:', error)
+    console.error('Error in deleteCatalogItem Server Action:', error)
     return {
       success: false,
       error: 'Ocorreu um erro inesperado ao excluir o item do catálogo.',

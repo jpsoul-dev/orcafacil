@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Zap, Check, Sparkles } from 'lucide-react'
+import { Check } from 'lucide-react'
+import Image from 'next/image'
 
 interface UpgradeModalProps {
   open: boolean
@@ -18,11 +19,10 @@ interface UpgradeModalProps {
 
 export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
   const benefits = [
-    'Criação ilimitada de orçamentos profissionais',
-    'PDFs personalizados com a identidade do seu negócio',
+    'Criação ilimitada de orçamentos',
+    'PDFs profissionais com a identidade do seu negócio',
     'Catálogo ilimitado de itens e serviços',
     'Painel financeiro de alto desempenho e relatórios',
-    'Suporte prioritário via WhatsApp e e-mail',
   ]
 
   return (
@@ -33,10 +33,16 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
           <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-40" />
           <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-white/10 blur-xl" />
           <div className="absolute -left-12 -bottom-12 w-32 h-32 rounded-full bg-black/10 blur-2xl" />
-          
+
           <div className="relative z-10 flex flex-col items-center gap-1.5 text-white">
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white/20 backdrop-blur-md shadow-sm border border-white/20">
-              <Zap className="h-6 w-6 text-yellow-300 fill-yellow-300" strokeWidth={2.5} />
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white/20 backdrop-blur-md shadow-sm border border-white/20 p-2.5">
+              <Image
+                src="/logo-simbolo-escuro.svg"
+                alt="Logo Orça Fácil"
+                width={26}
+                height={26}
+                className="object-contain"
+              />
             </div>
           </div>
         </div>
@@ -44,7 +50,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
         <div className="p-6 space-y-6">
           <DialogHeader className="text-center space-y-2">
             <DialogTitle className="text-ds-heading-sm font-bold text-foreground flex items-center justify-center gap-2">
-              Assine o Plano Pro <Sparkles className="h-5 w-5 text-primary fill-primary/20" />
+              Assine o Plano Pro
             </DialogTitle>
             <DialogDescription className="text-ds-body-sm text-muted-foreground font-medium px-4">
               Seu período de teste terminou. Mas seu negócio não precisa parar. Continue criando orçamentos incríveis e feche mais negócios!

@@ -1,6 +1,7 @@
 'use client'
 
 import { formatBRL } from '@/lib/utils'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import {
   Sheet,
   SheetContent,
@@ -55,24 +56,28 @@ export function CatalogViewSheet({
           <div className="flex items-center gap-1.5 ml-auto mr-1 select-none">
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 rounded-md font-semibold cursor-pointer"
-                onClick={() => onEdit(item)}
-              >
-                <Pencil className="h-3.5 w-3.5 mr-1" />
-                Editar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 rounded-md font-semibold text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer"
-                onClick={() => onDeleteClick(item)}
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-1" />
-                Deletar
-              </Button>
+              <SubscriptionGuard>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-md font-semibold cursor-pointer"
+                  onClick={() => onEdit(item)}
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
+                  Editar
+                </Button>
+              </SubscriptionGuard>
+              <SubscriptionGuard>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 rounded-md font-semibold text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer"
+                  onClick={() => onDeleteClick(item)}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                  Deletar
+                </Button>
+              </SubscriptionGuard>
             </div>
 
             {/* Botão padrão de fechar */}
@@ -101,20 +106,26 @@ export function CatalogViewSheet({
                   }
                 />
                 <DropdownMenuContent align="end" className="w-32">
-                  <DropdownMenuItem
-                    onClick={() => onEdit(item)}
-                    className="flex items-center gap-2 cursor-pointer text-sm font-medium"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onDeleteClick(item)}
-                    className="flex items-center gap-2 cursor-pointer text-sm font-medium text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Deletar
-                  </DropdownMenuItem>
+                  <SubscriptionGuard>
+                    <DropdownMenuItem
+                      onClick={() => onEdit(item)}
+                      className="flex items-center gap-2 cursor-pointer text-sm font-medium"
+                      render={<div />}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                  </SubscriptionGuard>
+                  <SubscriptionGuard>
+                    <DropdownMenuItem
+                      onClick={() => onDeleteClick(item)}
+                      className="flex items-center gap-2 cursor-pointer text-sm font-medium text-destructive focus:text-destructive"
+                      render={<div />}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Deletar
+                    </DropdownMenuItem>
+                  </SubscriptionGuard>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

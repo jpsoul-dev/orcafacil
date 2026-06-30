@@ -3,7 +3,7 @@
 import { ReactNode, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Menu } from "lucide-react"
+import { Menu, Zap } from "lucide-react"
 import { FloatingSidebar } from "@/components/floating-sidebar"
 import { NotificationBell } from "@/components/notification-bell"
 import { MobileTabBar } from "@/components/mobile-tab-bar"
@@ -147,6 +147,31 @@ export function NavigationWrapper({
                   )}
                 >
                   Assinar agora
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {isExpired && pathname === "/app" && (
+            <div className="w-full mb-4 shrink-0 animate-in fade-in duration-500">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl gradient-primary text-white shadow-md select-none w-full transition-all duration-ds-normal">
+                <div className="flex items-center gap-3 justify-center sm:justify-start min-w-0">
+                  <div className="p-2 rounded-lg bg-white/10 shrink-0">
+                    <Zap className="h-5 w-5 text-yellow-300 fill-yellow-300 shrink-0 animate-pulse" />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <span className="font-bold block sm:inline text-ds-body-sm">Avaliação Expirada</span>
+                    <span className="hidden sm:inline mx-2 text-white/40">•</span>
+                    <span className="text-white/90 text-ds-body-sm block sm:inline">
+                      Seu período de testes de {TRIAL_DURATION_DAYS} dias acabou. Ative sua assinatura para continuar criando orçamentos.
+                    </span>
+                  </div>
+                </div>
+                <Link
+                  href="/pricing"
+                  className="px-4 py-2 rounded-md bg-white text-primary hover:bg-white/95 font-bold text-xs sm:text-ds-body-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shrink-0 w-full sm:w-auto text-center cursor-pointer"
+                >
+                  Ativar Minha Assinatura
                 </Link>
               </div>
             </div>

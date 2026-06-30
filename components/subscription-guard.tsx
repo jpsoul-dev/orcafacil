@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ReactElement } from 'react'
+import React, { ReactElement, useState, useEffect } from 'react'
 import { useSubscription } from './subscription-provider'
 import { cn } from '@/lib/utils'
 
@@ -18,8 +18,16 @@ export function SubscriptionGuard({
   showVisualDisabled = true,
 }: SubscriptionGuardProps) {
   const { isExpired, openUpgradeModal } = useSubscription()
+  const [mounted, setMounted] = useState(false)
 
-  if (!isExpired) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!mounted || !isExpired) {
     return children
   }
 

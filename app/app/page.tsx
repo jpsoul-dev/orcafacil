@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FileText, Users, Package, Receipt, ArrowRight, Plus, BarChart3 } from 'lucide-react'
 import { QuoteStatusBadge } from '@/components/quote-status-badge'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import { reconcileStripeCheckout } from '@/lib/services/stripe-service'
 
 interface PageProps {
@@ -225,12 +226,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             <p className="text-ds-body-sm text-muted-foreground max-w-sm mt-1 mb-6">
               Você ainda não criou nenhum orçamento. Comece a criar para gerenciar seu negócio!
             </p>
-            <Link href="/app/quotes/new">
-              <Button variant="default" className="font-semibold rounded-md">
-                <Plus className="mr-2 size-4" />
-                Criar primeiro orçamento
-              </Button>
-            </Link>
+            <SubscriptionGuard>
+              <Link href="/app/quotes/new">
+                <Button variant="default" className="font-semibold rounded-md">
+                  <Plus className="mr-2 size-4" />
+                  Criar primeiro orçamento
+                </Button>
+              </Link>
+            </SubscriptionGuard>
           </div>
         )}
       </div>

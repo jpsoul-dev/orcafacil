@@ -2,7 +2,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 export default function GlobalLoading() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-background">
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-background select-none">
       <div className="flex flex-col items-center gap-6 animate-in fade-in duration-700">
         <div className="relative flex items-center justify-center">
           {/* Animated rings for a premium feel */}
@@ -15,8 +15,8 @@ export default function GlobalLoading() {
         </div>
         
         <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground animate-pulse">Orça Fácil</h2>
-          <p className="text-muted-foreground font-medium opacity-80">Preparando seu ambiente...</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground font-display">Orça Fácil</h2>
+          <p className="text-muted-foreground text-sm font-medium animate-pulse">Preparando seu ambiente...</p>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { Printer, Pencil, Trash2, Loader2, CloudDownload } from 'lucide-react'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import { toast } from 'sonner'
 import { Separator } from '@/components/ui/separator'
 import { deleteReceiptAction, deleteStandaloneReceiptAction } from '../receipt-actions'
@@ -226,16 +227,18 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
               </a>
 
               {/* Botão Editar Recibo */}
-              <Link
-                href={isStandalone ? `/app/receipts/${receipt.id}/edit` : `/app/quotes/${quote.id}/receipt/edit`}
-                className={cn(
-                  buttonVariants({ variant: 'outline' }),
-                  "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
-                )}
-              >
-                <Pencil className="h-4.5 w-4.5" />
-                Editar Recibo
-              </Link>
+              <SubscriptionGuard>
+                <Link
+                  href={isStandalone ? `/app/receipts/${receipt.id}/edit` : `/app/quotes/${quote.id}/receipt/edit`}
+                  className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    "w-full h-10 gap-2 border-slate-200 font-bold rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 flex items-center justify-center"
+                  )}
+                >
+                  <Pencil className="h-4.5 w-4.5" />
+                  Editar Recibo
+                </Link>
+              </SubscriptionGuard>
 
               {/* Botão Baixar PDF */}
               <a
@@ -256,19 +259,21 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
 
               {/* AlertDialog de Exclusão */}
               <AlertDialog>
-                <AlertDialogTrigger
-                  render={
-                    <button
-                      className={cn(
-                        buttonVariants({ variant: 'outline' }),
-                        "w-full h-10 gap-2 border-red-200 hover:bg-red-50 text-red-600 font-bold hover:text-red-700 rounded-lg cursor-pointer flex items-center justify-center"
-                      )}
-                    >
-                      <Trash2 className="h-4.5 w-4.5" />
-                      Excluir Recibo
-                    </button>
-                  }
-                />
+                <SubscriptionGuard>
+                  <AlertDialogTrigger
+                    render={
+                      <button
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          "w-full h-10 gap-2 border-red-200 hover:bg-red-50 text-red-600 font-bold hover:text-red-700 rounded-lg cursor-pointer flex items-center justify-center"
+                        )}
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                        Excluir Recibo
+                      </button>
+                    }
+                  />
+                </SubscriptionGuard>
                 <AlertDialogContent className="bg-white rounded-xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle className="font-bold text-slate-900">Excluir Recibo</AlertDialogTitle>

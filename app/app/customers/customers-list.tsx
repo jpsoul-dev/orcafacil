@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import type { Customer } from '@/lib/services/customer-service'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import { Button } from '@/components/ui/button'
 import { Search, SlidersHorizontal, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -118,11 +119,13 @@ export function CustomersList({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/app/customers/new">
-            <Button variant="default" className="gap-2 font-semibold cursor-pointer">
-              <Users className="h-4 w-4" /> Novo cliente
-            </Button>
-          </Link>
+          <SubscriptionGuard>
+            <Link href="/app/customers/new">
+              <Button variant="default" className="gap-2 font-semibold cursor-pointer">
+                <Users className="h-4 w-4" /> Novo cliente
+              </Button>
+            </Link>
+          </SubscriptionGuard>
         </div>
       </div>
 
@@ -216,11 +219,13 @@ export function CustomersList({
             </Button>
           ) : (
             <div className="mt-5">
-              <Link href="/app/customers/new">
-                <Button variant="default" className="gap-2 font-semibold cursor-pointer">
-                  <Users className="h-4 w-4" /> Novo cliente
-                </Button>
-              </Link>
+              <SubscriptionGuard>
+                <Link href="/app/customers/new">
+                  <Button variant="default" className="gap-2 font-semibold cursor-pointer">
+                    <Users className="h-4 w-4" /> Novo cliente
+                  </Button>
+                </Link>
+              </SubscriptionGuard>
             </div>
           )}
         </div>

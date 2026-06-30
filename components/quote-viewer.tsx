@@ -9,6 +9,7 @@ import { maskPhone } from '@/lib/masks'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import {
   Printer,
   Loader2,
@@ -489,21 +490,23 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                   onValueChange={(val) => handleStatusChange(val as QuoteStatus)}
                   disabled={isUpdating || ['draft', 'completed', 'expired', 'rejected', 'cancelled'].includes(currentStatus)}
                 >
-                  <SelectTrigger
-                    className={cn(
-                      "h-10 w-full rounded-sm px-3 border shadow-none focus:ring-0 transition-all font-semibold justify-between",
-                      STATUS_MAP[currentStatus]?.color
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      {isUpdating ? (
-                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                      ) : (
-                        <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", STATUS_MAP[currentStatus]?.dot)} />
+                  <SubscriptionGuard showVisualDisabled={false}>
+                    <SelectTrigger
+                      className={cn(
+                        "h-10 w-full rounded-sm px-3 border shadow-none focus:ring-0 transition-all font-semibold justify-between",
+                        STATUS_MAP[currentStatus]?.color
                       )}
-                      <SelectValue>{STATUS_MAP[currentStatus]?.label}</SelectValue>
-                    </div>
-                  </SelectTrigger>
+                    >
+                      <div className="flex items-center gap-2">
+                        {isUpdating ? (
+                          <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        ) : (
+                          <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", STATUS_MAP[currentStatus]?.dot)} />
+                        )}
+                        <SelectValue>{STATUS_MAP[currentStatus]?.label}</SelectValue>
+                      </div>
+                    </SelectTrigger>
+                  </SubscriptionGuard>
                   <SelectContent className="rounded-sm border-border bg-card">
                     {Object.entries(STATUS_MAP)
                       .filter(([value]) => {
@@ -565,13 +568,15 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
             <div className="flex flex-col gap-2.5">
               {/* Botão Reabrir Orçamento */}
               {['expired', 'rejected', 'cancelled'].includes(currentStatus) && (
-                <Button
-                  onClick={() => setIsReopenOpen(true)}
-                  className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  <RotateCcw className="h-4.5 w-4.5" />
-                  Reabrir Orçamento
-                </Button>
+                <SubscriptionGuard>
+                  <Button
+                    onClick={() => setIsReopenOpen(true)}
+                    className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <RotateCcw className="h-4.5 w-4.5" />
+                    Reabrir Orçamento
+                  </Button>
+                </SubscriptionGuard>
               )}
 
               {/* Botão Ver / Gerar Recibo */}
@@ -588,57 +593,65 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                     Ver Recibo
                   </Link>
                 ) : (
-                  <Link
-                    href={`/app/quotes/${quote.id}/receipt/edit`}
-                    className={cn(
-                      buttonVariants({ variant: 'default' }),
-                      "w-full bg-status-completed hover:bg-status-completed/90 text-white dark:bg-status-completed dark:hover:bg-status-completed/90 dark:text-neutral-950 transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-                    )}
-                  >
-                    <Receipt className="h-4.5 w-4.5" />
-                    Gerar Recibo
-                  </Link>
+                  <SubscriptionGuard>
+                    <Link
+                      href={`/app/quotes/${quote.id}/receipt/edit`}
+                      className={cn(
+                        buttonVariants({ variant: 'default' }),
+                        "w-full bg-status-completed hover:bg-status-completed/90 text-white dark:bg-status-completed dark:hover:bg-status-completed/90 dark:text-neutral-950 transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                      )}
+                    >
+                      <Receipt className="h-4.5 w-4.5" />
+                      Gerar Recibo
+                    </Link>
+                  </SubscriptionGuard>
                 )
               )}
 
               {/* Ações de Rascunho */}
               {currentStatus === 'draft' && (
                 <>
-                  <Button
-                    onClick={() => handleStatusChange('pending')}
-                    disabled={isUpdating}
-                    className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    {isUpdating ? (
-                      <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                    ) : (
-                      <CheckCircle className="h-4.5 w-4.5" />
-                    )}
-                    Gerar Orçamento
-                  </Button>
-                  <Link
-                    href={`/app/quotes/${quote.id}/edit`}
-                    className={cn(
-                      buttonVariants({ variant: 'outline' }),
-                      "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-                    )}
-                  >
-                    <Pencil className="h-4.5 w-4.5" />
-                    Editar Rascunho
-                  </Link>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setDeleteDialogOpen(true)}
-                    disabled={isUpdating}
-                    className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    {isUpdating ? (
-                      <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4.5 w-4.5" />
-                    )}
-                    Excluir Rascunho
-                  </Button>
+                  <SubscriptionGuard>
+                    <Button
+                      onClick={() => handleStatusChange('pending')}
+                      disabled={isUpdating}
+                      className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      {isUpdating ? (
+                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4.5 w-4.5" />
+                      )}
+                      Gerar Orçamento
+                    </Button>
+                  </SubscriptionGuard>
+                  <SubscriptionGuard>
+                    <Link
+                      href={`/app/quotes/${quote.id}/edit`}
+                      className={cn(
+                        buttonVariants({ variant: 'outline' }),
+                        "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                      )}
+                    >
+                      <Pencil className="h-4.5 w-4.5" />
+                      Editar Rascunho
+                    </Link>
+                  </SubscriptionGuard>
+                  <SubscriptionGuard>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      disabled={isUpdating}
+                      className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      {isUpdating ? (
+                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4.5 w-4.5" />
+                      )}
+                      Excluir Rascunho
+                    </Button>
+                  </SubscriptionGuard>
                 </>
               )}
 
@@ -676,16 +689,18 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
 
               {/* Botão Clonar Orçamento */}
               {currentStatus !== 'draft' && (
-                <Link
-                  href={`/app/quotes/new?clone=${quote.id}`}
-                  className={cn(
-                    buttonVariants({ variant: 'outline' }),
-                    "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
-                  )}
-                >
-                  <Copy className="h-4.5 w-4.5 text-primary" />
-                  Clonar Orçamento
-                </Link>
+                <SubscriptionGuard>
+                  <Link
+                    href={`/app/quotes/new?clone=${quote.id}`}
+                    className={cn(
+                      buttonVariants({ variant: 'outline' }),
+                      "w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+                    )}
+                  >
+                    <Copy className="h-4.5 w-4.5 text-primary" />
+                    Clonar Orçamento
+                  </Link>
+                </SubscriptionGuard>
               )}
             </div>
           </div>

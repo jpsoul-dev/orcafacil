@@ -7,7 +7,6 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { saveCustomer } from '../actions'
 import { triggerHaptic } from '@/lib/haptic'
-import { enqueueOfflineAction } from '@/lib/offline-sync'
 import { maskCPFCNPJ, maskPhone, maskCEP } from '@/lib/masks'
 import { customerSchema, CustomerInput } from '@/lib/validations/customer-schema'
 import type { Customer } from '@/lib/services/customer-service'
@@ -72,30 +71,36 @@ export function CustomerForm({
 
   async function onSubmit(data: CustomerInput) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      enqueueOfflineAction('SAVE_CUSTOMER', { data, id: initialData?.id })
-      toast.success('Você está offline. O cliente foi salvo localmente e será sincronizado quando a conexão retornar!')
-      router.push('/app/customers')
+      triggerHaptic('error')
+      toast.error('Sem conexão com a internet. Não é possível salvar os dados do cliente agora.')
       return
     }
 
     setLoading(true)
-    const result = await saveCustomer(data, initialData?.id)
-    setLoading(false)
-    if (result.error) {
-      triggerHaptic('error')
-      toast.error(result.error)
-    } else {
-      triggerHaptic('success')
-      setSuccessStatus(true)
+    try {
+      const result = await saveCustomer(data, initialData?.id)
+      setLoading(false)
+      if (result.error) {
+        triggerHaptic('error')
+        toast.error(result.error)
+      } else {
+        triggerHaptic('success')
+        setSuccessStatus(true)
 
-      setTimeout(() => {
-        const targetId = initialData?.id || result.data?.id
-        if (targetId) {
-          router.push(`/app/customers/${targetId}`)
-        } else {
-          router.push('/app/customers')
-        }
-      }, 600)
+        setTimeout(() => {
+          const targetId = initialData?.id || result.data?.id
+          if (targetId) {
+            router.push(`/app/customers/${targetId}`)
+          } else {
+            router.push('/app/customers')
+          }
+        }, 600)
+      }
+    } catch (err) {
+      setLoading(false)
+      console.error('Erro ao salvar cliente:', err)
+      triggerHaptic('error')
+      toast.error('Erro de conexão. Verifique sua rede e tente novamente.')
     }
   }
 

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm, useFieldArray, useWatch, Controller, type Resolver, type FieldError } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useSubscription } from '@/components/subscription-provider'
 import { ArrowLeft, Loader2, Save, Plus, Trash2, Package, Search } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -72,7 +73,15 @@ const brl = (val: number) =>
 
 export function StandaloneReceiptForm({ customers, catalogItems, initialData }: StandaloneReceiptFormProps) {
   const router = useRouter()
+  const { isExpired, openUpgradeModal } = useSubscription()
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isExpired) {
+      openUpgradeModal()
+      router.push('/app/receipts')
+    }
+  }, [isExpired, openUpgradeModal, router])
   const [openCatalogModal, setOpenCatalogModal] = useState(false)
   const [catalogSearch, setCatalogSearch] = useState('')
 

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useSubscription } from '@/components/subscription-provider'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -55,7 +56,15 @@ interface ReceiptFormProps {
 
 export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
   const router = useRouter()
+  const { isExpired, openUpgradeModal } = useSubscription()
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isExpired) {
+      openUpgradeModal()
+      router.push(`/app/quotes/${quote.id}`)
+    }
+  }, [isExpired, openUpgradeModal, router, quote.id])
 
   const availableMethods = useMemo(() => {
     if (!quote.payment_method) return []

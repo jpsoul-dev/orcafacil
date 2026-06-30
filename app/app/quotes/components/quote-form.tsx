@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useSubscription } from '@/components/subscription-provider'
 import { saveQuote } from '../actions'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
@@ -154,9 +155,17 @@ export function QuoteForm({
   mode?: 'new' | 'edit' | 'clone'
 }) {
   const router = useRouter()
+  const { isExpired, openUpgradeModal } = useSubscription()
   const [loading, setLoading] = useState(false)
   const [successStatus, setSuccessStatus] = useState<'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'expired' | null>(null)
   const [openDiscountModal, setOpenDiscountModal] = useState(false)
+
+  useEffect(() => {
+    if (isExpired) {
+      openUpgradeModal()
+      router.push('/app/quotes')
+    }
+  }, [isExpired, openUpgradeModal, router])
 
   const defaultValidDate = new Date()
   defaultValidDate.setDate(defaultValidDate.getDate() + 15)

@@ -7,6 +7,7 @@ import { CustomerReceiptsClient } from './customer-receipts-client'
 import { Mail, Phone, MapPin, User, Pencil, MessageSquare, MoreVertical, ChevronLeft, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { DeleteCustomerDialog } from '../components/delete-customer-dialog'
+import { SubscriptionGuard } from '@/components/subscription-guard'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -73,16 +74,20 @@ export default async function CustomerDetailsPage({
             <span className="sr-only">Opções</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <Link href={`/app/customers/${customer.id}/edit`}>
-              <DropdownMenuItem className="cursor-pointer font-medium">
-                <Pencil className="h-4 w-4 mr-2" /> Editar cliente
-              </DropdownMenuItem>
-            </Link>
-            <DeleteCustomerDialog
-              id={customer.id}
-              name={customer.name}
-              asDropdownItem={true}
-            />
+            <SubscriptionGuard>
+              <Link href={`/app/customers/${customer.id}/edit`}>
+                <DropdownMenuItem className="cursor-pointer font-medium" render={<div />}>
+                  <Pencil className="h-4 w-4 mr-2" /> Editar cliente
+                </DropdownMenuItem>
+              </Link>
+            </SubscriptionGuard>
+            <SubscriptionGuard>
+              <DeleteCustomerDialog
+                id={customer.id}
+                name={customer.name}
+                asDropdownItem={true}
+              />
+            </SubscriptionGuard>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -93,11 +98,13 @@ export default async function CustomerDetailsPage({
 
         {/* Ações Administrativas */}
         <div className="flex items-center gap-2 self-start sm:mt-0">
-          <Link href={`/app/customers/${customer.id}/edit`}>
-            <Button variant="outline" className="gap-2 font-bold cursor-pointer rounded-full h-10 px-4">
-              <Pencil className="h-4 w-4" /> Editar cliente
-            </Button>
-          </Link>
+          <SubscriptionGuard>
+            <Link href={`/app/customers/${customer.id}/edit`}>
+              <Button variant="outline" className="gap-2 font-bold cursor-pointer rounded-full h-10 px-4">
+                <Pencil className="h-4 w-4" /> Editar cliente
+              </Button>
+            </Link>
+          </SubscriptionGuard>
           <DropdownMenu>
             <DropdownMenuTrigger
               render={<Button variant="outline" size="icon" className="h-10 w-10 rounded-full shrink-0 cursor-pointer" />}
@@ -106,11 +113,13 @@ export default async function CustomerDetailsPage({
               <span className="sr-only">Opções</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DeleteCustomerDialog
-                id={customer.id}
-                name={customer.name}
-                asDropdownItem={true}
-              />
+              <SubscriptionGuard>
+                <DeleteCustomerDialog
+                  id={customer.id}
+                  name={customer.name}
+                  asDropdownItem={true}
+                />
+              </SubscriptionGuard>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

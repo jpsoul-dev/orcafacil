@@ -106,15 +106,26 @@ export function CatalogForm({
   })
 
   async function onSubmit(data: CatalogItemInput) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      showPillToast('Sem conexão com a internet. Não é possível salvar o item agora.', 'error')
+      return
+    }
+
     setLoading(true)
-    const result = await saveCatalogItem(data, initialData?.id)
-    setLoading(false)
-    if (result.error) {
-      showPillToast(result.error, 'error')
-    } else {
-      showPillToast(initialData ? 'Item atualizado com sucesso!' : 'Item cadastrado com sucesso!', 'success')
-      setOpen(false)
-      if (!initialData) form.reset()
+    try {
+      const result = await saveCatalogItem(data, initialData?.id)
+      setLoading(false)
+      if (result.error) {
+        showPillToast(result.error, 'error')
+      } else {
+        showPillToast(initialData ? 'Item atualizado com sucesso!' : 'Item cadastrado com sucesso!', 'success')
+        setOpen(false)
+        if (!initialData) form.reset()
+      }
+    } catch (err) {
+      setLoading(false)
+      console.error('Erro ao salvar item do catálogo:', err)
+      showPillToast('Erro de conexão. Verifique sua rede e tente novamente.', 'error')
     }
   }
 

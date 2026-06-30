@@ -3,14 +3,12 @@
 import { Bell, Check } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationAsReadAction, markAllAsReadAction } from '@/app/app/notifications-actions'
@@ -115,8 +113,9 @@ export function NotificationBell() {
     }
     init()
 
+    const channelId = `notification-updates-${Math.random().toString(36).substring(2, 9)}`
     const channel = supabase
-      .channel('notification-updates')
+      .channel(channelId)
       .on('postgres_changes', {
         event: 'INSERT',
         table: 'notifications',
@@ -174,9 +173,9 @@ export function NotificationBell() {
   }, [notifications, activeTab])
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
+    <Sheet>
+      <SheetTrigger render={
+        <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           <Bell className="h-5 w-5 text-muted-foreground" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-background">
@@ -185,65 +184,65 @@ export function NotificationBell() {
           )}
         </Button>
       } />
-      <DropdownMenuContent align="end" className="w-80 bg-white border border-slate-200 text-slate-900 p-0 overflow-hidden rounded-xl shadow-lg">
-        <DropdownMenuGroup className="p-3 pb-2 flex items-center justify-between">
-          <DropdownMenuLabel className="font-semibold text-sm text-slate-800 p-0">
+      <SheetContent side="right" className="w-full sm:max-w-md bg-white text-slate-900 p-0 overflow-hidden flex flex-col h-full border-l border-slate-200">
+        <SheetHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b border-slate-100 shrink-0">
+          <SheetTitle className="font-semibold text-sm text-slate-800 p-0">
             Notificações
-          </DropdownMenuLabel>
+          </SheetTitle>
           {unreadCount > 0 && (
             <button
               onClick={(e) => {
                 e.preventDefault()
                 handleMarkAllAsRead()
               }}
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
             >
               Marcar todas como lidas
             </button>
           )}
-        </DropdownMenuGroup>
+        </SheetHeader>
 
         {/* Guias/Tabs de Notificação */}
-        <div className="flex border-b border-slate-200 px-3">
+        <div className="flex border-b border-slate-100 px-3 shrink-0">
           <button
             onClick={() => setActiveTab('unread')}
-            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${activeTab === 'unread'
-                ? 'border-slate-900 text-slate-900'
+            className={`flex-1 py-2.5 text-xs font-semibold border-b-2 text-center transition-all cursor-pointer ${
+              activeTab === 'unread'
+                ? 'border-slate-900 text-slate-900 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            }`}
           >
             Não lidas ({unreadCount})
           </button>
           <button
             onClick={() => setActiveTab('read')}
-            className={`flex-1 py-2 text-xs font-semibold border-b-2 text-center transition-all ${activeTab === 'read'
-                ? 'border-slate-900 text-slate-900'
+            className={`flex-1 py-2.5 text-xs font-semibold border-b-2 text-center transition-all cursor-pointer ${
+              activeTab === 'read'
+                ? 'border-slate-900 text-slate-900 font-bold'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            }`}
           >
             Lidas
           </button>
         </div>
 
-        <DropdownMenuSeparator className="my-0" />
-
         {filteredNotifications.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-400">
+          <div className="flex-1 flex items-center justify-center p-8 text-center text-xs text-slate-400">
             {activeTab === 'unread' ? 'Nenhuma notificação não lida.' : 'Nenhuma notificação lida por enquanto.'}
           </div>
         ) : (
-          <div className="max-h-90 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
             {filteredNotifications.map((n) => (
-              <DropdownMenuItem
+              <div
                 key={n.id}
-                className={`flex items-start p-4 cursor-pointer focus:bg-slate-50/80 relative group ${!n.isRead ? 'bg-slate-50/40' : 'bg-transparent'
-                  }`}
-                onSelect={(e) => {
+                onClick={() => {
                   if (!n.isRead) {
-                    e.preventDefault()
                     handleMarkAsRead(n.id)
                   }
                 }}
+                className={`flex items-start p-4 cursor-pointer hover:bg-slate-50/80 relative group transition-colors ${
+                  !n.isRead ? 'bg-slate-50/40' : 'bg-transparent'
+                }`}
               >
                 <div className="flex flex-col items-start gap-1 w-full pr-6">
                   <div className="flex w-full items-start justify-between gap-2">
@@ -267,17 +266,17 @@ export function NotificationBell() {
                       e.preventDefault()
                       handleMarkAsRead(n.id)
                     }}
-                    className="absolute right-3 top-4 flex h-5 w-5 items-center justify-center rounded-md border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-500 hover:text-slate-700 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                    className="absolute right-3 top-4 flex h-5 w-5 items-center justify-center rounded-md border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-500 hover:text-slate-700 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all cursor-pointer"
                     title="Marcar como lida"
                   >
                     <Check className="h-3.5 w-3.5" />
                   </button>
                 )}
-              </DropdownMenuItem>
+              </div>
             ))}
           </div>
         )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SheetContent>
+    </Sheet>
   )
 }

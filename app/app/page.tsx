@@ -1,15 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
-import { FileText, Plus, ArrowRight, TrendingUp } from 'lucide-react'
-import { SubscriptionGuard } from '@/components/subscription-guard'
-import { DashboardCharts } from './components/dashboard-charts'
+import { Button } from '@/components/ui/button'
+import { FileText, Users, Package, Receipt, ArrowRight, Plus, BarChart3 } from 'lucide-react'
+import { QuoteStatusBadge } from '@/components/quote-status-badge'
 import { reconcileStripeCheckout } from '@/lib/services/stripe-service'
-
-const TRIAL_DURATION_DAYS = 15
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -46,22 +41,28 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     }
   }
 
-  const now = new Date()
-
-  const [{ data: quotesData }, { data: profile }] = await Promise.all(
-    [
-      supabase
-        .from('vw_quotes')
-        .select('created_at, status, total')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true }),
-      supabase
-        .from('profiles')
-        .select('subscription_status, trial_ends_at')
-        .eq('id', user.id)
-        .single()
-    ],
-  )
+  // Fetch recent quotes and user profile
+  const [{ data: quotesData }, { data: profile }] = await Promise.all([
+    supabase
+      .from('vw_quotes')
+      .select(`
+        id,
+        quote_number,
+        title,
+        total,
+        status,
+        created_at,
+        customers ( name )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('profiles')
+      .select('subscription_status, trial_ends_at')
+      .eq('id', user.id)
+      .single()
+  ])
 
   const userName =
     user?.user_metadata?.full_name ||
@@ -70,142 +71,168 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     'Usuário'
   const firstName = userName.split(' ')[0]
 
-  // Subscription and trial business rules
-  const isActive = profile?.subscription_status === 'active'
-  const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : new Date()
-  const timeRemaining = trialEndsAt.getTime() - now.getTime()
-  const daysRemaining = Math.max(0, Math.ceil(timeRemaining / (1000 * 60 * 60 * 24)))
-  
-  // User is trialing only if status is trialing AND there are remaining days
-  const isTrialing = profile?.subscription_status === 'trialing' && daysRemaining > 0
-  const isExpired = !isActive && !isTrialing
-  
-  const trialPercentage = Math.min(((TRIAL_DURATION_DAYS - daysRemaining) / TRIAL_DURATION_DAYS) * 100, 100)
-  const isNearLimit = isTrialing && daysRemaining <= 3
+  const recentQuotes = quotesData || []
 
   return (
-    <div className="space-y-8">
-      {/* Welcome / Upgrade Banner (only shown for users without an active subscription) */}
-      {!isActive && (
-        <Card className="relative overflow-hidden border-none shadow-lg bg-primary text-primary-foreground rounded-lg">
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-50" />
+    <div className="space-y-8 animate-fade-in">
+      {/* ── SAUDAÇÃO E SUBTÍTULO ─────────────────────────────────────────── */}
+      <div className="space-y-1">
+        <h1 className="text-ds-heading-lg font-bold text-foreground leading-ds-tight tracking-tight">
+          Olá, {firstName}! 👋
+        </h1>
+        <p className="text-ds-body-md text-muted-foreground">
+          O que deseja fazer agora?
+        </p>
+      </div>
 
-          <CardContent className="relative z-10 p-8 md:p-10">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-              <div className="space-y-4 flex-1">
-                <div className="space-y-1">
-                  <h1 className="text-ds-display font-bold leading-ds-tight tracking-tight">
-                    Olá, {firstName}! 👋
-                  </h1>
-                  <p className="text-primary-foreground/80 text-ds-body-lg leading-ds-relaxed">
-                    {isExpired
-                      ? 'Seu período de teste acabou. Faça a assinatura para continuar!'
-                      : 'Bom ver você novamente. Aproveite seu período de teste grátis.'}
-                  </p>
-                </div>
-
-                <div className="max-w-md pt-2">
-                  <div className="flex items-center justify-between text-ds-body-sm mb-2 font-medium">
-                    <span className="opacity-90">Tempo Restante de Teste</span>
-                    <span>
-                      {daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'} de {TRIAL_DURATION_DAYS}
-                    </span>
-                  </div>
-                  <div className="h-3 w-full bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-                    <div
-                      className={`h-full transition-all duration-ds-slow ease-out rounded-full ${
-                        isExpired
-                          ? 'bg-destructive'
-                          : isNearLimit
-                            ? 'bg-warning'
-                            : 'bg-white'
-                      }`}
-                      style={{ width: `${trialPercentage}%` }}
-                    />
-                  </div>
-                  {isNearLimit && !isExpired && (
-                    <p className="text-ds-caption text-yellow-200 mt-2 font-medium animate-pulse">
-                      Atenção: Seu período de teste acaba em breve!
-                    </p>
-                  )}
-                  {isExpired && (
-                    <p className="text-ds-caption text-red-200 mt-2 font-bold uppercase tracking-wider">
-                      Teste Expirado - Assine para continuar criando orçamentos
-                    </p>
-                  )}
-                </div>
+      {/* ── CARDS DE NAVEGAÇÃO RÁPIDA (MENU CARDS) ─────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-stretch">
+        {/* Card 1: Orçamentos (Destacado em Azul Primário) */}
+        <Link href="/app/quotes" className="flex flex-col h-full group">
+          <div className="relative overflow-hidden bg-primary hover:bg-primary/95 transition-all duration-ds-fast cursor-pointer p-4 flex-1 flex flex-col justify-between rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 select-none min-h-28">
+            {/* Subtle overlay gradient */}
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-40 pointer-events-none" />
+            <div className="relative z-10 flex flex-col h-full justify-between gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-white/20 shrink-0">
+                <FileText className="size-5 text-white" />
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 shrink-0">
-                <SubscriptionGuard showVisualDisabled={false}>
-                  <Link href="/app/quotes/new">
-                    <Button
-                      size="lg"
-                      className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold shadow-md h-12 px-8 rounded-md transition-all duration-ds-fast hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      <Plus className="mr-2 h-5 w-5" />
-                      Novo Orçamento
-                    </Button>
-                  </Link>
-                </SubscriptionGuard>
-                <Link href="/pricing">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto border-white/30 bg-white/10 hover:bg-white/20 text-white font-bold h-12 px-8 backdrop-blur-sm group rounded-md transition-all duration-ds-fast hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <TrendingUp className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform duration-ds-fast" />
-                    Assinar Plano Pro
-                  </Button>
-                </Link>
-              </div>
+              <h3 className="text-ds-body-lg font-bold text-white leading-none">Orçamentos</h3>
             </div>
-          </CardContent>
-
-          {/* Decorative element */}
-          <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none -mr-12 -mb-12">
-            <FileText className="h-64 w-64 rotate-12" />
           </div>
-        </Card>
-      )}
+        </Link>
 
-      {/* Dashboard Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h2 className="text-ds-heading-md font-bold tracking-tight text-foreground">
-              Desempenho e Métricas
-            </h2>
-            {isActive && (
-              <p className="text-ds-body-sm font-medium text-muted-foreground">
-                Olá, {firstName}! Bem-vindo de volta ao seu painel.
-              </p>
-            )}
+        {/* Card 2: Clientes */}
+        <Link href="/app/customers" className="flex flex-col h-full group">
+          <div className="bg-card hover:bg-muted/40 border border-border transition-all duration-ds-fast cursor-pointer p-4 flex-1 flex flex-col justify-between rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 select-none min-h-28">
+            <div className="flex flex-col h-full justify-between gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-muted shrink-0 transition-colors group-hover:bg-primary/10">
+                <Users className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
+              </div>
+              <h3 className="text-ds-body-lg font-bold text-foreground leading-none">Clientes</h3>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <SubscriptionGuard>
-              <Link href="/app/quotes/new">
-                <Button size="sm" className="font-semibold rounded-md transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo
-                </Button>
-              </Link>
-            </SubscriptionGuard>
-            <Link
-              href="/app/quotes"
-              className={cn(
-                buttonVariants({ variant: 'ghost', size: 'sm' }),
-                'text-muted-foreground font-semibold hover:text-primary rounded-md transition-all duration-ds-fast',
-              )}
-            >
-              Ver todos <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+        </Link>
+
+        {/* Card 3: Catálogo */}
+        <Link href="/app/catalog" className="flex flex-col h-full group">
+          <div className="bg-card hover:bg-muted/40 border border-border transition-all duration-ds-fast cursor-pointer p-4 flex-1 flex flex-col justify-between rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 select-none min-h-28">
+            <div className="flex flex-col h-full justify-between gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-muted shrink-0 transition-colors group-hover:bg-primary/10">
+                <Package className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
+              </div>
+              <h3 className="text-ds-body-lg font-bold text-foreground leading-none">Catálogo</h3>
+            </div>
+          </div>
+        </Link>
+
+        {/* Card 4: Recibos */}
+        <Link href="/app/receipts" className="flex flex-col h-full group">
+          <div className="bg-card hover:bg-muted/40 border border-border transition-all duration-ds-fast cursor-pointer p-4 flex-1 flex flex-col justify-between rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 select-none min-h-28">
+            <div className="flex flex-col h-full justify-between gap-3">
+              <div className="flex items-center justify-center size-10 rounded-lg bg-muted shrink-0 transition-colors group-hover:bg-primary/10">
+                <Receipt className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
+              </div>
+              <h3 className="text-ds-body-lg font-bold text-foreground leading-none">Recibos</h3>
+            </div>
+          </div>
+        </Link>
+
+        {/* Card 5: Relatórios (Não direciona a nenhum lugar, implementado no futuro) */}
+        <div className="bg-card border border-border/80 opacity-70 p-4 flex flex-col justify-between rounded-lg shadow-xs select-none min-h-28 relative overflow-hidden">
+          <div className="flex flex-col h-full justify-between gap-3">
+            <div className="flex items-center justify-center size-10 rounded-lg bg-muted shrink-0">
+              <BarChart3 className="size-5 text-muted-foreground" />
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h3 className="text-ds-body-lg font-bold text-foreground leading-none">Relatórios</h3>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground uppercase tracking-wider">
+                Em breve
+              </span>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Charts Grid */}
-        <DashboardCharts quotes={quotesData || []} />
+      {/* ── SEÇÃO DE ORÇAMENTOS RECENTES ───────────────────────────────────── */}
+      <div className="bg-card border border-border rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-ds-heading-xs font-bold text-foreground">Orçamentos recentes</h2>
+          {recentQuotes.length > 0 && (
+            <Link
+              href="/app/quotes"
+              className="text-ds-body-sm font-semibold text-primary hover:text-primary-hover hover:underline transition-colors duration-ds-fast flex items-center gap-1"
+            >
+              Ver todos <ArrowRight className="size-4" />
+            </Link>
+          )}
+        </div>
+
+        {recentQuotes.length > 0 ? (
+          <div className="space-y-2">
+            {recentQuotes.map((quote) => {
+              const customersData = quote.customers as unknown
+              let customerName = 'Cliente não identificado'
+
+              if (customersData && typeof customersData === 'object') {
+                if ('name' in customersData && typeof (customersData as { name: unknown }).name === 'string') {
+                  customerName = (customersData as { name: string }).name
+                } else if (Array.isArray(customersData) && customersData.length > 0) {
+                  const firstCustomer = customersData[0] as unknown
+                  if (firstCustomer && typeof firstCustomer === 'object' && 'name' in firstCustomer && typeof (firstCustomer as { name: unknown }).name === 'string') {
+                    customerName = (firstCustomer as { name: string }).name
+                  }
+                }
+              }
+
+              return (
+                <Link
+                  key={quote.id}
+                  href={`/app/quotes/${quote.id}`}
+                  className="flex items-center justify-between p-3 hover:bg-muted/40 transition-all duration-ds-fast rounded-lg group/item border border-transparent hover:border-border/30"
+                >
+                  {/* Left: Icon + Info */}
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="flex items-center justify-center size-10 rounded-lg bg-muted text-muted-foreground shrink-0 group-hover/item:bg-primary/10 group-hover/item:text-primary transition-colors duration-ds-fast">
+                      <FileText className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-ds-body-md font-bold text-foreground truncate group-hover/item:text-primary transition-colors duration-ds-fast">
+                        {customerName}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        #{quote.quote_number || '---'} • {quote.title || 'Sem título'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right: Value + Status Badge */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className="text-ds-body-md font-semibold text-foreground">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(quote.total || 0)}
+                    </span>
+                    <QuoteStatusBadge status={quote.status || 'draft'} />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-center select-none">
+            <div className="flex items-center justify-center size-12 rounded-full bg-muted text-muted-foreground mb-4">
+              <FileText className="size-6" />
+            </div>
+            <h3 className="text-ds-body-lg font-bold text-foreground">Nenhum orçamento recente</h3>
+            <p className="text-ds-body-sm text-muted-foreground max-w-sm mt-1 mb-6">
+              Você ainda não criou nenhum orçamento. Comece a criar para gerenciar seu negócio!
+            </p>
+            <Link href="/app/quotes/new">
+              <Button variant="default" className="font-semibold rounded-md">
+                <Plus className="mr-2 size-4" />
+                Criar primeiro orçamento
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )

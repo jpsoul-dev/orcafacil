@@ -1,17 +1,7 @@
 import { ReactNode } from "react"
 import { createClient } from "@/lib/supabase/server"
-import { AppSidebar } from "@/components/app-sidebar"
-import { MobileTabBar } from "@/components/mobile-tab-bar"
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar"
-import { AppBreadcrumb } from "@/components/app-breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Settings } from "lucide-react"
-
+import { NavigationWrapper } from "@/components/navigation-wrapper"
 import { redirect } from "next/navigation"
-import { NotificationBell } from "@/components/notification-bell"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { headers } from "next/headers"
 import { SubscriptionProvider } from "@/components/subscription-provider"
 
@@ -52,43 +42,18 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <SubscriptionProvider isExpired={isExpired}>
-      <SidebarProvider>
-        <AppSidebar 
-          user={userData} 
-          isAdmin={isAdmin} 
-          hasPassword={profile?.has_password ?? false}
-          subscriptionStatus={profile?.subscription_status ?? null}
-          cancelAt={profile?.cancel_at ?? null}
-          trialEndsAt={profile?.trial_ends_at ?? null}
-          isExpired={isExpired}
-        />
-        <SidebarInset className="group">
-          <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card px-4 print:hidden max-sm:group-has-[.hide-global-header-mobile]:hidden">
-            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground md:inline-flex hidden transition-colors duration-ds-fast" />
-            <Separator orientation="vertical" className="h-4 md:block hidden bg-border" />
-            <AppBreadcrumb />
-            <div className="flex-1" />
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <NotificationBell />
-              <Link href="/app/settings" title="Configurações">
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground transition-all duration-ds-fast cursor-pointer rounded-md">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </Link>
-              <div className="text-right hidden sm:block ml-2 border-l pl-3 border-border">
-                <p className="text-ds-body-sm font-bold text-foreground leading-none">{companyName}</p>
-              </div>
-            </div>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6 pb-20 md:pb-6">
-            {children}
-          </div>
-          <div className="max-sm:group-has-[.hide-global-header-mobile]:hidden">
-            <MobileTabBar user={userData} />
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+      <NavigationWrapper
+        companyName={companyName}
+        userData={userData}
+        isAdmin={isAdmin}
+        hasPassword={profile?.has_password ?? false}
+        subscriptionStatus={profile?.subscription_status ?? null}
+        cancelAt={profile?.cancel_at ?? null}
+        trialEndsAt={profile?.trial_ends_at ?? null}
+        isExpired={isExpired}
+      >
+        {children}
+      </NavigationWrapper>
     </SubscriptionProvider>
   )
 }

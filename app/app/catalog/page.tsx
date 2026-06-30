@@ -79,11 +79,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground font-display">
-            Gerenciar Catálogo
+            Serviços e Produtos
           </h2>
-          <p className="text-muted-foreground text-ds-body-sm font-medium mt-1">
-            Cadastre e gerencie seus produtos e serviços.
-          </p>
         </div>
         <CatalogForm />
       </div>

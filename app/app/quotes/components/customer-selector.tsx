@@ -40,7 +40,7 @@ export function CustomerSelector({
             <Button
               variant="outline"
               size="sm"
-              className="h-11 w-full text-sm font-semibold border-input rounded-sm flex items-center justify-center cursor-pointer"
+              className="h-11 w-full text-sm font-semibold border-input rounded-md flex items-center justify-center transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Cadastrar novo cliente

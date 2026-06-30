@@ -11,24 +11,23 @@ import { maskCurrency } from '@/lib/masks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { UnitMeasureSelector } from '@/components/ui/unit-measure-selector'
+import { FormError } from '@/components/ui/form-error'
+import { cn } from '@/lib/utils'
 import { useSubscription } from '@/components/subscription-provider'
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-  DialogHeader,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog'
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+  SheetHeader,
+  SheetCloseButton,
+} from '@/components/ui/sheet'
 import {
   Pencil,
   Loader2,
-  Package,
-  Box,
-  Wrench,
   PackagePlus,
-  X,
 } from 'lucide-react'
 
 const catalogSchema = z.object({
@@ -45,6 +44,11 @@ const catalogSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal('')),
+  description: z.string()
+    .max(300, 'A descrição deve conter no máximo 300 caracteres.')
+    .optional()
+    .nullable()
+    .or(z.literal('')),
 })
 
 type CatalogValues = z.infer<typeof catalogSchema>
@@ -55,6 +59,7 @@ export interface CatalogItem {
   name: string
   unit_price: number
   unit_measure?: string | null
+  description?: string | null
 }
 
 export function CatalogForm({
@@ -86,6 +91,7 @@ export function CatalogForm({
       name: initialData?.name || '',
       unit_price: initialData?.unit_price || 0,
       unit_measure: initialData?.unit_measure || '',
+      description: initialData?.description || '',
     },
   })
 
@@ -97,6 +103,7 @@ export function CatalogForm({
         name: initialData?.name || '',
         unit_price: initialData?.unit_price || 0,
         unit_measure: initialData?.unit_measure || '',
+        description: initialData?.description || '',
       })
     }
   }, [open, initialData, form])
@@ -120,8 +127,8 @@ export function CatalogForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger
         nativeButton={true}
         render={
           trigger ? (
@@ -143,35 +150,16 @@ export function CatalogForm({
         }
       />
 
-      <DialogContent className="p-0 flex flex-col sm:max-w-md max-h-[90vh] overflow-hidden gap-0 rounded-xl border border-border bg-card text-foreground shadow-lg">
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="p-0 flex flex-col gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md h-full duration-ds-fast"
+      >
         {/* Header no estilo inspirado na imagem */}
-        <DialogHeader className="px-6 py-5 border-b border-border shrink-0 bg-card z-10 relative">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary shadow-sm shadow-primary/10">
-                <Package className="h-6 w-6 text-white" />
-              </div>
-              <div className="text-left space-y-0.5">
-                <DialogTitle className="text-ds-heading-sm font-bold text-foreground">
-                  {initialData ? 'Editar Item' : 'Novo Item'}
-                </DialogTitle>
-                <DialogDescription className="text-ds-body-sm text-muted-foreground font-medium pr-4">
-                  {initialData
-                    ? 'Atualize as informações do item'
-                    : 'Adicione um produto ou serviço ao catálogo.'}
-                </DialogDescription>
-              </div>
-            </div>
-            <DialogClose
-              render={
-                <button type="button" className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer mt-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
-                  <X className="h-5 w-5" />
-                  <span className="sr-only">Fechar</span>
-                </button>
-              }
-            />
-          </div>
-        </DialogHeader>
+        <SheetHeader>
+          <SheetTitle>{initialData ? 'Editar Item' : 'Novo Item'}</SheetTitle>
+          <SheetCloseButton />
+        </SheetHeader>
 
         {/* Conteúdo */}
         <div className="flex-1 overflow-y-auto bg-background">
@@ -180,151 +168,135 @@ export function CatalogForm({
             onSubmit={form.handleSubmit(onSubmit)}
             className="p-6 space-y-6"
           >
-            {/* Seletor de tipo com cards */}
-            <div className="space-y-3">
-              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Tipo do Item
+            {/* Nome do Item */}
+            <div className="space-y-2">
+              <Label htmlFor="name" error={!!form.formState.errors.name}>
+                Nome do Item
               </Label>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  {
-                    value: 'product',
-                    label: 'Produto',
-                    icon: Box,
-                    color: 'text-blue-600 dark:text-blue-400',
-                    bg: 'bg-blue-50 dark:bg-blue-950/40',
-                  },
-                  {
-                    value: 'service',
-                    label: 'Serviço',
-                    icon: Wrench,
-                    color: 'text-orange-600 dark:text-orange-400',
-                    bg: 'bg-orange-50 dark:bg-orange-950/40',
-                  },
-                ].map((opt) => {
-                  const isSelected = watchType === opt.value
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        form.setValue(
-                          'type',
-                          opt.value as 'product' | 'service',
-                        )
-                      }
-                      className={`flex items-center gap-3 rounded-md border-2 p-4 text-left transition-all duration-ds-fast cursor-pointer ${
-                        isSelected
-                          ? 'border-primary bg-card shadow-sm text-foreground'
-                          : 'border-border bg-card hover:border-border/80 text-muted-foreground'
-                      }`}
-                    >
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-sm ${isSelected ? opt.bg : 'bg-muted'} ${isSelected ? opt.color : 'text-muted-foreground'}`}
-                      >
-                        <opt.icon className="h-5 w-5 shrink-0" />
-                      </div>
-                      <div>
-                        <p
-                          className={`text-ds-body-sm font-bold leading-none ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}
-                        >
-                          {opt.label}
-                        </p>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+              <Input
+                id="name"
+                {...form.register('name')}
+                aria-invalid={!!form.formState.errors.name}
+              />
+              <FormError message={form.formState.errors.name?.message} />
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="name"
-                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-                >
-                  Nome do Item <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  {...form.register('name')}
-                  className="h-10 rounded-sm bg-background border-input focus-visible:ring-1 focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md"
-                />
-                {form.formState.errors.name && (
-                  <p className="text-xs text-red-500 font-medium">
-                    {form.formState.errors.name.message}
-                  </p>
+            {/* Descrição do Item */}
+            <div className="space-y-2">
+              <Label htmlFor="description" optional error={!!form.formState.errors.description}>
+                Descrição do Item
+              </Label>
+              <Controller
+                name="description"
+                control={form.control}
+                render={({ field }) => (
+                  <Textarea
+                    id="description"
+                    maxLength={300}
+                    showCounter
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    aria-invalid={!!form.formState.errors.description}
+                  />
                 )}
-              </div>
+              />
+              <FormError message={form.formState.errors.description?.message} />
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="unit_price"
-                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-                  >
-                    Valor Unitário (R$) <span className="text-red-500">*</span>
-                  </Label>
-                  <Controller
-                    name="unit_price"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Input
-                        id="unit_price"
-                        type="text"
-                        placeholder="0,00"
-                        value={
-                          field.value
-                            ? maskCurrency(
-                                Math.round(field.value * 100).toString(),
-                              )
-                            : ''
-                        }
-                        onChange={(e) => {
-                          const masked = maskCurrency(e.target.value)
-                          const raw =
-                            parseFloat(
-                              masked.replace(/\./g, '').replace(',', '.'),
-                            ) || 0
-                          field.onChange(raw)
-                        }}
-                        className="h-10 rounded-sm bg-background border-input focus-visible:ring-1 focus-visible:ring-ring tabular-nums transition-all duration-ds-fast text-ds-body-md"
-                      />
-                    )}
-                  />
-                  {form.formState.errors.unit_price && (
-                    <p className="text-xs text-red-500 font-medium">
-                      {form.formState.errors.unit_price.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="unit_measure"
-                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-                  >
-                    Unidade de Medida
-                  </Label>
+            {/* Valor Unitário */}
+            <div className="space-y-2">
+              <Label htmlFor="unit_price" error={!!form.formState.errors.unit_price}>
+                Valor Unitário
+              </Label>
+              <Controller
+                name="unit_price"
+                control={form.control}
+                render={({ field }) => (
                   <Input
-                    id="unit_measure"
-                    placeholder="Ex: un, m², h"
-                    {...form.register('unit_measure')}
-                    className="h-10 rounded-sm bg-background border-input focus-visible:ring-1 focus-visible:ring-ring transition-all duration-ds-fast text-ds-body-md"
+                    id="unit_price"
+                    type="text"
+                    placeholder="0,00"
+                    value={
+                      field.value
+                        ? maskCurrency(
+                          Math.round(field.value * 100).toString(),
+                        )
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const masked = maskCurrency(e.target.value)
+                      const raw =
+                        parseFloat(
+                          masked.replace(/\./g, '').replace(',', '.'),
+                        ) || 0
+                      field.onChange(raw)
+                    }}
+                    aria-invalid={!!form.formState.errors.unit_price}
+                    className="tabular-nums"
                   />
-                  {form.formState.errors.unit_measure && (
-                    <p className="text-xs text-red-500 font-medium">
-                      {form.formState.errors.unit_measure.message}
-                    </p>
+                )}
+              />
+              <FormError message={form.formState.errors.unit_price?.message} />
+            </div>
+
+            {/* Unidade de Medida */}
+            <div className="space-y-2">
+              <Label htmlFor="unit_measure" optional error={!!form.formState.errors.unit_measure}>
+                Unidade de Medida
+              </Label>
+              <Controller
+                name="unit_measure"
+                control={form.control}
+                render={({ field }) => (
+                  <UnitMeasureSelector
+                    id="unit_measure"
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    error={!!form.formState.errors.unit_measure}
+                  />
+                )}
+              />
+              <FormError message={form.formState.errors.unit_measure?.message} />
+            </div>
+
+            {/* Seletor de tipo segmentado */}
+            <div className="space-y-2">
+              <Label htmlFor="type" error={!!form.formState.errors.type}>
+                Tipo
+              </Label>
+              <div className="flex h-11 w-full rounded-sm border border-input bg-card p-1">
+                <button
+                  type="button"
+                  onClick={() => form.setValue('type', 'product')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center text-sm font-semibold rounded-xs transition-all cursor-pointer select-none",
+                    watchType === 'product'
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
-                </div>
+                >
+                  Produto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => form.setValue('type', 'service')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center text-sm font-semibold rounded-xs transition-all cursor-pointer select-none",
+                    watchType === 'service'
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Serviço
+                </button>
               </div>
+              <FormError message={form.formState.errors.type?.message} />
             </div>
           </form>
         </div>
 
         {/* Footer fixo */}
-        <div className="shrink-0 border-t border-border bg-card p-6 rounded-b-xl">
+        <div className="shrink-0 border-t border-border bg-card p-6">
           <Button
             form="catalog-form"
             type="submit"
@@ -343,7 +315,7 @@ export function CatalogForm({
             )}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

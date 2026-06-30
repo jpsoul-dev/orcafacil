@@ -139,6 +139,7 @@ export function CustomersList({
               className="pl-9"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              autoComplete="off"
             />
           </div>
         </div>

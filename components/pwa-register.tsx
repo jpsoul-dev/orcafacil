@@ -2,12 +2,9 @@
 
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { initOfflineSyncListener } from '@/lib/offline-sync'
 
 export function PwaRegister() {
   useEffect(() => {
-    initOfflineSyncListener()
-
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       // Evita loops infinitos de recarregamento
       let refreshing = false
@@ -33,6 +30,21 @@ export function PwaRegister() {
       }
 
       const handleRegister = async () => {
+        // Não registra o Service Worker em ambiente de desenvolvimento local
+        // para evitar lentidão e loops de recompilação do Next.js HMR/Turbopack
+        if (process.env.NODE_ENV === 'development') {
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations()
+            for (const reg of registrations) {
+              await reg.unregister()
+              console.log('Active service worker unregistered in development mode:', reg.scope)
+            }
+          } catch (err) {
+            console.error('Error cleaning up service worker in development:', err)
+          }
+          return
+        }
+
         try {
           const registration = await navigator.serviceWorker.register('/sw.js')
           console.log('Service Worker registered successfully with scope:', registration.scope)

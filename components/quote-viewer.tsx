@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils'
 import { SubscriptionGuard } from '@/components/subscription-guard'
 import {
   Printer,
-  Loader2,
   RotateCcw,
   FileText,
   Receipt,
@@ -23,6 +22,7 @@ import {
   Copy,
   CheckCircle,
 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import {
   Select,
@@ -499,7 +499,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                     >
                       <div className="flex items-center gap-2">
                         {isUpdating ? (
-                          <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                          <Spinner className="h-4.5 w-4.5" />
                         ) : (
                           <div className={cn("h-2.5 w-2.5 rounded-full shrink-0", STATUS_MAP[currentStatus]?.dot)} />
                         )}
@@ -618,7 +618,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                       className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                     >
                       {isUpdating ? (
-                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        <Spinner className="h-4.5 w-4.5" />
                       ) : (
                         <CheckCircle className="h-4.5 w-4.5" />
                       )}
@@ -645,7 +645,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                       className="w-full transition-transform duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
                     >
                       {isUpdating ? (
-                        <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                        <Spinner className="h-4.5 w-4.5" />
                       ) : (
                         <Trash2 className="h-4.5 w-4.5" />
                       )}

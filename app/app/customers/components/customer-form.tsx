@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Search, Check, ChevronLeft } from 'lucide-react'
+import { Search, Check, ChevronLeft } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -187,7 +188,7 @@ export function CustomerForm({
             successStatus ? "bg-emerald-600 text-white hover:bg-emerald-700" : ""
           )}
         >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : successStatus ? <Check className="h-4 w-4" /> : null}
+          {loading ? <Spinner className="h-4 w-4" /> : successStatus ? <Check className="h-4 w-4" /> : null}
           {successStatus ? 'Salvo' : 'Salvar'}
         </Button>
       </div>
@@ -347,7 +348,7 @@ export function CustomerForm({
                   )}
                 />
                 {searchingCEP ? (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
+                  <Spinner className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 ) : (
                   <Search
                     onClick={handleSearchCEP}

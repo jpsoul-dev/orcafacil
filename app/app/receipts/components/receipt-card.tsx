@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Pencil, Eye, Printer, Trash2, MoreHorizontal, Loader2, User, CreditCard } from 'lucide-react'
+import { Pencil, Eye, Printer, Trash2, MoreHorizontal, User, CreditCard } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { deleteReceiptAction, deleteStandaloneReceiptAction } from '@/app/app/quotes/receipt-actions'
@@ -165,7 +166,7 @@ export function ReceiptCard({ receipt, onDeleted }: ReceiptCardProps) {
                     disabled={isUpdating}
                   >
                     {isUpdating ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                      <Spinner className="h-3.5 w-3.5 text-muted-foreground" />
                     ) : (
                       <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
                     )}

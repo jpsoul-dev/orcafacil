@@ -13,7 +13,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { checkCustomerRelations, deleteCustomer } from '../actions'
 import { toast } from 'sonner'
-import { Loader2, AlertTriangle, Trash } from 'lucide-react'
+import { AlertTriangle, Trash } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 
 interface DeleteCustomerDialogProps {
@@ -104,7 +105,7 @@ export function DeleteCustomerDialog({ id, name, trigger, asDropdownItem }: Dele
           <AlertDialogDescription className="text-muted-foreground text-sm font-medium leading-relaxed mt-2">
             {checking && (
               <span className="flex items-center gap-2 py-3 justify-center text-sm font-medium text-slate-400">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <Spinner className="h-4 w-4 text-primary" />
                 Verificando vínculos do cliente...
               </span>
             )}
@@ -144,7 +145,7 @@ export function DeleteCustomerDialog({ id, name, trigger, asDropdownItem }: Dele
               >
                 {deleting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <Spinner className="h-4 w-4 mr-2" />
                     Excluindo...
                   </>
                 ) : (

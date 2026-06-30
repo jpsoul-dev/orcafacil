@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { createCheckoutAction } from './server-actions'
 
 interface PricingPlansCardProps {
@@ -36,7 +37,7 @@ function SubmitButton({
     >
       {pending ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Spinner className="h-4 w-4" />
           Processando...
         </>
       ) : isConfigured ? (

@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useSubscription } from '@/components/subscription-provider'
-import { ArrowLeft, Loader2, Save, Plus, Trash2, Package, Search } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Package, Search } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -606,7 +607,7 @@ export function StandaloneReceiptForm({ customers, catalogItems, initialData }: 
           >
             {loading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner className="h-4 w-4" />
                 Salvando...
               </>
             ) : (

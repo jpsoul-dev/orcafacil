@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { deleteCatalogItem } from './actions'
 import { Button } from '@/components/ui/button'
 import { showPillToast } from './components/pill-toast'
@@ -102,7 +103,7 @@ export function DeleteItemDialog({
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
             disabled={loading}
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Excluir'}
+            {loading ? <Spinner className="h-4 w-4" /> : 'Excluir'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -11,7 +11,6 @@ import { toast } from 'sonner'
 import {
   Zap,
   ArrowRight,
-  Loader2,
   CheckCircle2,
   ShieldCheck,
   Mail,
@@ -19,6 +18,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { authSchema, type AuthSchema } from '@/lib/validations/auth'
@@ -252,7 +252,7 @@ export default function RegisterPage() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Spinner className="h-4 w-4" />
                   Criando conta...
                 </>
               ) : (
@@ -295,7 +295,7 @@ export default function RegisterPage() {
               disabled={googleLoading}
             >
               {googleLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner className="h-4 w-4" />
               ) : (
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path

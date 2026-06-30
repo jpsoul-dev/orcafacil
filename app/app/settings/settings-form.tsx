@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from 'next/image'
-import { ImageIcon, Building2, MapPin, Loader2, Upload, Search, FileText, Palette, Sun, Moon, Check } from 'lucide-react'
+import { ImageIcon, Building2, MapPin, Upload, Search, FileText, Palette, Sun, Moon, Check } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import { useTheme } from 'next-themes'
@@ -464,7 +465,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                         )}
                       />
                       {searchingCEP ? (
-                        <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                        <Spinner className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       ) : (
                         <Search
                           onClick={handleSearchCEP}
@@ -605,7 +606,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    <Spinner className="h-4 w-4 mr-1" />
                     Salvando...
                   </>
                 ) : saved ? (

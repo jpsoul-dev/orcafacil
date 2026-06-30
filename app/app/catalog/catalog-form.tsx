@@ -27,9 +27,9 @@ import {
 } from '@/components/ui/sheet'
 import {
   Pencil,
-  Loader2,
   PackagePlus,
 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 
 export interface CatalogItem {
   id: string
@@ -314,7 +314,7 @@ export function CatalogForm({
           >
             {loading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <Spinner className="h-5 w-5 mr-2" />
                 Salvando...
               </>
             ) : initialData ? (

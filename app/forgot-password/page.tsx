@@ -9,12 +9,12 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import {
   Zap,
-  Loader2,
   Mail,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -175,7 +175,7 @@ export default function ForgotPasswordPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Spinner className="h-4 w-4" />
                     Enviando...
                   </>
                 ) : (

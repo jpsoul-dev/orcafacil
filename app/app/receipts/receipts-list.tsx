@@ -124,6 +124,7 @@ export function ReceiptsList({ initialReceipts }: ReceiptsListProps) {
             className="pl-9 h-10 rounded-sm border-border bg-card text-ds-body-md focus-visible:ring-ring transition-all duration-ds-fast"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            autoComplete="off"
           />
         </div>
 

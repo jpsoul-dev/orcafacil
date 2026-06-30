@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { Loader2, Rocket, Store, Briefcase, ArrowRight } from 'lucide-react'
+import { Rocket, Store, Briefcase, ArrowRight } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { saveOnboarding } from './actions'
 import { onboardingSchema, type OnboardingValues } from './schemas'
 
@@ -283,7 +284,7 @@ export default function OnboardingPage() {
                 disabled={loading}
               >
                 {loading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Spinner className="h-5 w-5" />
                 ) : (
                   <>
                     Configurar conta

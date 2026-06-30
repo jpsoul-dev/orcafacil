@@ -2,12 +2,12 @@
 
 import { formatBRL } from '@/lib/utils'
 import { SubscriptionGuard } from '@/components/subscription-guard'
+import { triggerHaptic } from '@/lib/haptic'
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetCloseButton,
 } from '@/components/ui/sheet'
 import {
   DropdownMenu,
@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import type { CatalogItem } from '../catalog-form'
 
 interface CatalogViewSheetProps {
@@ -42,6 +42,21 @@ export function CatalogViewSheet({
 
   const isProduct = item.type === 'product'
 
+  const handleClose = () => {
+    triggerHaptic('light')
+    onOpenChange(false)
+  }
+
+  const handleEditClick = () => {
+    triggerHaptic('light')
+    onEdit(item)
+  }
+
+  const handleDeleteClickLocal = () => {
+    triggerHaptic('light')
+    onDeleteClick(item)
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -49,11 +64,23 @@ export function CatalogViewSheet({
         showCloseButton={false}
         className="p-0 flex flex-col gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md h-full duration-ds-fast"
       >
-        {/* Header com as ações e botão fechar */}
-        <SheetHeader className="flex flex-row items-center justify-between pr-4">
-          <SheetTitle>Visualizar Item</SheetTitle>
+        {/* Header com o botão voltar à esquerda, título e ações à direita */}
+        <SheetHeader className="flex flex-row items-center justify-between px-4 py-3 border-b border-border/60 min-h-14">
+          <div className="flex items-center gap-2">
+            {/* Botão Voltar (fecha o sheet com feedback tátil) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md -ml-3.5 flex items-center justify-center"
+              onClick={handleClose}
+              aria-label="Voltar"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <SheetTitle className="text-base font-bold">Visualizar Item</SheetTitle>
+          </div>
           
-          <div className="flex items-center gap-1.5 ml-auto mr-1 select-none">
+          <div className="flex items-center gap-1.5 select-none">
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-2">
               <SubscriptionGuard>
@@ -61,7 +88,7 @@ export function CatalogViewSheet({
                   variant="outline"
                   size="sm"
                   className="h-8 rounded-md font-semibold cursor-pointer"
-                  onClick={() => onEdit(item)}
+                  onClick={handleEditClick}
                 >
                   <Pencil className="h-3.5 w-3.5 mr-1" />
                   Editar
@@ -72,7 +99,7 @@ export function CatalogViewSheet({
                   variant="outline"
                   size="sm"
                   className="h-8 rounded-md font-semibold text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer"
-                  onClick={() => onDeleteClick(item)}
+                  onClick={handleDeleteClickLocal}
                 >
                   <Trash2 className="h-3.5 w-3.5 mr-1" />
                   Deletar
@@ -80,17 +107,8 @@ export function CatalogViewSheet({
               </SubscriptionGuard>
             </div>
 
-            {/* Botão padrão de fechar */}
-            <SheetCloseButton />
-          </div>
-        </SheetHeader>
-
-        {/* Detalhes do item em modo leitura */}
-        <div className="flex-1 overflow-y-auto bg-background p-6 space-y-6">
-          {/* Top Section: Mobile Actions + Name/Badge */}
-          <div className="flex flex-col gap-2">
-            {/* Mobile Actions Dropdown */}
-            <div className="flex sm:hidden justify-end -mr-2">
+            {/* Mobile Actions Dropdown (no Header) */}
+            <div className="flex sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger
                   nativeButton={true}
@@ -98,38 +116,48 @@ export function CatalogViewSheet({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
+                      className="h-11 w-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md flex items-center justify-center"
+                      onClick={() => triggerHaptic('light')}
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="h-5 w-5" />
                       <span className="sr-only">Ações</span>
                     </Button>
                   }
                 />
-                <DropdownMenuContent align="end" className="w-32">
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-48 p-1.5 rounded-sm border border-border/60 bg-popover text-popover-foreground shadow-md"
+                >
                   <SubscriptionGuard>
                     <DropdownMenuItem
-                      onClick={() => onEdit(item)}
-                      className="flex items-center gap-2 cursor-pointer text-sm font-medium"
+                      onClick={handleEditClick}
+                      className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold rounded-xs py-3 px-4 focus:bg-accent focus:text-accent-foreground"
                       render={<div />}
                     >
                       <Pencil className="h-4 w-4" />
-                      Editar
+                      Editar item
                     </DropdownMenuItem>
                   </SubscriptionGuard>
                   <SubscriptionGuard>
                     <DropdownMenuItem
-                      onClick={() => onDeleteClick(item)}
-                      className="flex items-center gap-2 cursor-pointer text-sm font-medium text-destructive focus:text-destructive"
+                      onClick={handleDeleteClickLocal}
+                      className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold rounded-xs py-3 px-4 text-destructive focus:text-destructive focus:bg-destructive/10"
                       render={<div />}
                     >
                       <Trash2 className="h-4 w-4" />
-                      Deletar
+                      Deletar item
                     </DropdownMenuItem>
                   </SubscriptionGuard>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </div>
+        </SheetHeader>
 
+        {/* Detalhes do item em modo leitura */}
+        <div className="flex-1 overflow-y-auto bg-background p-6 space-y-6">
+          {/* Top Section: Name/Badge */}
+          <div className="flex flex-col gap-2">
             {/* Nome e Badge de Tipo */}
             <div className="space-y-2.5">
               <h3 className="text-xl font-bold font-display text-foreground leading-tight break-words">

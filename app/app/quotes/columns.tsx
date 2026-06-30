@@ -1,7 +1,8 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Eye, Printer, Receipt, Trash2, CheckCircle, XCircle, Ban, RotateCcw, MoreHorizontal, Loader2, Copy } from 'lucide-react'
+import { ArrowUpDown, Pencil, Eye, Printer, Receipt, Trash2, CheckCircle, XCircle, Ban, RotateCcw, MoreHorizontal, Copy } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -224,7 +225,7 @@ export const columns: ColumnDef<Quote>[] = [
             >
               <span className="sr-only">Abrir menu</span>
               {isUpdating ? (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <Spinner className="h-4 w-4 text-muted-foreground" />
               ) : (
                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
               )}

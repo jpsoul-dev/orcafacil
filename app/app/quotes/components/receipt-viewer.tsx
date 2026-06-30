@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Printer, Pencil, Trash2, Loader2, CloudDownload } from 'lucide-react'
+import { Printer, Pencil, Trash2, CloudDownload } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -288,7 +289,7 @@ export function ReceiptViewer({ receipt, quote, isStandalone = false }: ReceiptV
                       disabled={isDeleting}
                       className="bg-red-600 hover:bg-red-700 text-white rounded-lg"
                     >
-                      {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar Exclusão'}
+                      {isDeleting ? <Spinner className="h-4 w-4" /> : 'Confirmar Exclusão'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

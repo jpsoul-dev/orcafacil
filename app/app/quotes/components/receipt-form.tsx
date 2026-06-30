@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useSubscription } from '@/components/subscription-provider'
-import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Save } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -261,7 +262,7 @@ export function ReceiptForm({ quote, initialData }: ReceiptFormProps) {
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Spinner className="mr-2 h-4 w-4" />
                 Salvando...
               </>
             ) : (

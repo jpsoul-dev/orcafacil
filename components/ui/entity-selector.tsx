@@ -4,7 +4,7 @@ import * as React from "react"
 import { Check, ChevronDown, X, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Command as CommandPrimitive } from "cmdk"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetCloseButton } from "@/components/ui/sheet"
 import { Drawer } from "vaul"
 import { Command, CommandEmpty, CommandItem, CommandList } from "@/components/ui/command"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -231,7 +231,7 @@ export function EntitySelector<T>({
         })}
       </CommandList>
       {renderCreateAction && (
-        <div className="p-4 border-t bg-card mt-auto shrink-0">
+        <div className="p-6 border-t border-border bg-card mt-auto shrink-0">
           {renderCreateAction()}
         </div>
       )}
@@ -247,10 +247,20 @@ export function EntitySelector<T>({
           </Drawer.Trigger>
           <Drawer.Portal>
             <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
-            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-[10px] bg-card outline-none h-[85dvh] max-h-[85dvh]">
-              <div className="p-4 bg-card rounded-t-[10px] shrink-0 border-b flex flex-col items-center">
-                <div className="mx-auto h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/20 mb-4" />
-                <Drawer.Title className="text-lg font-semibold text-center">{title}</Drawer.Title>
+            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex flex-col rounded-t-xl bg-card outline-none h-[85dvh] max-h-[85dvh] border-t border-border">
+              <div className="px-6 pt-3 pb-5 bg-card rounded-t-xl shrink-0 border-b border-border flex flex-col gap-3">
+                <div className="mx-auto h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/20" />
+                <div className="flex items-center justify-between gap-4">
+                  <Drawer.Title className="text-ds-heading-sm font-bold text-foreground font-display leading-none">{title}</Drawer.Title>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Fechar</span>
+                  </button>
+                </div>
               </div>
               <div className="flex-1 overflow-hidden flex flex-col">
                 {content}
@@ -266,9 +276,10 @@ export function EntitySelector<T>({
     <div className="w-full relative">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger render={finalTrigger} />
-        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col border-l">
-          <SheetHeader className="px-4 py-4 border-b shrink-0 text-left">
+        <SheetContent side="right" showCloseButton={false} className="w-full sm:max-w-md p-0 flex flex-col border-l border-border h-full duration-ds-fast">
+          <SheetHeader>
             <SheetTitle>{title}</SheetTitle>
+            <SheetCloseButton />
           </SheetHeader>
           <div className="flex-1 overflow-hidden flex flex-col">
             {content}

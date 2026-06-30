@@ -84,7 +84,10 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("flex flex-col gap-1.5 p-4", className)}
+      className={cn(
+        "flex items-center justify-between gap-4 px-6 py-5 border-b border-border shrink-0 bg-card z-10 relative text-left",
+        className
+      )}
       {...props}
     />
   )
@@ -104,7 +107,7 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("font-heading font-medium text-foreground", className)}
+      className={cn("text-ds-heading-sm font-bold text-foreground font-display leading-none", className)}
       {...props}
     />
   )
@@ -123,10 +126,31 @@ function SheetDescription({
   )
 }
 
+function SheetCloseButton({ className, ...props }: React.ComponentProps<"button">) {
+  return (
+    <SheetClose
+      render={
+        <button
+          type="button"
+          className={cn(
+            "text-slate-400 hover:text-slate-600 transition-colors cursor-pointer rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 shrink-0",
+            className
+          )}
+          {...props}
+        >
+          <XIcon className="h-5 w-5" />
+          <span className="sr-only">Fechar</span>
+        </button>
+      }
+    />
+  )
+}
+
 export {
   Sheet,
   SheetTrigger,
   SheetClose,
+  SheetCloseButton,
   SheetContent,
   SheetHeader,
   SheetFooter,

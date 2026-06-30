@@ -156,7 +156,7 @@ export function NavigationWrapper({
       </main>
 
       {/* ── BARRA DE ABAS INFERIOR NO MOBILE ───────────────────────────────── */}
-      <div className="max-sm:group-has-[.hide-global-header-mobile]:hidden md:hidden">
+      <div className="max-sm:group-has-[.hide-global-header-mobile]:hidden max-sm:group-has-[.hide-mobile-tabbar]:hidden md:hidden">
         <MobileTabBar user={userData} isExpired={isExpired} />
       </div>
 

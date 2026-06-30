@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useForm, Resolver, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { toast } from 'sonner'
 import { saveCatalogItem } from './actions'
 import { maskCurrency } from '@/lib/masks'
 
@@ -16,6 +14,9 @@ import { UnitMeasureSelector } from '@/components/ui/unit-measure-selector'
 import { FormError } from '@/components/ui/form-error'
 import { cn } from '@/lib/utils'
 import { useSubscription } from '@/components/subscription-provider'
+import { showPillToast } from './components/pill-toast'
+import { catalogItemSchema } from '@/lib/validations/catalog-schema'
+import type { CatalogItemInput } from '@/lib/validations/catalog-schema'
 import {
   Sheet,
   SheetContent,
@@ -30,29 +31,6 @@ import {
   PackagePlus,
 } from 'lucide-react'
 
-const catalogSchema = z.object({
-  type: z.enum(['product', 'service'], {
-    message: 'O tipo do item é obrigatório.',
-  }),
-  name: z.string()
-    .min(2, 'O nome deve conter pelo menos 2 caracteres.')
-    .max(100, 'O nome deve conter no máximo 100 caracteres.'),
-  unit_price: z.coerce.number()
-    .min(0.01, 'O valor unitário deve ser estritamente maior que zero.'),
-  unit_measure: z.string()
-    .max(10, 'A unidade de medida deve conter no máximo 10 caracteres.')
-    .optional()
-    .nullable()
-    .or(z.literal('')),
-  description: z.string()
-    .max(300, 'A descrição deve conter no máximo 300 caracteres.')
-    .optional()
-    .nullable()
-    .or(z.literal('')),
-})
-
-type CatalogValues = z.infer<typeof catalogSchema>
-
 export interface CatalogItem {
   id: string
   type: 'product' | 'service'
@@ -62,19 +40,33 @@ export interface CatalogItem {
   description?: string | null
 }
 
+interface CatalogFormProps {
+  initialData?: CatalogItem
+  asMenuItem?: boolean
+  trigger?: React.ReactElement
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+/**
+ * Form component to create or edit a Catalog Item (User Story 4 / FR-007, FR-008, FR-009).
+ * Supports controlled and uncontrolled states for sheet coordination.
+ */
 export function CatalogForm({
   initialData,
   asMenuItem,
   trigger,
-}: {
-  initialData?: CatalogItem
-  asMenuItem?: boolean
-  trigger?: React.ReactElement
-}) {
-  const [open, setOpen] = useState(false)
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: CatalogFormProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const { isExpired, openUpgradeModal } = useSubscription()
+
+  const isControlled = controlledOpen !== undefined && controlledOnOpenChange !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen && isExpired) {
@@ -84,8 +76,8 @@ export function CatalogForm({
     setOpen(newOpen)
   }
 
-  const form = useForm<CatalogValues>({
-    resolver: zodResolver(catalogSchema) as Resolver<CatalogValues>,
+  const form = useForm<CatalogItemInput>({
+    resolver: zodResolver(catalogItemSchema) as Resolver<CatalogItemInput>,
     defaultValues: {
       type: initialData?.type || 'product',
       name: initialData?.name || '',
@@ -113,14 +105,14 @@ export function CatalogForm({
     name: 'type',
   })
 
-  async function onSubmit(data: CatalogValues) {
+  async function onSubmit(data: CatalogItemInput) {
     setLoading(true)
     const result = await saveCatalogItem(data, initialData?.id)
     setLoading(false)
     if (result.error) {
-      toast.error(result.error)
+      showPillToast(result.error, 'error')
     } else {
-      toast.success(initialData ? 'Item atualizado!' : 'Item cadastrado!')
+      showPillToast(initialData ? 'Item atualizado com sucesso!' : 'Item cadastrado com sucesso!', 'success')
       setOpen(false)
       if (!initialData) form.reset()
     }
@@ -128,45 +120,50 @@ export function CatalogForm({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger
-        nativeButton={true}
-        render={
-          trigger ? (
-            trigger
-          ) : asMenuItem ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            >
-              <Pencil className="h-4 w-4" />
-              <span className="sr-only">Editar</span>
-            </Button>
-          ) : (
-            <Button variant="default" className="gap-2 rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]">
-              <PackagePlus className="h-4 w-4" /> Novo item
-            </Button>
-          )
-        }
-      />
+      {/* Trigger button (only if not controlled by parent) */}
+      {!isControlled && (
+        <SheetTrigger
+          nativeButton={true}
+          render={
+            trigger ? (
+              trigger
+            ) : asMenuItem ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Editar</span>
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="gap-2 rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              >
+                <PackagePlus className="h-4 w-4" /> Novo item
+              </Button>
+            )
+          }
+        />
+      )}
 
       <SheetContent
         side="right"
         showCloseButton={false}
         className="p-0 flex flex-col gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md h-full duration-ds-fast"
       >
-        {/* Header no estilo inspirado na imagem */}
         <SheetHeader>
           <SheetTitle>{initialData ? 'Editar Item' : 'Novo Item'}</SheetTitle>
           <SheetCloseButton />
         </SheetHeader>
 
-        {/* Conteúdo */}
+        {/* Content Area */}
         <div className="flex-1 overflow-y-auto bg-background">
           <form
             id="catalog-form"
             onSubmit={form.handleSubmit(onSubmit)}
-            className="p-6 space-y-6"
+            className="p-6 space-y-6 select-none"
           >
             {/* Nome do Item */}
             <div className="space-y-2">
@@ -215,6 +212,7 @@ export function CatalogForm({
                   <Input
                     id="unit_price"
                     type="text"
+                    inputMode="decimal"
                     placeholder="0,00"
                     value={
                       field.value
@@ -241,7 +239,7 @@ export function CatalogForm({
 
             {/* Unidade de Medida */}
             <div className="space-y-2">
-              <Label htmlFor="unit_measure" optional error={!!form.formState.errors.unit_measure}>
+              <Label htmlFor="unit_measure" error={!!form.formState.errors.unit_measure}>
                 Unidade de Medida
               </Label>
               <Controller
@@ -301,7 +299,7 @@ export function CatalogForm({
             form="catalog-form"
             type="submit"
             disabled={loading}
-            className="w-full rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99]"
+            className="w-full rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
             {loading ? (
               <>

@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CatalogForm, CatalogItem } from './catalog-form'
-import { CatalogFilter } from './components/catalog-filter'
+import { CatalogForm } from './catalog-form'
 import { CatalogList } from './catalog-list'
+import { CatalogService } from '@/lib/services/catalog-service'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -10,6 +10,10 @@ interface CatalogPageProps {
   searchParams: SearchParams
 }
 
+/**
+ * Server Component for the Catalog route.
+ * delegates database logic to CatalogService per Principle I.
+ */
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const params = await searchParams
   const supabase = await createClient()
@@ -28,67 +32,39 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const sizeNum = parseInt(size) || 10
   const limitNum = parseInt(limit) || 0
 
-  let query = supabase
-    .from('catalog_items')
-    .select('*', { count: 'exact' })
-    .eq('user_id', user.id)
+  // Call the isolated catalog service
+  const result = await CatalogService.getCatalogItemsPaged({
+    userId: user.id,
+    page: pageNum,
+    size: sizeNum,
+    limit: limitNum,
+    search,
+    type,
+    sort,
+  })
 
-  if (type && type !== 'all') {
-    query = query.eq('type', type)
+  if (!result.success) {
+    throw new Error(result.error)
   }
 
-  if (search) {
-    query = query.ilike('name', `%${search}%`)
-  }
-
-  // Ordenação
-  if (sort === 'za') {
-    query = query.order('name', { ascending: false })
-  } else if (sort === 'price_asc') {
-    query = query.order('unit_price', { ascending: true })
-  } else if (sort === 'price_desc') {
-    query = query.order('unit_price', { ascending: false })
-  } else if (sort === 'newest') {
-    query = query.order('created_at', { ascending: false })
-  } else if (sort === 'oldest') {
-    query = query.order('created_at', { ascending: true })
-  } else {
-    // Padrão: 'az'
-    query = query.order('name', { ascending: true })
-  }
-
-  // Paginação
-  let start = pageNum * sizeNum
-  let end = start + sizeNum - 1
-
-  if (limitNum > 0) {
-    start = 0
-    end = limitNum - 1
-  }
-
-  query = query.range(start, end)
-
-  const { data: items, count } = await query
-
-  const catalogItems = items || []
-  const totalItems = count || 0
+  const { items: catalogItems, count: totalItems } = result.data
 
   return (
-    <div className="space-y-6">
-      {/* Header da Página */}
-      <div className="flex items-start justify-between">
+    <div className="space-y-6 hide-mobile-tabbar pb-20 sm:pb-6">
+      {/* Header da Página - Fixo (Sticky) no desktop, ocultado no mobile */}
+      <div className="hidden sm:flex sticky top-0 z-30 bg-background/95 backdrop-blur-xs py-4 border-b border-border/50 items-center justify-between">
         <div>
           <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground font-display">
-            Serviços e Produtos
+            Catálogo
           </h2>
         </div>
-        <CatalogForm />
+        <div>
+          <CatalogForm />
+        </div>
       </div>
 
-      <CatalogFilter />
-
       <CatalogList
-        initialItems={catalogItems as (CatalogItem & { created_at: string; unit_measure: string | null })[]}
+        initialItems={catalogItems}
         totalItems={totalItems}
         filters={{
           page: pageNum,

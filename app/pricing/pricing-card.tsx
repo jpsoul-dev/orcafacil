@@ -143,9 +143,8 @@ export function PricingPlansCard({
           </ul>
         </div>
 
-        {/* Subscription Form */}
         <form action={createCheckoutAction} className="space-y-3">
-          <input type="hidden" name="priceId" value={activePriceId || ''} />
+          <input type="hidden" name="plan" value={billingInterval === 'month' ? 'monthly' : 'yearly'} />
 
           <SubmitButton isConfigured={isConfigured} billingInterval={billingInterval} />
 

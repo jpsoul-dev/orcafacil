@@ -51,14 +51,45 @@ export async function createCheckoutAction(formData?: FormData) {
 
   let sessionUrl: string | null = null
 
-  // Extract the priceId sent by the form, with safe fallbacks
-  const selectedPriceId = formData ? (formData.get('priceId') as string | null) : null
-  let priceId = selectedPriceId || process.env.STRIPE_PRICE_ID
+  // Extract the plan (monthly or yearly) sent by the form
+  const selectedPlan = formData ? (formData.get('plan') as string | null) : null
+  let priceId: string | undefined = undefined
 
-  // Fallback: if not in FormData nor ENV, search the first active price for the configured product
+  // Resolve pricing dynamically on server if a valid plan was selected
+  const productId = process.env.STRIPE_PRODUCT_ID
+  if (productId && (selectedPlan === 'monthly' || selectedPlan === 'yearly')) {
+    try {
+      logger.info(`Resolving price dynamically on server for plan: ${selectedPlan}`)
+      const prices = await stripe.prices.list({
+        product: productId,
+        active: true,
+      })
+
+      const targetInterval = selectedPlan === 'yearly' ? 'year' : 'month'
+      const matchedPrice = prices.data.find(
+        (price) => price.recurring?.interval === targetInterval
+      )
+
+      if (matchedPrice) {
+        priceId = matchedPrice.id
+        logger.info(`Resolved priceId dynamically: ${priceId}`)
+      } else {
+        logger.warn(`No active price found for product ${productId} with interval ${targetInterval}`)
+      }
+    } catch (err) {
+      logger.error('Failed to resolve Stripe price from product:', err)
+    }
+  }
+
+  // Fallback: if not resolved dynamically, fallback to the default STRIPE_PRICE_ID
   if (!priceId) {
-    logger.info('priceId missing in FormData and ENV, searching Stripe fallback...')
-    const productId = process.env.STRIPE_PRODUCT_ID
+    logger.info('priceId not resolved dynamically, trying STRIPE_PRICE_ID env var')
+    priceId = process.env.STRIPE_PRICE_ID
+  }
+
+  // If still no priceId, search the first active price for the configured product as secondary fallback
+  if (!priceId) {
+    logger.info('priceId still missing, searching Stripe fallback from product...')
     if (productId) {
       try {
         const prices = await stripe.prices.list({
@@ -76,7 +107,7 @@ export async function createCheckoutAction(formData?: FormData) {
   }
 
   if (!priceId) {
-    logger.error('No price ID found in FormData, ENV or Stripe fallback')
+    logger.error('No price ID resolved dynamically, via ENV or Stripe fallback')
     redirect('/pricing?error=configuration_missing')
   }
 

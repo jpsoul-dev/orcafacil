@@ -29,7 +29,30 @@ export async function POST(req: Request) {
     )
   }
 
+  // Idempotency check: Avoid double processing
+  try {
+    const { data: alreadyProcessed, error: checkError } = await supabaseAdmin
+      .from('stripe_processed_events')
+      .select('id')
+      .eq('id', event.id)
+      .single()
 
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = row not found
+      throw checkError
+    }
+
+    if (alreadyProcessed) {
+      logger.info(`Stripe event ${event.id} already processed. Skipping...`)
+      return NextResponse.json({ received: true, duplicated: true }, { status: 200 })
+    }
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    logger.error('Failed to verify event idempotency:', errorMessage)
+    return NextResponse.json(
+      { error: 'Idempotency check failed' },
+      { status: 500 },
+    )
+  }
 
   // Enum de status permitidos pelo Stripe que nossa aplicação suporta
   const subscriptionStatusSchema = z.enum([
@@ -107,6 +130,15 @@ export async function POST(req: Request) {
 
       default:
         logger.info(`Unhandled event type ${event.type}`)
+    }
+
+    // Log the event as successfully processed for idempotency
+    const { error: insertError } = await supabaseAdmin
+      .from('stripe_processed_events')
+      .insert([{ id: event.id }])
+
+    if (insertError) {
+      logger.error(`Failed to log processed Stripe event ${event.id}:`, insertError.message)
     }
 
     return NextResponse.json({ received: true }, { status: 200 })

@@ -13,7 +13,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     redirect('/login')
   }
 
-  const { data: company } = await supabase.from('companies').select('name').single()
+  // Obter empresa e perfil em paralelo após autenticar o usuário para evitar waterfalls
+  const [companyResult, profileResult] = await Promise.all([
+    supabase.from('companies').select('name').single(),
+    supabase.from('profiles')
+      .select('subscription_status, trial_ends_at, is_admin, has_password, cancel_at')
+      .eq('id', user?.id || '')
+      .single()
+  ])
+
+  const company = companyResult.data
+  const profile = profileResult.data
 
   if (!company) {
     redirect('/onboarding')
@@ -31,12 +41,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   // Get subscription status from Proxy header to prevent database duplicate queries
   const headersList = await headers()
   const isExpired = headersList.get('x-subscription-status') === 'trialing-expired'
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('subscription_status, trial_ends_at, is_admin, has_password, cancel_at')
-    .eq('id', user?.id || '')
-    .single()
 
   const isAdmin = profile?.is_admin === true
 

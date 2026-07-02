@@ -99,11 +99,10 @@ export async function logout() {
   }
 }
 
-export async function signInWithGoogle(origin?: string) {
+export async function signInWithGoogle() {
   const supabase = await createClient()
-  const redirectUrl = origin
-    ? `${origin}/auth/callback`
-    : `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/callback`
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const redirectUrl = `${baseUrl}/auth/callback`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -121,13 +120,14 @@ export async function signInWithGoogle(origin?: string) {
   }
 }
 
-export async function sendPasswordReset(email: string, origin: string) {
+export async function sendPasswordReset(email: string) {
   if (!email || !email.includes('@')) {
     return { error: 'E-mail inválido.' }
   }
 
   const supabase = await createClient()
-  const redirectUrl = `${origin}/auth/callback?next=/reset-password`
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const redirectUrl = `${baseUrl}/auth/callback?next=/reset-password`
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: redirectUrl,

@@ -279,7 +279,7 @@ export default function RegisterPage() {
             action={async () => {
               setGoogleLoading(true)
               try {
-                const result = await signInWithGoogle(window.location.origin)
+                const result = await signInWithGoogle()
                 if (result?.error) {
                   toast.error(result.error)
                 }

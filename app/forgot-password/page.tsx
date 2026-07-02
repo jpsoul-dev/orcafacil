@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
 
   async function onSubmit(data: ForgotPasswordSchema) {
     try {
-      const result = await sendPasswordReset(data.email, window.location.origin)
+      const result = await sendPasswordReset(data.email)
       if (result?.error) {
         toast.error(result.error)
       } else {

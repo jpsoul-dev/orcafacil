@@ -114,9 +114,9 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
   }
 
   const processFile = (file: File) => {
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp']
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
     if (!validTypes.includes(file.type)) {
-      toast.error('Formato de imagem inválido. Use PNG, JPG, WEBP ou SVG.')
+      toast.error('Formato de imagem inválido. Use PNG, JPG ou WEBP.')
       return
     }
     if (file.size > 2 * 1024 * 1024) {
@@ -282,7 +282,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileChange}
-                      accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
                       className="hidden"
                     />
                     <Upload className={cn("h-6 w-6 mb-2 text-muted-foreground transition-transform duration-ds-fast", isDragOver && "scale-110 text-primary")} />
@@ -290,7 +290,7 @@ export function SettingsForm({ initialData }: { initialData: Company | null }) {
                       Arraste seu logotipo aqui ou clique para selecionar
                     </p>
                     <p className="text-ds-caption text-muted-foreground mt-1 font-medium">
-                      PNG, JPG, WEBP ou SVG (Máx. 2MB)
+                      PNG, JPG ou WEBP (Máx. 2MB)
                     </p>
                   </div>
 

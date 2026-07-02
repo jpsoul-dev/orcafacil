@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Search, SlidersHorizontal, Package, ChevronRight, Plus, X } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { ResponsivePagination } from '@/components/responsive-pagination'
-import { formatBRL } from '@/lib/utils'
-import { CatalogViewSheet } from './components/catalog-view-sheet'
-import { CatalogFilterSheet } from './components/catalog-filter-sheet'
-import { DeleteItemDialog } from './delete-item-dialog'
-import { CatalogForm } from './catalog-form'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { cn, formatBRL } from '@/lib/utils'
+import { ChevronRight, Package, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState, useTransition } from 'react'
 import type { CatalogItem } from './catalog-form'
+import { CatalogForm } from './catalog-form'
+import { CatalogFilterSheet } from './components/catalog-filter-sheet'
+import { CatalogViewSheet } from './components/catalog-view-sheet'
+import { DeleteItemDialog } from './delete-item-dialog'
 
 const sortLabels: Record<string, string> = {
   az: 'A–Z',
@@ -48,48 +48,85 @@ export function CatalogList({
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const [isPending, startTransition] = useTransition()
+
   // Centralized Sheets and Dialogs States
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [activeViewItem, setActiveViewItem] = useState<CatalogItem | null>(null)
   const [activeEditItem, setActiveEditItem] = useState<CatalogItem | null>(null)
   const [activeDeleteItem, setActiveDeleteItem] = useState<CatalogItem | null>(null)
 
-  const [prevSearch, setPrevSearch] = useState(filters.search)
+  // Estados locais para feedback de UI imediato
+  const [localType, setLocalType] = useState(filters.type)
+  const [localSort, setLocalSort] = useState(filters.sort)
   const [searchValue, setSearchValue] = useState(filters.search)
 
+  const [prevType, setPrevType] = useState(filters.type)
+  const [prevSort, setPrevSort] = useState(filters.sort)
+  const [prevSearch, setPrevSearch] = useState(filters.search)
+  const [lastSentSearch, setLastSentSearch] = useState(filters.search)
+
+  // Sincronização direta de Props (State from Props, Regra 8.5)
+  if (filters.type !== prevType) {
+    setPrevType(filters.type)
+    setLocalType(filters.type)
+  }
+  if (filters.sort !== prevSort) {
+    setPrevSort(filters.sort)
+    setLocalSort(filters.sort)
+  }
   if (filters.search !== prevSearch) {
     setPrevSearch(filters.search)
-    setSearchValue(filters.search)
+    if (filters.search !== lastSentSearch) {
+      setSearchValue(filters.search)
+      setLastSentSearch(filters.search)
+    }
   }
 
   const updateFilters = useCallback((newFilters: Partial<typeof filters>) => {
-    const params = new URLSearchParams(searchParams.toString())
-
-    const merged = {
-      page: filters.page,
-      size: filters.size,
-      limit: filters.limit,
-      search: filters.search,
-      sort: filters.sort,
-      type: filters.type,
-      ...newFilters,
+    // 1. Atualizar estados locais imediatamente para UI reativa
+    if ('type' in newFilters) {
+      setLocalType(newFilters.type ?? 'all')
+    }
+    if ('sort' in newFilters) {
+      setLocalSort(newFilters.sort ?? 'az')
+    }
+    if ('search' in newFilters) {
+      const newSearchValue = newFilters.search ?? ''
+      setSearchValue(newSearchValue)
+      setLastSentSearch(newSearchValue)
     }
 
-    if (merged.search) params.set('search', merged.search); else params.delete('search')
-    if (merged.sort && merged.sort !== 'az') params.set('sort', merged.sort); else params.delete('sort')
-    if (merged.type && merged.type !== 'all') params.set('type', merged.type); else params.delete('type')
+    // 2. Disparar transição da rota em segundo plano
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString())
 
-    const isPaginationChange = 'page' in newFilters || 'size' in newFilters || 'limit' in newFilters
-    if (!isPaginationChange) {
-      params.delete('page')
-      params.delete('limit')
-    } else {
-      if (merged.page > 0) params.set('page', String(merged.page)); else params.delete('page')
-      if (merged.size !== 10) params.set('size', String(merged.size)); else params.delete('size')
-      if (merged.limit) params.set('limit', String(merged.limit)); else params.delete('limit')
-    }
+      const merged = {
+        page: filters.page,
+        size: filters.size,
+        limit: filters.limit,
+        search: filters.search,
+        sort: filters.sort,
+        type: filters.type,
+        ...newFilters,
+      }
 
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+      if (merged.search) params.set('search', merged.search); else params.delete('search')
+      if (merged.sort && merged.sort !== 'az') params.set('sort', merged.sort); else params.delete('sort')
+      if (merged.type && merged.type !== 'all') params.set('type', merged.type); else params.delete('type')
+
+      const isPaginationChange = 'page' in newFilters || 'size' in newFilters || 'limit' in newFilters
+      if (!isPaginationChange) {
+        params.delete('page')
+        params.delete('limit')
+      } else {
+        if (merged.page > 0) params.set('page', String(merged.page)); else params.delete('page')
+        if (merged.size !== 10) params.set('size', String(merged.size)); else params.delete('size')
+        if (merged.limit) params.set('limit', String(merged.limit)); else params.delete('limit')
+      }
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    })
   }, [searchParams, filters, pathname, router])
 
   useEffect(() => {
@@ -103,6 +140,8 @@ export function CatalogList({
 
   const handleClearFilters = () => {
     setSearchValue('')
+    setLocalType('all')
+    setLocalSort('az')
     updateFilters({
       search: '',
       sort: 'az',
@@ -112,10 +151,10 @@ export function CatalogList({
     })
   }
 
-  // Active chips display calculation
-  const hasTypeFilter = filters.type !== 'all'
-  const hasSortFilter = filters.sort !== 'az'
-  const hasActiveFilters = hasTypeFilter || hasSortFilter || !!filters.search
+  // Active chips display calculation baseados nos estados locais reativos
+  const hasTypeFilter = localType !== 'all'
+  const hasSortFilter = localSort !== 'az'
+  const hasActiveFilters = hasTypeFilter || hasSortFilter || !!searchValue
 
   return (
     <div className="space-y-6">
@@ -148,9 +187,9 @@ export function CatalogList({
           {hasTypeFilter && (
             <div className="inline-flex items-center gap-1 bg-card border border-border px-3 py-1 rounded-full text-foreground font-semibold">
               <span>
-                {filters.type === 'product' && 'Produto'}
-                {filters.type === 'service' && 'Serviço'}
-                {filters.type === 'none' && 'nenhum'}
+                {localType === 'product' && 'Produto'}
+                {localType === 'service' && 'Serviço'}
+                {localType === 'none' && 'nenhum'}
               </span>
               <button
                 onClick={() => updateFilters({ type: 'all' })}
@@ -165,7 +204,7 @@ export function CatalogList({
           {/* Sort Chip */}
           {hasSortFilter && (
             <div className="inline-flex items-center gap-1 bg-card border border-border px-3 py-1 rounded-full text-foreground font-semibold">
-              <span>{sortLabels[filters.sort] || filters.sort}</span>
+              <span>{sortLabels[localSort] || localSort}</span>
               <button
                 onClick={() => updateFilters({ sort: 'az' })}
                 className="hover:text-destructive cursor-pointer"
@@ -186,19 +225,27 @@ export function CatalogList({
         </div>
       )}
 
-      {/* Results counter (compact info) */}
+      {/* Results counter (compact info) com indicador de carregamento pendente */}
       {initialItems && initialItems.length > 0 && (
-        <div className="py-1 px-1 select-none">
+        <div className="py-1 px-1 select-none flex items-center justify-between">
           <span className="text-ds-body-sm text-muted-foreground font-medium">
             {totalItems} {totalItems === 1 ? 'item' : 'itens'}
           </span>
+          {isPending && (
+            <span className="text-xs text-muted-foreground animate-pulse font-medium">
+              Atualizando...
+            </span>
+          )}
         </div>
       )}
 
       {/* 3. Simple Row List & Empty State */}
       {initialItems && initialItems.length > 0 ? (
         <div className="space-y-6">
-          <div className="border border-border rounded-md bg-card divide-y divide-border overflow-hidden select-none">
+          <div className={cn(
+            "border border-border rounded-md bg-card divide-y divide-border overflow-hidden select-none transition-opacity duration-200",
+            isPending && "opacity-60 pointer-events-none"
+          )}>
             {initialItems.map((item) => (
               <div
                 key={item.id}
@@ -265,7 +312,7 @@ export function CatalogList({
       )}
 
       {/* ── MOBILE ACTION: Anchored Button replacing TabBar ───────────────── */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border p-4 flex items-center justify-center pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border p-4 flex items-center justify-center pb-[calc(1rem+env(safe-area-inset-bottom,0))]">
         <CatalogForm
           trigger={
             <Button
@@ -325,8 +372,8 @@ export function CatalogList({
       <CatalogFilterSheet
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
-        currentType={filters.type}
-        currentSort={filters.sort}
+        currentType={localType}
+        currentSort={localSort}
         onApply={(newFilters) => {
           updateFilters({
             type: newFilters.type,

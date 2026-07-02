@@ -1,51 +1,51 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import {
-  useForm,
-  useFieldArray,
-  useWatch,
-  Controller,
-  Resolver,
-} from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { useSubscription } from '@/components/subscription-provider'
-import { saveQuote } from '../actions'
 import { maskCurrency } from '@/lib/masks'
 import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Controller,
+  Resolver,
+  useFieldArray,
+  useForm,
+  useWatch,
+} from 'react-hook-form'
+import { toast } from 'sonner'
+import * as z from 'zod'
+import { saveQuote } from '../actions'
 
+import { BackButton } from '@/components/ui/back-button'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DatePicker } from '@/components/ui/date-picker'
+import { DiscountInput } from '@/components/ui/discount-input'
+import { EntitySelector } from '@/components/ui/entity-selector'
+import { FormError } from '@/components/ui/form-error'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FormError } from '@/components/ui/form-error'
-import { DatePicker } from '@/components/ui/date-picker'
 import { QuantityInput } from '@/components/ui/quantity-input'
-import { DiscountInput } from '@/components/ui/discount-input'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
-import { BackButton } from '@/components/ui/back-button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { EntitySelector } from '@/components/ui/entity-selector'
 
 
-import {
-  Trash2,
-  Plus,
-  Package,
-  Edit2,
-  QrCode,
-  Banknote,
-  CreditCard,
-  Wallet,
-  Barcode,
-  FileSignature,
-  ChevronLeft,
-  PackagePlus,
-  Check,
-} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import {
+  Banknote,
+  Barcode,
+  Check,
+  ChevronLeft,
+  CreditCard,
+  Edit2,
+  FileSignature,
+  Package,
+  PackagePlus,
+  Plus,
+  QrCode,
+  Trash2,
+  Wallet,
+} from 'lucide-react'
 
 
 import {
@@ -58,8 +58,8 @@ import {
 
 import type { Customer } from '@/lib/services/customer-service'
 import type { CatalogItem } from '../../catalog/catalog-form'
-import { CustomerSelector } from './customer-selector'
 import { CatalogForm } from '../../catalog/catalog-form'
+import { CustomerSelector } from './customer-selector'
 
 export interface QuoteWithItems {
   id: string

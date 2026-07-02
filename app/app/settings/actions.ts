@@ -60,9 +60,9 @@ export async function saveCompanySettings(formData: FormData) {
     const removeLogo = formData.get('remove_logo') === 'true'
 
     if (logoFile && logoFile.size > 0) {
-      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp']
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
       if (!validTypes.includes(logoFile.type)) {
-        return { success: false, error: 'Formato de imagem inválido. Use PNG, JPG, WEBP ou SVG.' }
+        return { success: false, error: 'Formato de imagem inválido. Use PNG, JPG ou WEBP.' }
       }
       if (logoFile.size > 2 * 1024 * 1024) {
         return { success: false, error: 'O tamanho da imagem não deve exceder 2MB.' }

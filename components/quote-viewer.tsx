@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { maskPhone } from '@/lib/masks'
+import DOMPurify from 'isomorphic-dompurify'
 
 
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -442,7 +443,7 @@ export function QuoteViewer({ quote, receiptId: initialReceiptId }: QuoteViewerP
                       </h4>
                       <div
                         className="text-ds-body-sm text-muted-foreground leading-ds-relaxed font-medium prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5"
-                        dangerouslySetInnerHTML={{ __html: quote.notes }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(quote.notes) }}
                       />
                     </div>
                   )}

@@ -127,7 +127,7 @@ export function UnitMeasureSelector({
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50 backdrop-blur-xs" />
           <Drawer.Content className="bg-background flex flex-col rounded-t-xl max-h-[85vh] fixed bottom-0 left-0 right-0 z-50 border-t border-border focus:outline-none">
             {/* Header consistente */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border select-none flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border select-none shrink-0">
               <Drawer.Title asChild>
                 <span className="text-ds-body-md font-bold text-foreground font-display">
                   Unidade de Medida
@@ -208,7 +208,7 @@ export function UnitMeasureSelector({
           )}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="w-[var(--anchor-width)]">
+      <SelectContent className="w-(--anchor-width)">
         {UNIT_CATEGORIES.map((group, index) => (
           <React.Fragment key={group.category}>
             {index > 0 && <SelectSeparator />}

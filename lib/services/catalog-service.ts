@@ -47,7 +47,7 @@ export class CatalogService {
       const supabase = await createClient()
       let query = supabase
         .from('catalog_items')
-        .select('*', { count: 'exact' })
+        .select('id, type, name, unit_price, unit_measure, created_at', { count: 'exact' })
         .eq('user_id', userId)
 
       // Filtering by type

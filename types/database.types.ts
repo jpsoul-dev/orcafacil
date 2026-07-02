@@ -12,36 +12,12 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       catalog_items: {
         Row: {
           created_at: string | null
+          description: string | null
           id: string
           name: string
           type: string
@@ -51,6 +27,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           id?: string
           name: string
           type: string
@@ -60,6 +37,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           id?: string
           name?: string
           type?: string
@@ -519,6 +497,21 @@ export type Database = {
           },
         ]
       }
+      stripe_processed_events: {
+        Row: {
+          id: string
+          processed_at: string | null
+        }
+        Insert: {
+          id: string
+          processed_at?: string | null
+        }
+        Update: {
+          id?: string
+          processed_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       vw_quotes: {
@@ -823,9 +816,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

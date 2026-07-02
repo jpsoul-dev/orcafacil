@@ -244,7 +244,7 @@ export default function LoginPage() {
             action={async () => {
               setGoogleLoading(true)
               try {
-                const result = await signInWithGoogle(window.location.origin)
+                const result = await signInWithGoogle()
                 if (result?.error) {
                   toast.error(result.error)
                 }

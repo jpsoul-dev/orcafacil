@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { QuotesList } from './quotes-list'
+import { getQuotesList, getQuotesAllStatuses } from '@/lib/services/quote-service'
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -29,117 +30,44 @@ export default async function QuotesPage({ searchParams }: QuotesPageProps) {
   const to = typeof params.to === 'string' ? params.to : ''
   const sort = typeof params.sort === 'string' ? params.sort : 'newest'
 
-  // 1. Buscamos a contagem total por status de todos os registros do usuário de forma leve
-  const { data: allStatuses } = await supabase
-    .from('quotes')
-    .select('status')
-    .eq('user_id', user.id)
+  const pageNum = parseInt(page, 10) || 0
+  const sizeNum = parseInt(size, 10) || 10
+  const limitNum = parseInt(limit, 10) || 0
 
-  // 2. Se houver busca textual, fazemos uma busca prévia por clientes para obter os IDs correspondentes
-  let matchedCustomerIds: string[] = []
-  if (search) {
-    const { data: customers } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('user_id', user.id)
-      .ilike('name', `%${search}%`)
-    
-    if (customers && customers.length > 0) {
-      matchedCustomerIds = customers.map((c) => c.id)
-    }
-  }
+  // 1. Buscamos todas as marcas de status de forma leve
+  const rawStatuses = await getQuotesAllStatuses(user.id)
 
-  // 3. Montamos a query de orçamentos filtrados e paginados no Supabase
-  let query = supabase
-    .from('vw_quotes')
-    .select(`
-      *,
-      customers ( name ),
-      quote_receipts ( id )
-    `, { count: 'exact' })
-    .eq('user_id', user.id)
-
-  // Filtro de Status
-  if (status !== 'all') {
-    query = query.eq('status', status)
-  }
-
-  // Filtros de Data
-  if (from) {
-    query = query.gte('created_at', `${from}T00:00:00.000Z`)
-  }
-  if (to) {
-    query = query.lte('created_at', `${to}T23:59:59.999Z`)
-  }
-
-  // Filtro de Busca Textual combinado com IDs de clientes encontrados
-  if (search) {
-    const isNumeric = /^\d+$/.test(search)
-    let orConditions = `title.ilike.%${search}%`
-    
-    if (isNumeric) {
-      orConditions += `,quote_number.eq.${search}`
-    }
-    
-    if (matchedCustomerIds.length > 0) {
-      orConditions += `,customer_id.in.(${matchedCustomerIds.map((id) => `"${id}"`).join(',')})`
-    }
-    
-    query = query.or(orConditions)
-  }
-
-  // Ordenação
-  if (sort === 'oldest') {
-    query = query.order('created_at', { ascending: true })
-  } else if (sort === 'highest_value') {
-    query = query.order('total', { ascending: false })
-  } else if (sort === 'lowest_value') {
-    query = query.order('total', { ascending: true })
-  } else {
-    // Padrão: 'newest'
-    query = query.order('created_at', { ascending: false })
-  }
-
-  // Paginação / Limites
-  const pageNum = parseInt(page) || 0
-  const sizeNum = parseInt(size) || 10
-  const limitNum = parseInt(limit) || 0
-
-  let start = pageNum * sizeNum
-  let end = start + sizeNum - 1
-
-  // No mobile, a paginação é acumulativa (Carregar Mais) enviando o limite diretamente
-  if (limitNum > 0) {
-    start = 0
-    end = limitNum - 1
-  }
-
-  query = query.range(start, end)
-
-  const { data: quotes, count, error } = await query
-
-  if (error) {
-    console.error('Error fetching quotes server-side:', error)
-  }
-
-  // Mapeamos os status para simplificar a estrutura enviada
-  const rawStatuses = allStatuses?.map(q => q.status) || []
+  // 2. Buscamos a lista filtrada de orçamentos e contagem total do serviço
+  const { quotes, total } = await getQuotesList({
+    userId: user.id,
+    search,
+    status,
+    from,
+    to,
+    sort,
+    limit: limitNum,
+    page: pageNum,
+    size: sizeNum,
+  })
 
   return (
-    <QuotesList
-      initialQuotes={quotes || []}
-      totalItems={count || 0}
-      allStatuses={rawStatuses}
-      filters={{
-        page: pageNum,
-        size: sizeNum,
-        limit: limitNum,
-        search,
-        status,
-        from,
-        to,
-        sort,
-      }}
-    />
+    <div className="hide-mobile-tabbar pb-20 sm:pb-6">
+      <QuotesList
+        initialQuotes={quotes}
+        totalItems={total}
+        allStatuses={rawStatuses}
+        filters={{
+          page: pageNum,
+          size: sizeNum,
+          limit: limitNum,
+          search,
+          status,
+          from,
+          to,
+          sort,
+        }}
+      />
+    </div>
   )
 }
+

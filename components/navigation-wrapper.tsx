@@ -114,8 +114,8 @@ export function NavigationWrapper({
       </header>
 
       {/* ── CONTEÚDO PRINCIPAL DA PÁGINA ───────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 md:pt-6">
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6 pb-20 md:pb-6 w-full max-w-5xl mx-auto">
+      <main className="flex-1 flex flex-col min-w-0 md:pt-20">
+        <div className="flex flex-1 flex-col gap-4 p-4 md:pl-20 lg:p-6 lg:pl-20 pb-20 md:pb-6 w-full max-w-5xl mx-auto">
           {isTrialing && pathname === "/app" && (
             <div className="w-full mb-4 shrink-0">
               <div className={cn(

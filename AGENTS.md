@@ -111,6 +111,24 @@ Este arquivo contém as classes e tokens CSS corretos para cada componente, pale
   - NUNCA use valores arbitrários (JIT) do Tailwind em colchetes para medidas, como `w-[250px]`, `max-w-[250px]`, `mt-[10px]`, etc. Utilize SEMPRE a escala padrão do Tailwind ou converta os pixels para as unidades correspondentes (ex: 250px = `max-w-62.5`, ou usar as classes nativas de max-width como `max-w-xs`).
   - Antes de criar um novo componente verifique se já não existe um reutilizavel e é possível utiliza-lo
 
+## Design Context (Impeccable)
+
+Este projeto usa o **Impeccable** para alinhar e validar o estilo visual das interfaces. Sempre que for modificar ou criar componentes de tela, consulte os arquivos de especificação de design:
+- [PRODUCT.md](file:///c:/DEV/orcafacil/PRODUCT.md) — Contém o alinhamento estratégico, personas, personalidade de marca e anti-referências.
+- [DESIGN.md](file:///c:/DEV/orcafacil/DESIGN.md) — Define a paleta cromática semântica, tipografia, escala de elevação, sombras e estilo dos componentes base.
+
+### Princípios Visuais:
+1. **Confiança visível em 2 segundos**: Design profissional e limpo que eleva o prestígio da empresa perante o cliente final.
+2. **Status é cidadão de primeira classe**: Badge e cores semânticas idênticas para os 5 estados de orçamento (pendente, aprovado, rejeitado, cancelado, finalizado).
+3. **Dado denso sem peso de ERP**: Interfaces compactas e limpas, inspiradas em Linear, Stripe e Notion.
+4. **Mobile-first de verdade**: Prioridade absoluta no uso em campo e alvos de toque adequados no celular.
+
+### Anti-referências Visuais:
+- **Sem Side-stripe borders**: Não use bordas maiores que 1px em apenas um lado de cards ou badges.
+- **Sem Gradient text**: Use cores sólidas e peso de fonte para ênfase.
+- **Sem Ghost-cards**: Evite borda de 1px associada a sombras suaves amplas (raio >= 16px).
+- **Sem Eyebrows**: Não repita pequenos textos all-caps com tracking acima de títulos por mero capricho estético.
+
 ## Stack Tecnológica
 
 ### Fullstack & Core
@@ -141,5 +159,5 @@ Este arquivo contém as classes e tokens CSS corretos para cada componente, pale
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-[plan.md](file:///c:/DEV/orcafacil/specs/007-catalog-refactor/plan.md)
+[plan.md](file:///c:/DEV/orcafacil/specs/008-quote-list-redesign/plan.md)
 <!-- SPECKIT END -->

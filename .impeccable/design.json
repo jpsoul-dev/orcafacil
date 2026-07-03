@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-03T02:30:00Z",
+  "title": "Design System: OrçaFácil",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Primary Blue", "canonical": "oklch(53% 0.23 259)", "tonalRamp": ["#1136AD", "#1648D6", "#1E5EFF", "#5C87FF", "#B9CFFF", "#DCE7FF", "#EEF3FF", "#F8FAFC"] },
+      "neutral-bg": { "role": "neutral", "displayName": "Off-White", "canonical": "oklch(98% 0.005 240)", "tonalRamp": ["#0A0E16", "#111827", "#1E293B", "#334155", "#475569", "#6B7280", "#94A3B8", "#F8FAFC"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Grandes títulos e valores numéricos em destaque." },
+      "body": { "displayName": "Body", "purpose": "Texto padrão e descrições da aplicação." }
+    },
+    "shadows": [
+      { "name": "shadow-sm", "value": "0 1px 2px 0 rgba(0,0,0,0.05)", "purpose": "Cards e containers padrão em repouso." },
+      { "name": "shadow-md", "value": "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)", "purpose": "Dropdowns, menus e popovers." },
+      { "name": "shadow-lg", "value": "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)", "purpose": "Modais, Sheets e toasts temporários." }
+    ],
+    "motion": [
+      { "name": "motion-fast", "value": "120ms", "purpose": "Transição rápida para hovers e estados de botões." },
+      { "name": "motion-normal", "value": "200ms", "purpose": "Entrada de dropdowns e popovers." },
+      { "name": "motion-slow", "value": "320ms", "purpose": "Transições amplas como modais e Sheets." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Botão principal da tela - no máximo um por contexto.",
+      "html": "<button class=\"ds-btn-primary\">Criar orçamento</button>",
+      "css": ".ds-btn-primary { background-color: #1E5EFF; color: #FFFFFF; font-weight: 500; font-size: 14px; padding: 10px 16px; border: none; border-radius: 12px; transition: background-color 120ms ease; cursor: pointer; } .ds-btn-primary:hover { background-color: #1648D6; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Precision Workbench",
+    "overview": "O design system do OrçaFácil foi concebido para expressar profissionalismo técnico, agilidade e clareza. Inspirado na simplicidade refinada e precisão estética de ferramentas como Linear, Stripe e Notion, o sistema prioriza layouts limpos, tipografia otimizada e foco absoluto no conteúdo de negócio.",
+    "keyCharacteristics": [
+      "Alta Densidade de Informação",
+      "Hierarquia Visual Rigorosa",
+      "Ações Primárias Controladas",
+      "Mobilidade em Campo"
+    ],
+    "rules": [
+      { "name": "The Status Contrast Rule", "body": "Nunca utilize a cor base do status para renderizar texto sobre fundos claros. Sempre utilize o respectivo token de texto -fg em combinação com a respectiva cor de fundo -bg.", "section": "colors" },
+      { "name": "The Letter-Spacing Floor Rule", "body": "Cabeçalhos em display ou headlines nunca devem possuir um letter-spacing menor do que -0.04em.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Superfícies da aplicação são chapadas por padrão no plano de fundo. Sombras só são introduzidas para indicar interatividade e componentes temporários.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do utilizar a escala padrão de espaçamento do design system (4, 8, 12, 16, 24, 32, 48, 64, 96px).",
+      "Do restringir a presença de botões de ação primária a no máximo um por contexto.",
+      "Do aplicar o componente QuoteStatusBadge para qualquer exibição de estado de orçamento."
+    ],
+    "donts": [
+      "Don't aplicar bordas coloridas com espessura maior que 1px nas laterais esquerda ou direita.",
+      "Don't usar degradês em textos ou elementos interativos.",
+      "Don't misturar uma borda de 1px com uma sombra suave maior que 16px."
+    ]
+  }
+}

@@ -1,9 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RefreshCcw, ArrowLeft, WifiOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+
+const subscribe = (callback: () => void) => {
+  window.addEventListener("online", callback);
+  window.addEventListener("offline", callback);
+  return () => {
+    window.removeEventListener("online", callback);
+    window.removeEventListener("offline", callback);
+  };
+};
+
+const getSnapshot = () => navigator.onLine;
+const getServerSnapshot = () => true;
 
 export default function GlobalError({
   error,
@@ -13,25 +25,11 @@ export default function GlobalError({
   reset: () => void;
 }) {
   const router = useRouter();
-  const [isOffline, setIsOffline] = useState(false);
+  const isOnline = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const isOffline = !isOnline;
 
   useEffect(() => {
     console.error("Erro global capturado:", error);
-
-    if (typeof window !== "undefined") {
-      setIsOffline(!navigator.onLine);
-
-      const handleOnline = () => setIsOffline(false);
-      const handleOffline = () => setIsOffline(true);
-
-      window.addEventListener("online", handleOnline);
-      window.addEventListener("offline", handleOffline);
-
-      return () => {
-        window.removeEventListener("online", handleOnline);
-        window.removeEventListener("offline", handleOffline);
-      };
-    }
   }, [error]);
 
   if (isOffline) {
@@ -54,7 +52,6 @@ export default function GlobalError({
           <Button 
             onClick={() => {
               if (navigator.onLine) {
-                setIsOffline(false);
                 reset();
               } else {
                 window.location.reload();

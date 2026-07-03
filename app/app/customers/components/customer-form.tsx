@@ -28,14 +28,36 @@ import { Spinner } from '@/components/ui/spinner'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
+// Imports para o funcionamento em Sheet
+import {
+  SidebarSheet,
+  SidebarSheetContent,
+  SidebarSheetHeader,
+  SidebarSheetBody,
+  SidebarSheetFooter,
+} from '@/components/ui/sidebar-sheet'
+import { SheetTrigger } from '@/components/ui/sheet'
+import { showPillToast } from './pill-toast'
+
+interface CustomerFormProps {
+  initialData?: Customer
+  mode?: 'new' | 'edit'
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  isSheet?: boolean
+  trigger?: React.ReactElement
+}
+
 export function CustomerForm({
   initialData,
   mode = 'new',
-}: {
-  initialData?: Customer
-  mode?: 'new' | 'edit'
-}) {
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  isSheet = false,
+  trigger,
+}: CustomerFormProps) {
   const router = useRouter()
+  const [internalOpen, setInternalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [successStatus, setSuccessStatus] = useState<boolean>(false)
   const [searchingCEP, setSearchingCEP] = useState(false)
@@ -43,13 +65,34 @@ export function CustomerForm({
 
   const { isExpired, openUpgradeModal } = useSubscription()
 
-  // Redireciona caso assinatura esteja expirada
+  const isControlled = controlledOpen !== undefined && controlledOnOpenChange !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen
+
+  const [prevOpen, setPrevOpen] = useState(open)
+  const [prevInitialDataId, setPrevInitialDataId] = useState(initialData?.id)
+
+  if (open !== prevOpen || initialData?.id !== prevInitialDataId) {
+    setPrevOpen(open)
+    setPrevInitialDataId(initialData?.id)
+    setSuccessStatus(false)
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && isExpired) {
+      openUpgradeModal()
+      return
+    }
+    setOpen(newOpen)
+  }
+
+  // Redireciona caso assinatura esteja expirada (apenas para modo de página inteira)
   useEffect(() => {
-    if (isExpired) {
+    if (isExpired && !isSheet) {
       openUpgradeModal()
       router.back()
     }
-  }, [isExpired, openUpgradeModal, router])
+  }, [isExpired, isSheet, openUpgradeModal, router])
 
   const form = useForm<CustomerInput>({
     resolver: zodResolver(customerSchema),
@@ -70,10 +113,35 @@ export function CustomerForm({
     },
   })
 
+  // Sincroniza/reseta formulário quando os dados iniciais mudam ou o Sheet abre
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: initialData?.name || '',
+        document_type: initialData?.document_type ?? 'cpf',
+        document: initialData?.document || '',
+        email: initialData?.email || '',
+        phone: initialData?.phone || '',
+        whatsapp: initialData?.whatsapp || '',
+        address_zip: initialData?.address_zip || '',
+        address_street: initialData?.address_street || '',
+        address_number: initialData?.address_number || '',
+        address_complement: initialData?.address_complement || '',
+        address_neighborhood: initialData?.address_neighborhood || '',
+        address_city: initialData?.address_city || '',
+        address_state: initialData?.address_state || '',
+      })
+    }
+  }, [open, initialData, form])
+
   async function onSubmit(data: CustomerInput) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       triggerHaptic('error')
-      toast.error('Sem conexão com a internet. Não é possível salvar os dados do cliente agora.')
+      if (isSheet) {
+        showPillToast('Sem conexão com a internet. Não é possível salvar o cliente.', 'error')
+      } else {
+        toast.error('Sem conexão com a internet. Não é possível salvar os dados do cliente agora.')
+      }
       return
     }
 
@@ -83,25 +151,34 @@ export function CustomerForm({
       setLoading(false)
       if (result.error) {
         triggerHaptic('error')
-        toast.error(result.error)
+        if (isSheet) {
+          showPillToast(result.error, 'error')
+        } else {
+          toast.error(result.error)
+        }
       } else {
         triggerHaptic('success')
         setSuccessStatus(true)
 
-        setTimeout(() => {
-          const targetId = initialData?.id || result.data?.id
-          if (targetId) {
-            router.push(`/app/customers/${targetId}`)
-          } else {
+        if (isSheet) {
+          showPillToast(initialData ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!', 'success')
+          setOpen(false)
+          if (!initialData) form.reset()
+        } else {
+          setTimeout(() => {
             router.push('/app/customers')
-          }
-        }, 600)
+          }, 600)
+        }
       }
     } catch (err) {
       setLoading(false)
       console.error('Erro ao salvar cliente:', err)
       triggerHaptic('error')
-      toast.error('Erro de conexão. Verifique sua rede e tente novamente.')
+      if (isSheet) {
+        showPillToast('Erro de conexão. Tente novamente.', 'error')
+      } else {
+        toast.error('Erro de conexão. Verifique sua rede e tente novamente.')
+      }
     }
   }
 
@@ -110,7 +187,9 @@ export function CustomerForm({
     const cep = currentCep.replace(/\D/g, '')
 
     if (cep.length !== 8) {
-      if (cep.length > 0) toast.error('Digite um CEP válido')
+      if (cep.length > 0) {
+        if (isSheet) showPillToast('Digite um CEP válido', 'error'); else toast.error('Digite um CEP válido')
+      }
       return
     }
 
@@ -129,10 +208,10 @@ export function CustomerForm({
         form.setValue('address_city', data.localidade)
         form.setValue('address_state', data.uf)
       } else {
-        toast.error('CEP não encontrado')
+        if (isSheet) showPillToast('CEP não encontrado', 'error'); else toast.error('CEP não encontrado')
       }
     } catch (_err) {
-      toast.error('Erro ao buscar CEP')
+      if (isSheet) showPillToast('Erro ao buscar CEP', 'error'); else toast.error('Erro ao buscar CEP')
     } finally {
       setSearchingCEP(false)
     }
@@ -140,6 +219,306 @@ export function CustomerForm({
 
   const pageTitle = mode === 'edit' ? 'Editar cliente' : 'Novo cliente'
 
+  // Render do Form em modo lateral (Sheet)
+  if (isSheet) {
+    return (
+      <SidebarSheet open={open} onOpenChange={handleOpenChange}>
+        {!isControlled && (
+          <SheetTrigger
+            nativeButton={true}
+            render={
+              trigger ? (
+                trigger
+              ) : (
+                <Button
+                  variant="default"
+                  className="gap-2 rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                >
+                  Novo cliente
+                </Button>
+              )
+            }
+          />
+        )}
+
+        <SidebarSheetContent>
+          <SidebarSheetHeader
+            title={mode === 'edit' ? 'Editar Cliente' : 'Novo Cliente'}
+            showCloseButton={true}
+          />
+
+          <SidebarSheetBody className="p-0">
+            <form
+              id="customer-sheet-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="p-6 space-y-6 select-none"
+            >
+              {/* Seção 1: Dados Gerais */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-display">
+                  Dados Gerais
+                </h4>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-name" error={!!form.formState.errors.name}>
+                    Nome <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="sheet-name"
+                    {...form.register('name')}
+                    placeholder="Nome completo ou Razão Social"
+                    className="h-10 font-medium"
+                  />
+                  {form.formState.errors.name && (
+                    <p className="text-xs text-destructive mt-1">
+                      {form.formState.errors.name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-phone" error={!!form.formState.errors.phone}>
+                    Telefone
+                  </Label>
+                  <Controller
+                    name="phone"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        id="sheet-phone"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                        className="h-10 font-medium tabular-nums"
+                        placeholder="(00) 00000-0000"
+                        maxLength={15}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-document" error={!!form.formState.errors.document}>
+                    CPF/CNPJ
+                  </Label>
+                  <Controller
+                    name="document"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        id="sheet-document"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(maskCPFCNPJ(e.target.value))}
+                        placeholder="000.000.000-00"
+                        className="h-10 font-medium tabular-nums"
+                        maxLength={18}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-email" error={!!form.formState.errors.email}>
+                    Email
+                  </Label>
+                  <Input
+                    id="sheet-email"
+                    type="email"
+                    {...form.register('email')}
+                    placeholder="email@cliente.com"
+                    className="h-10 font-medium"
+                  />
+                  {form.formState.errors.email && (
+                    <p className="text-xs text-destructive mt-1">
+                      {form.formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-whatsapp" error={!!form.formState.errors.whatsapp}>
+                    WhatsApp
+                  </Label>
+                  <Controller
+                    name="whatsapp"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        id="sheet-whatsapp"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                        className="h-10 font-medium tabular-nums"
+                        placeholder="(00) 00000-0000"
+                        maxLength={15}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-border/60" />
+
+              {/* Seção 2: Endereço */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-display">
+                  Endereço
+                </h4>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-zip" error={!!form.formState.errors.address_zip}>
+                    CEP
+                  </Label>
+                  <div className="relative">
+                    <Controller
+                      name="address_zip"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Input
+                          id="sheet-zip"
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                          onBlur={handleSearchCEP}
+                          placeholder="00000-000"
+                          className="h-10 font-medium tabular-nums pr-10"
+                          maxLength={9}
+                        />
+                      )}
+                    />
+                    {searchingCEP ? (
+                      <Spinner className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <Search
+                        onClick={handleSearchCEP}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground cursor-pointer hover:text-foreground"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-street" error={!!form.formState.errors.address_street}>
+                    Logradouro
+                  </Label>
+                  <Input
+                    id="sheet-street"
+                    {...form.register('address_street')}
+                    className="h-10 font-medium"
+                    placeholder="Rua, Av., etc."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="sheet-number" error={!!form.formState.errors.address_number}>
+                      Número
+                    </Label>
+                    <Input
+                      id="sheet-number"
+                      {...form.register('address_number')}
+                      placeholder="123"
+                      className="h-10 font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sheet-complement" error={!!form.formState.errors.address_complement}>
+                      Complemento
+                    </Label>
+                    <Input
+                      id="sheet-complement"
+                      {...form.register('address_complement')}
+                      placeholder="Apto, sala, etc."
+                      className="h-10 font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sheet-neighborhood" error={!!form.formState.errors.address_neighborhood}>
+                    Bairro
+                  </Label>
+                  <Input
+                    id="sheet-neighborhood"
+                    {...form.register('address_neighborhood')}
+                    placeholder="Bairro"
+                    className="h-10 font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="sheet-city" error={!!form.formState.errors.address_city}>
+                      Cidade
+                    </Label>
+                    <Input
+                      id="sheet-city"
+                      {...form.register('address_city')}
+                      placeholder="Cidade"
+                      className="h-10 font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sheet-state" error={!!form.formState.errors.address_state}>
+                      Estado
+                    </Label>
+                    <Controller
+                      control={form.control}
+                      name="address_state"
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? undefined}
+                        >
+                          <SelectTrigger className="h-10 font-medium text-foreground">
+                            <SelectValue placeholder="UF" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[
+                              'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+                            ].map((uf) => (
+                              <SelectItem key={uf} value={uf}>
+                                {uf}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            </form>
+          </SidebarSheetBody>
+
+          <SidebarSheetFooter>
+            <Button
+              form="customer-sheet-form"
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-md font-semibold cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Spinner className="h-5 w-5 mr-2" />
+                  Salvando...
+                </>
+              ) : initialData ? (
+                'Salvar Alterações'
+              ) : (
+                'Adicionar Cliente'
+              )}
+            </Button>
+          </SidebarSheetFooter>
+        </SidebarSheetContent>
+      </SidebarSheet>
+    )
+  }
+
+  // Render do Form em modo página inteira tradicional (Legado)
   return (
     <form
       id="customer-form"

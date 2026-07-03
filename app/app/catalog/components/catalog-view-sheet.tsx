@@ -4,11 +4,11 @@ import { formatBRL } from '@/lib/utils'
 import { SubscriptionGuard } from '@/components/subscription-guard'
 import { triggerHaptic } from '@/lib/haptic'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+  SidebarSheet,
+  SidebarSheetContent,
+  SidebarSheetHeader,
+  SidebarSheetBody,
+} from '@/components/ui/sidebar-sheet'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,16 +58,13 @@ export function CatalogViewSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        showCloseButton={false}
-        className="p-0 flex flex-col gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md h-full duration-ds-fast"
-      >
+    <SidebarSheet open={open} onOpenChange={onOpenChange}>
+      <SidebarSheetContent>
         {/* Header com o botão voltar à esquerda, título e ações à direita */}
-        <SheetHeader className="flex flex-row items-center justify-between px-4 py-3 border-b border-border/60 min-h-14">
-          <div className="flex items-center gap-2">
-            {/* Botão Voltar (fecha o sheet com feedback tátil) */}
+        <SidebarSheetHeader
+          title="Visualizar Item"
+          showCloseButton={false}
+          leftAction={
             <Button
               variant="ghost"
               size="icon"
@@ -77,85 +74,85 @@ export function CatalogViewSheet({
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <SheetTitle className="text-base font-bold">Visualizar Item</SheetTitle>
-          </div>
-          
-          <div className="flex items-center gap-1.5 select-none">
-            {/* Desktop Actions */}
-            <div className="hidden sm:flex items-center gap-2">
-              <SubscriptionGuard>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-md font-semibold cursor-pointer"
-                  onClick={handleEditClick}
-                >
-                  <Pencil className="h-3.5 w-3.5 mr-1" />
-                  Editar
-                </Button>
-              </SubscriptionGuard>
-              <SubscriptionGuard>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 rounded-md font-semibold text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer"
-                  onClick={handleDeleteClickLocal}
-                >
-                  <Trash2 className="h-3.5 w-3.5 mr-1" />
-                  Deletar
-                </Button>
-              </SubscriptionGuard>
-            </div>
+          }
+          rightAction={
+            <div className="flex items-center gap-1.5 select-none">
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex items-center gap-2">
+                <SubscriptionGuard>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-md font-semibold cursor-pointer"
+                    onClick={handleEditClick}
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Editar
+                  </Button>
+                </SubscriptionGuard>
+                <SubscriptionGuard>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-md font-semibold text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer"
+                    onClick={handleDeleteClickLocal}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    Deletar
+                  </Button>
+                </SubscriptionGuard>
+              </div>
 
-            {/* Mobile Actions Dropdown (no Header) */}
-            <div className="flex sm:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  nativeButton={true}
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md flex items-center justify-center"
-                      onClick={() => triggerHaptic('light')}
-                    >
-                      <MoreVertical className="h-5 w-5" />
-                      <span className="sr-only">Ações</span>
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-48 p-1.5 rounded-sm border border-border/60 bg-popover text-popover-foreground shadow-md"
-                >
-                  <SubscriptionGuard>
-                    <DropdownMenuItem
-                      onClick={handleEditClick}
-                      className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold rounded-xs py-3 px-4 focus:bg-accent focus:text-accent-foreground"
-                      render={<div />}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      Editar item
-                    </DropdownMenuItem>
-                  </SubscriptionGuard>
-                  <SubscriptionGuard>
-                    <DropdownMenuItem
-                      onClick={handleDeleteClickLocal}
-                      className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold rounded-xs py-3 px-4 text-destructive focus:text-destructive focus:bg-destructive/10"
-                      render={<div />}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Deletar item
-                    </DropdownMenuItem>
-                  </SubscriptionGuard>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Mobile Actions Dropdown (no Header) */}
+              <div className="flex sm:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    nativeButton={true}
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 text-muted-foreground hover:text-foreground cursor-pointer rounded-md flex items-center justify-center"
+                        onClick={() => triggerHaptic('light')}
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                        <span className="sr-only">Ações</span>
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-48 p-1.5 rounded-sm border border-border/60 bg-popover text-popover-foreground shadow-md"
+                  >
+                    <SubscriptionGuard>
+                      <DropdownMenuItem
+                        onClick={handleEditClick}
+                        className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold rounded-xs py-3 px-4 focus:bg-accent focus:text-accent-foreground"
+                        render={<div />}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Editar item
+                      </DropdownMenuItem>
+                    </SubscriptionGuard>
+                    <SubscriptionGuard>
+                      <DropdownMenuItem
+                        onClick={handleDeleteClickLocal}
+                        className="flex items-center gap-2.5 cursor-pointer text-sm font-semibold rounded-xs py-3 px-4 text-destructive focus:text-destructive focus:bg-destructive/10"
+                        render={<div />}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Deletar item
+                      </DropdownMenuItem>
+                    </SubscriptionGuard>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
-        </SheetHeader>
+          }
+        />
 
         {/* Detalhes do item em modo leitura */}
-        <div className="flex-1 overflow-y-auto bg-background p-6 space-y-6">
+        <SidebarSheetBody className="space-y-6">
           {/* Top Section: Name/Badge */}
           <div className="flex flex-col gap-2">
             {/* Nome e Badge de Tipo */}
@@ -206,8 +203,8 @@ export function CatalogViewSheet({
               </div>
             </>
           ) : null}
-        </div>
-      </SheetContent>
-    </Sheet>
+        </SidebarSheetBody>
+      </SidebarSheetContent>
+    </SidebarSheet>
   )
 }

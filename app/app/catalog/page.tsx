@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { BackButton } from '@/components/ui/back-button'
 import { CatalogForm } from './catalog-form'
 import { CatalogList } from './catalog-list'
 import { CatalogService } from '@/lib/services/catalog-service'
@@ -53,7 +54,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     <div className="space-y-6 hide-mobile-tabbar pb-20 sm:pb-6">
       {/* Header da Página - Fixo (Sticky) no desktop, ocultado no mobile */}
       <div className="hidden sm:flex sticky top-0 z-30 bg-background/95 backdrop-blur-xs py-4 border-b border-border/50 items-center justify-between">
-        <div>
+        <div className="flex items-center gap-4">
+          <BackButton />
           <h2 className="text-ds-heading-lg font-bold tracking-tight text-foreground font-display">
             Catálogo
           </h2>

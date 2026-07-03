@@ -9,16 +9,20 @@ import { saveCatalogItem } from './actions'
 import { useSubscription } from '@/components/subscription-provider'
 import { Button } from '@/components/ui/button'
 import { FormError } from '@/components/ui/form-error'
+import { MobileActionBar } from '@/components/ui/mobile-action-bar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Sheet,
-  SheetCloseButton,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import {
+  SidebarSheet,
+  SidebarSheetContent,
+  SidebarSheetHeader,
+  SidebarSheetBody,
+  SidebarSheetFooter,
+} from '@/components/ui/sidebar-sheet'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { UnitMeasureSelector } from '@/components/ui/unit-measure-selector'
@@ -130,7 +134,7 @@ export function CatalogForm({
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
+    <SidebarSheet open={open} onOpenChange={handleOpenChange}>
       {/* Trigger button (only if not controlled by parent) */}
       {!isControlled && (
         <SheetTrigger
@@ -159,18 +163,14 @@ export function CatalogForm({
         />
       )}
 
-      <SheetContent
-        side="right"
-        showCloseButton={false}
-        className="p-0 flex flex-col gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md h-full duration-ds-fast"
-      >
-        <SheetHeader>
-          <SheetTitle>{initialData ? 'Editar Item' : 'Novo Item'}</SheetTitle>
-          <SheetCloseButton />
-        </SheetHeader>
+      <SidebarSheetContent>
+        <SidebarSheetHeader
+          title={initialData ? 'Editar Item' : 'Novo Item'}
+          showCloseButton={true}
+        />
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-background">
+        <SidebarSheetBody className="p-0">
           <form
             id="catalog-form"
             onSubmit={form.handleSubmit(onSubmit)}
@@ -302,15 +302,15 @@ export function CatalogForm({
               <FormError message={form.formState.errors.type?.message} />
             </div>
           </form>
-        </div>
+        </SidebarSheetBody>
 
         {/* Footer fixo */}
-        <div className="shrink-0 border-t border-border bg-card p-6">
+        <SidebarSheetFooter>
           <Button
             form="catalog-form"
             type="submit"
             disabled={loading}
-            className="w-full rounded-md font-semibold transition-all duration-ds-fast hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+            className="w-full rounded-md font-semibold cursor-pointer"
           >
             {loading ? (
               <>
@@ -323,8 +323,8 @@ export function CatalogForm({
               'Adicionar ao Catálogo'
             )}
           </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
+        </SidebarSheetFooter>
+      </SidebarSheetContent>
+    </SidebarSheet>
   )
 }

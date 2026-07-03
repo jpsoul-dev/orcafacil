@@ -2,11 +2,13 @@
 
 import { ResponsivePagination } from '@/components/responsive-pagination'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn, formatBRL } from '@/lib/utils'
-import { ChevronRight, Package, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ListContainer } from '@/components/ui/list-container'
+import { MobileActionBar } from '@/components/ui/mobile-action-bar'
+import { SearchInput } from '@/components/ui/search-input'
+import { formatBRL } from '@/lib/utils'
+import { ChevronRight, Package, Plus, SlidersHorizontal, X } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState, useTransition } from 'react'
+import { useCallback, useState, useTransition } from 'react'
 import type { CatalogItem } from './catalog-form'
 import { CatalogForm } from './catalog-form'
 import { CatalogFilterSheet } from './components/catalog-filter-sheet'
@@ -16,8 +18,8 @@ import { DeleteItemDialog } from './delete-item-dialog'
 const sortLabels: Record<string, string> = {
   az: 'A–Z',
   za: 'Z–A',
-  price_asc: 'Menor preço',
-  price_desc: 'Maior preço',
+  price_asc: 'Menor valor',
+  price_desc: 'Maior valor',
   newest: 'Mais recentes',
   oldest: 'Mais antigos',
 }
@@ -59,12 +61,10 @@ export function CatalogList({
   // Estados locais para feedback de UI imediato
   const [localType, setLocalType] = useState(filters.type)
   const [localSort, setLocalSort] = useState(filters.sort)
-  const [searchValue, setSearchValue] = useState(filters.search)
 
   const [prevType, setPrevType] = useState(filters.type)
   const [prevSort, setPrevSort] = useState(filters.sort)
   const [prevSearch, setPrevSearch] = useState(filters.search)
-  const [lastSentSearch, setLastSentSearch] = useState(filters.search)
 
   // Sincronização direta de Props (State from Props, Regra 8.5)
   if (filters.type !== prevType) {
@@ -77,10 +77,6 @@ export function CatalogList({
   }
   if (filters.search !== prevSearch) {
     setPrevSearch(filters.search)
-    if (filters.search !== lastSentSearch) {
-      setSearchValue(filters.search)
-      setLastSentSearch(filters.search)
-    }
   }
 
   const updateFilters = useCallback((newFilters: Partial<typeof filters>) => {
@@ -91,11 +87,7 @@ export function CatalogList({
     if ('sort' in newFilters) {
       setLocalSort(newFilters.sort ?? 'az')
     }
-    if ('search' in newFilters) {
-      const newSearchValue = newFilters.search ?? ''
-      setSearchValue(newSearchValue)
-      setLastSentSearch(newSearchValue)
-    }
+
 
     // 2. Disparar transição da rota em segundo plano
     startTransition(() => {
@@ -129,17 +121,9 @@ export function CatalogList({
     })
   }, [searchParams, filters, pathname, router])
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (searchValue !== filters.search) {
-        updateFilters({ search: searchValue })
-      }
-    }, 400)
-    return () => clearTimeout(handler)
-  }, [searchValue, filters.search, updateFilters])
+
 
   const handleClearFilters = () => {
-    setSearchValue('')
     setLocalType('all')
     setLocalSort('az')
     updateFilters({
@@ -154,29 +138,25 @@ export function CatalogList({
   // Active chips display calculation baseados nos estados locais reativos
   const hasTypeFilter = localType !== 'all'
   const hasSortFilter = localSort !== 'az'
-  const hasActiveFilters = hasTypeFilter || hasSortFilter || !!searchValue
+  const hasActiveFilters = hasTypeFilter || hasSortFilter || !!filters.search
 
   return (
     <div className="space-y-6">
       {/* 1. Search Bar & Filter Button (Same Row, Card Container Removed) */}
       <div className="flex items-center gap-3 w-full select-none">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome do item..."
-            className="pl-9"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            autoComplete="off"
-          />
-        </div>
+        <SearchInput
+          value={filters.search}
+          onChange={(value) => updateFilters({ search: value })}
+          placeholder="Buscar por nome do item..."
+        />
         <Button
           variant="outline"
-          className="h-10 px-4 rounded-md font-semibold shrink-0 cursor-pointer"
+          className="h-10 w-10 sm:w-auto sm:px-4 rounded-md font-semibold shrink-0 cursor-pointer flex items-center justify-center"
           onClick={() => setIsFilterOpen(true)}
+          aria-label="Filtros"
         >
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
-          Filtros
+          <SlidersHorizontal className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Filtros</span>
         </Button>
       </div>
 
@@ -242,10 +222,7 @@ export function CatalogList({
       {/* 3. Simple Row List & Empty State */}
       {initialItems && initialItems.length > 0 ? (
         <div className="space-y-6">
-          <div className={cn(
-            "border border-border rounded-md bg-card divide-y divide-border overflow-hidden select-none transition-opacity duration-200",
-            isPending && "opacity-60 pointer-events-none"
-          )}>
+          <ListContainer isPending={isPending}>
             {initialItems.map((item) => (
               <div
                 key={item.id}
@@ -270,7 +247,7 @@ export function CatalogList({
                 </div>
               </div>
             ))}
-          </div>
+          </ListContainer>
 
           <ResponsivePagination
             pageIndex={filters.page}
@@ -312,7 +289,7 @@ export function CatalogList({
       )}
 
       {/* ── MOBILE ACTION: Anchored Button replacing TabBar ───────────────── */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border p-4 flex items-center justify-center pb-[calc(1rem+env(safe-area-inset-bottom,0))]">
+      <MobileActionBar>
         <CatalogForm
           trigger={
             <Button
@@ -323,7 +300,7 @@ export function CatalogList({
             </Button>
           }
         />
-      </div>
+      </MobileActionBar>
 
       {/* ── SHEET: Detail View ────────────────────────────────────────────── */}
       <CatalogViewSheet

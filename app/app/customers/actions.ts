@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CustomerService, CustomerInput, customerSchema } from '@/lib/services/customer-service'
-import type { CustomerServiceResult } from '@/lib/services/customer-service'
+import type { CustomerServiceResult, CustomerQuote, CustomerReceipt } from '@/lib/services/customer-service'
 
 export async function saveCustomer(data: CustomerInput, id?: string) {
   try {
@@ -30,7 +30,6 @@ export async function saveCustomer(data: CustomerInput, id?: string) {
     }
 
     revalidatePath('/app/customers')
-    if (id) revalidatePath(`/app/customers/${id}`)
     
     return { success: true, data: result.data }
   } catch (error) {
@@ -64,7 +63,6 @@ export async function deleteCustomer(id: string) {
     }
 
     revalidatePath('/app/customers')
-    revalidatePath(`/app/customers/${id}`)
     
     return { success: true }
   } catch (error) {
@@ -93,3 +91,54 @@ export async function checkCustomerRelations(customerId: string): Promise<Custom
     return { success: false as const, error: 'Erro ao verificar dependências do cliente.' }
   }
 }
+
+export async function getCustomerQuotesAction(customerId: string): Promise<CustomerServiceResult<CustomerQuote[]>> {
+  try {
+    if (!customerId || typeof customerId !== 'string') {
+      return { success: false, error: 'ID do cliente inválido' }
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    return await CustomerService.getCustomerQuotes(customerId, user.id)
+  } catch (error) {
+    console.error('Error in getCustomerQuotesAction:', error)
+    return {
+      success: false as const,
+      error: 'Ocorreu um erro inesperado ao carregar os orçamentos.',
+    }
+  }
+}
+
+export async function getCustomerReceiptsAction(customerId: string): Promise<CustomerServiceResult<CustomerReceipt[]>> {
+  try {
+    if (!customerId || typeof customerId !== 'string') {
+      return { success: false, error: 'ID do cliente inválido' }
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Usuário não autenticado' }
+    }
+
+    return await CustomerService.getCustomerReceipts(customerId, user.id)
+  } catch (error) {
+    console.error('Error in getCustomerReceiptsAction:', error)
+    return {
+      success: false as const,
+      error: 'Ocorreu um erro inesperado ao carregar os recibos.',
+    }
+  }
+}
+

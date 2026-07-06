@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { SettingsForm } from './settings-form'
+import { PreferencesForm } from './preferences-form'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -21,12 +21,12 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Configurações</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Preferências</h2>
         <p className="text-muted-foreground text-sm">
-          Gerencie sua conta e configurações do sistema.
+          Gerencie suas preferências de uso do sistema.
         </p>
       </div>
-      <SettingsForm initialData={company} />
+      <PreferencesForm initialData={company} />
     </div>
   )
 }

@@ -145,6 +145,7 @@ export async function saveCompanySettings(formData: FormData) {
     }
 
     revalidatePath('/app/settings')
+    revalidatePath('/app/business')
     return { success: true }
   } catch (error) {
     logger.error('Error in saveCompanySettings:', error)

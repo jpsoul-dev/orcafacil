@@ -18,7 +18,8 @@ const routeMap: Record<string, string> = {
   '/app/quotes/new': 'Novo Orçamento',
   '/app/customers': 'Clientes',
   '/app/catalog': 'Catálogo',
-  '/app/settings': 'Configurações',
+  '/app/business': 'Meu Negócio',
+  '/app/settings': 'Preferências',
 }
 
 export function AppBreadcrumb() {

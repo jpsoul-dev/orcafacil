@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FileText, Users, Package, Receipt, ArrowRight, Plus, BarChart3 } from 'lucide-react'
-import { QuoteStatusBadge } from '@/components/quote-status-badge'
+import { ListContainer } from '@/components/ui/list-container'
+import { QuoteItem } from './quotes/components/quote-item'
+import type { Quote } from '@/types'
 import { SubscriptionGuard } from '@/components/subscription-guard'
 import { reconcileStripeCheckout } from '@/lib/services/stripe-service'
 
@@ -72,7 +74,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     'Usuário'
   const firstName = userName.split(' ')[0]
 
-  const recentQuotes = quotesData || []
+  const recentQuotes = (quotesData || []) as unknown as Quote[]
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -155,8 +157,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       </div>
 
       {/* ── SEÇÃO DE ORÇAMENTOS RECENTES ───────────────────────────────────── */}
-      <div className="bg-card border border-border rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <h2 className="text-ds-heading-xs font-bold text-foreground">Orçamentos recentes</h2>
           {recentQuotes.length > 0 && (
             <Link
@@ -169,58 +171,15 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </div>
 
         {recentQuotes.length > 0 ? (
-          <div className="space-y-2">
-            {recentQuotes.map((quote) => {
-              const customersData = quote.customers as unknown
-              let customerName = 'Cliente não identificado'
-
-              if (customersData && typeof customersData === 'object') {
-                if ('name' in customersData && typeof (customersData as { name: unknown }).name === 'string') {
-                  customerName = (customersData as { name: string }).name
-                } else if (Array.isArray(customersData) && customersData.length > 0) {
-                  const firstCustomer = customersData[0] as unknown
-                  if (firstCustomer && typeof firstCustomer === 'object' && 'name' in firstCustomer && typeof (firstCustomer as { name: unknown }).name === 'string') {
-                    customerName = (firstCustomer as { name: string }).name
-                  }
-                }
-              }
-
-              return (
-                <Link
-                  key={quote.id}
-                  href={`/app/quotes/${quote.id}`}
-                  className="flex items-center justify-between p-3 hover:bg-muted/40 transition-all duration-ds-fast rounded-lg group/item border border-transparent hover:border-border/30"
-                >
-                  {/* Left: Icon + Info */}
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="flex items-center justify-center size-10 rounded-lg bg-muted text-muted-foreground shrink-0 group-hover/item:bg-primary/10 group-hover/item:text-primary transition-colors duration-ds-fast">
-                      <FileText className="size-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-ds-body-md font-bold text-foreground truncate group-hover/item:text-primary transition-colors duration-ds-fast">
-                        {customerName}
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        #{quote.quote_number || '---'} • {quote.title || 'Sem título'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right: Value + Status Badge */}
-                  <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-ds-body-md font-semibold text-foreground">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(quote.total || 0)}
-                    </span>
-                    <QuoteStatusBadge status={quote.status || 'draft'} />
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+          <ListContainer>
+            {recentQuotes.map((quote) => (
+              <QuoteItem key={quote.id} quote={quote} />
+            ))}
+          </ListContainer>
         ) : (
-          <div className="flex flex-col items-center justify-center py-10 text-center select-none">
-            <div className="flex items-center justify-center size-12 rounded-full bg-muted text-muted-foreground mb-4">
-              <FileText className="size-6" />
+          <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-card py-20 text-center shadow-sm select-none">
+            <div className="flex h-16 w-16 items-center justify-center rounded-md bg-muted mb-4">
+              <FileText className="size-6 text-muted-foreground" />
             </div>
             <h3 className="text-ds-body-lg font-bold text-foreground">Nenhum orçamento recente</h3>
             <p className="text-ds-body-sm text-muted-foreground max-w-sm mt-1 mb-6">

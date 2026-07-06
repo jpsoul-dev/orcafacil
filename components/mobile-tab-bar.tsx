@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, FileText, Receipt, Menu, Users, Package, Settings, LogOut, ChevronRight } from "lucide-react"
+import { LayoutDashboard, FileText, Receipt, Menu, Users, Package, Settings, LogOut, ChevronRight, Building2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "@/components/ui/sheet"
@@ -66,7 +66,12 @@ export function MobileTabBar({ user }: MobileTabBarProps) {
       icon: Package,
     },
     {
-      title: "Configurações",
+      title: "Meu Negócio",
+      url: "/app/business",
+      icon: Building2,
+    },
+    {
+      title: "Preferências",
       url: "/app/settings",
       icon: Settings,
     },

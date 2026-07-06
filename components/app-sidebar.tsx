@@ -1,6 +1,6 @@
 "use client"
 
-import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, ShieldCheck, Receipt } from "lucide-react"
+import { LayoutDashboard, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, ShieldCheck, Receipt, Building2 } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -43,7 +43,8 @@ const mainItems = [
 ]
 
 const configItems = [
-  { title: "Configurações", url: "/app/settings", icon: Settings },
+  { title: "Meu Negócio", url: "/app/business", icon: Building2 },
+  { title: "Preferências", url: "/app/settings", icon: Settings },
 ]
 
 function isActive(pathname: string, url: string, exact?: boolean) {

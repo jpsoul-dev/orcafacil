@@ -31,6 +31,7 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/app/receipts")) return "Recibos"
   if (pathname.startsWith("/app/customers")) return "Clientes"
   if (pathname.startsWith("/app/catalog")) return "Catálogo"
+  if (pathname.startsWith("/app/business")) return "Meu Negócio"
   if (pathname.startsWith("/app/settings")) return "Preferências"
   if (pathname.startsWith("/app/admin")) return "Administração"
   return "Painel"

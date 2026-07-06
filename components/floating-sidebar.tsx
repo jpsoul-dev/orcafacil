@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, ShieldCheck, Receipt, X } from "lucide-react"
+import { Home, Users, Package, FileText, Settings, LogOut, ChevronRight, Zap, ShieldCheck, Receipt, X, Building2 } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -143,6 +143,21 @@ export function FloatingSidebar({
             )}
 
             <Separator className="bg-border my-3 shrink-0" />
+
+            {/* Meu Negócio */}
+            <Link
+              href="/app/business"
+              onClick={() => onOpenChange(false)}
+              className={cn(
+                "flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-ds-body-md font-medium transition-colors select-none cursor-pointer",
+                pathname.startsWith('/app/business')
+                  ? "bg-primary/10 text-primary font-semibold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              )}
+            >
+              <Building2 className={cn("h-4 w-4 shrink-0", pathname.startsWith('/app/business') ? "text-primary stroke-[2.5]" : "text-muted-foreground")} />
+              <span className="flex-1">Meu Negócio</span>
+            </Link>
 
             {/* Preferências */}
             <Link

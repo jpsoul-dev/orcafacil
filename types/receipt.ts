@@ -49,3 +49,21 @@ export interface ReceiptQuote {
   customer: ReceiptCustomer
   items?: ReceiptQuoteItem[]
 }
+
+export interface ReceiptRow {
+  id: string
+  user_id: string
+  receipt_number: string
+  title: string
+  amount: number
+  payment_method: string
+  services_description: string | null
+  issued_at: string
+  quote_id: string | null
+  quote_number: number | null
+  customer_id: string | null
+  customer_name: string
+  receipt_type: 'standalone' | 'quote'
+  created_at: string
+}
+

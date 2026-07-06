@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { ReceiptInput, StandaloneReceiptInput } from '@/app/app/quotes/schemas'
-import { Receipt, ReceiptQuote, ReceiptQuoteItem } from '@/types/receipt'
+import { Receipt, ReceiptQuote, ReceiptQuoteItem, ReceiptRow } from '@/types/receipt'
 
 export async function getReceiptByQuoteId(quoteId: string) {
   try {
@@ -388,3 +388,127 @@ export async function getReceiptDetails(
     return null
   }
 }
+
+export interface GetReceiptsParams {
+  userId: string
+  search?: string
+  receiptType?: string
+  from?: string
+  to?: string
+  sort?: string
+  limit?: number
+  page?: number
+  size?: number
+}
+
+export async function getReceiptsList(params: GetReceiptsParams): Promise<{ receipts: ReceiptRow[]; total: number }> {
+  try {
+    const supabase = await createClient()
+    const { userId, search, receiptType, from, to, sort, limit = 0, page = 0, size = 10 } = params
+
+    let query = supabase
+      .from('vw_receipts')
+      .select('*', { count: 'exact' })
+      .eq('user_id', userId)
+
+    // Filtro de Tipo de Recibo (standalone | quote)
+    if (receiptType && receiptType !== 'all') {
+      const types = receiptType.split(',').map((t) => t.trim()).filter(Boolean)
+      if (types.length > 0) {
+        query = query.in('receipt_type', types)
+      }
+    }
+
+    // Filtros de Data de Emissão (issued_at)
+    if (from) {
+      query = query.gte('issued_at', from)
+    }
+    if (to) {
+      query = query.lte('issued_at', to)
+    }
+
+    // Busca Textual
+    if (search) {
+      const isNumeric = /^\d+$/.test(search)
+      let orConditions = `title.ilike.%${search}%,receipt_number.ilike.%${search}%,customer_name.ilike.%${search}%`
+
+      if (isNumeric) {
+        orConditions += `,quote_number.eq.${search}`
+      }
+
+      query = query.or(orConditions)
+    }
+
+    // Ordenação
+    if (sort === 'oldest') {
+      query = query.order('issued_at', { ascending: true }).order('created_at', { ascending: true })
+    } else if (sort === 'highest_value') {
+      query = query.order('amount', { ascending: false })
+    } else if (sort === 'lowest_value') {
+      query = query.order('amount', { ascending: true })
+    } else {
+      // Padrão: newest
+      query = query.order('issued_at', { ascending: false }).order('created_at', { ascending: false })
+    }
+
+    // Paginação
+    let start = page * size
+    let end = start + size - 1
+
+    if (limit > 0) {
+      start = 0
+      end = limit - 1
+    }
+
+    query = query.range(start, end)
+
+    const { data: receipts, count, error } = await query
+
+    if (error) {
+      logger.error('getReceiptsList: Error executing supabase query:', error)
+      throw error
+    }
+
+    return {
+      receipts: (receipts as ReceiptRow[]) || [],
+      total: count || 0,
+    }
+  } catch (error) {
+    logger.error('getReceiptsList: Critical error in getReceiptsList service:', error)
+    return { receipts: [], total: 0 }
+  }
+}
+
+export async function getReceiptsTypesCount(userId: string): Promise<Record<string, number>> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('vw_receipts')
+      .select('receipt_type')
+      .eq('user_id', userId)
+
+    if (error) {
+      logger.error('getReceiptsTypesCount: Error fetching receipts for count:', error)
+      throw error
+    }
+
+    const counts = {
+      all: data?.length || 0,
+      standalone: 0,
+      quote: 0,
+    }
+
+    data?.forEach((r) => {
+      const type = r.receipt_type
+      if (type === 'standalone' || type === 'quote') {
+        counts[type as keyof typeof counts]++
+      }
+    })
+
+    return counts
+  } catch (error) {
+    logger.error('getReceiptsTypesCount: Critical error in getReceiptsTypesCount service:', error)
+    return { all: 0, standalone: 0, quote: 0 }
+  }
+}
+

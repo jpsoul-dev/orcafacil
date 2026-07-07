@@ -159,5 +159,5 @@ Este projeto usa o **Impeccable** para alinhar e validar o estilo visual das int
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-[plan.md](file:///c:/DEV/orcafacil/specs/008-quote-list-redesign/plan.md)
+[plan.md](file:///c:/DEV/orcafacil/specs/009-improve-budget-form/plan.md)
 <!-- SPECKIT END -->

@@ -17,8 +17,6 @@ export const quoteItemSchema = z.object({
   unit_price: z.coerce.number().min(0),
   subtotal: z.coerce.number(),
   unit_measure: z.string().optional().nullable(),
-  discount_type: z.enum(['percentage', 'fixed', 'none']).optional().nullable().default('none'),
-  discount_value: z.coerce.number().optional().nullable().default(0),
 })
 
 export const quoteSchema = z.object({

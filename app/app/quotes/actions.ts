@@ -49,6 +49,12 @@ export async function saveQuote(data: QuoteInput) {
       }
     }
 
+    const itemsWithDefaultDiscount = items.map(item => ({
+      ...item,
+      discount_type: 'none',
+      discount_value: 0
+    }))
+
     // Chamada atômica via RPC para garantir transacionalidade
     const { data: result, error: rpcError } = await supabase.rpc('upsert_quote_with_items', {
       p_quote_id: id || null,
@@ -61,7 +67,7 @@ export async function saveQuote(data: QuoteInput) {
       p_discount_type: quoteData.discount_type || 'none',
       p_discount_value: quoteData.discount_value || 0,
       p_notes: quoteData.notes || null,
-      p_items: items,
+      p_items: itemsWithDefaultDiscount,
       p_user_id: user.id,
       p_payment_method: quoteData.payment_method || null,
       p_show_quote_number: quoteData.show_quote_number ?? true
